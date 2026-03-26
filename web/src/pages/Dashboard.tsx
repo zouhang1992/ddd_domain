@@ -31,11 +31,11 @@ const Dashboard: React.FC = () => {
         billApi.list(),
       ]);
       setStats({
-        locations: locations?.length || 0,
-        rooms: rooms?.length || 0,
-        landlords: landlords?.length || 0,
-        leases: leases?.length || 0,
-        bills: bills?.length || 0,
+        locations: locations?.total || 0,
+        rooms: rooms?.total || 0,
+        landlords: landlords?.total || 0,
+        leases: leases?.total || 0,
+        bills: bills?.total || 0,
       });
     } catch (err) {
       setError('获取统计数据失败');

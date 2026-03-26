@@ -13,5 +13,20 @@ type BillRepository interface {
 	FindByLeaseID(leaseID string) ([]*model.Bill, error)
 	FindByRoomID(roomID string) ([]*model.Bill, error)
 	FindByMonth(year int, month time.Month) ([]*model.Bill, error)
+	FindByCriteria(criteria BillCriteria, offset, limit int) ([]*model.Bill, error)
+	CountByCriteria(criteria BillCriteria) (int, error)
 	Delete(id string) error
+}
+
+// BillCriteria 账单查询条件
+type BillCriteria struct {
+	Type        string
+	Status      string
+	LeaseID     string
+	RoomID      string
+	Month       string
+	MinAmount   int64
+	MaxAmount   int64
+	StartDate   *time.Time
+	EndDate     *time.Time
 }

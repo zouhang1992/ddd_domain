@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, message, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { landlordApi } from '../api/landlord';
+import { Table, Button, Modal, Form, Input, message, Popconfirm, Pagination } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, HistoryOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
+import { landlordApi, type LandlordQueryParams, type LandlordsQueryResult } from '../api/landlord';
 import type { Landlord } from '../types/api';
+import OperationLogModal from '../components/OperationLogModal';
 
 const Landlords: React.FC = () => {
   const [landlords, setLandlords] = useState<Landlord[]>([]);
@@ -10,12 +11,24 @@ const Landlords: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingLandlord, setEditingLandlord] = useState<Landlord | null>(null);
   const [form] = Form.useForm();
+  const [operationLogVisible, setOperationLogVisible] = useState(false);
+  const [currentLandlord, setCurrentLandlord] = useState<Landlord | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [queryForm] = Form.useForm();
 
-  const fetchLandlords = async () => {
+  const fetchLandlords = async (params?: LandlordQueryParams) => {
     setLoading(true);
     try {
-      const data = await landlordApi.list();
-      setLandlords(data);
+      const queryParams = {
+        ...params,
+        offset: (page - 1) * pageSize,
+        limit: pageSize,
+      };
+      const data: LandlordsQueryResult = await landlordApi.list(queryParams);
+      setLandlords(data.items);
+      setTotal(data.total);
     } catch (error) {
       message.error('获取房东列表失败');
     } finally {
@@ -25,7 +38,24 @@ const Landlords: React.FC = () => {
 
   useEffect(() => {
     fetchLandlords();
-  }, []);
+  }, [page, pageSize]);
+
+  const handleQuery = async () => {
+    const values = await queryForm.validateFields();
+    setPage(1);
+    fetchLandlords(values);
+  };
+
+  const handleReset = () => {
+    queryForm.resetFields();
+    setPage(1);
+    fetchLandlords();
+  };
+
+  const handlePageChange = (pageNum: number, pageSizeNum: number) => {
+    setPage(pageNum);
+    setPageSize(pageSizeNum);
+  };
 
   const handleCreate = () => {
     setEditingLandlord(null);
@@ -66,6 +96,11 @@ const Landlords: React.FC = () => {
     }
   };
 
+  const handleViewOperationLogs = (landlord: Landlord) => {
+    setCurrentLandlord(landlord);
+    setOperationLogVisible(true);
+  };
+
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id' },
     { title: '姓名', dataIndex: 'name', key: 'name' },
@@ -79,6 +114,13 @@ const Landlords: React.FC = () => {
         <div>
           <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ marginRight: 8 }}>
             编辑
+          </Button>
+          <Button
+            icon={<HistoryOutlined />}
+            onClick={() => handleViewOperationLogs(record)}
+            style={{ marginRight: 8 }}
+          >
+            操作日志
           </Button>
           <Popconfirm
             title="确定删除?"
@@ -104,12 +146,46 @@ const Landlords: React.FC = () => {
         </Button>
       </div>
 
+      {/* 查询表单 */}
+      <Form form={queryForm} layout="inline" style={{ marginBottom: 16 }}>
+        <Form.Item name="name" label="姓名">
+          <Input placeholder="请输入姓名" style={{ width: 150 }} />
+        </Form.Item>
+        <Form.Item name="phone" label="电话">
+          <Input placeholder="请输入电话" style={{ width: 150 }} />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" icon={<SearchOutlined />} onClick={handleQuery} loading={loading}>
+            查询
+          </Button>
+        </Form.Item>
+        <Form.Item>
+          <Button icon={<ReloadOutlined />} onClick={handleReset} loading={loading}>
+            重置
+          </Button>
+        </Form.Item>
+      </Form>
+
       <Table
         columns={columns}
         dataSource={landlords}
         rowKey="id"
         loading={loading}
+        pagination={false}
+        scroll={{ x: 600 }}
       />
+
+      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+        <Pagination
+          current={page}
+          pageSize={pageSize}
+          total={total}
+          onChange={handlePageChange}
+          showSizeChanger
+          showQuickJumper
+          showTotal={(total) => `共 ${total} 条记录`}
+        />
+      </div>
 
       <Modal
         title={editingLandlord ? '编辑房东' : '新增房东'}
@@ -140,6 +216,14 @@ const Landlords: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <OperationLogModal
+        visible={operationLogVisible}
+        aggregateId={currentLandlord?.id || ''}
+        domainType="landlord"
+        title={`房东操作日志 - ${currentLandlord?.name || ''}`}
+        onCancel={() => setOperationLogVisible(false)}
+      />
     </div>
   );
 };

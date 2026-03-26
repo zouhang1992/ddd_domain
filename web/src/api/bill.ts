@@ -1,13 +1,43 @@
 import apiClient from './request';
 import type { Bill } from '../types/api';
 
+export interface BillsQueryResult {
+  items: Bill[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface BillQueryParams {
+  type?: string;
+  status?: string;
+  leaseId?: string;
+  roomId?: string;
+  month?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  startDate?: string;
+  endDate?: string;
+  offset?: number;
+  limit?: number;
+}
+
 export const billApi = {
-  list: async (leaseId?: string, roomId?: string, month?: string) => {
-    const params: any = {};
-    if (leaseId) params.lease_id = leaseId;
-    if (roomId) params.room_id = roomId;
-    if (month) params.month = month;
-    const response = await apiClient.get<Bill[]>('/bills', { params });
+  list: async (params?: BillQueryParams) => {
+    const queryParams: any = {};
+    if (params?.type) queryParams.type = params.type;
+    if (params?.status) queryParams.status = params.status;
+    if (params?.leaseId) queryParams.lease_id = params.leaseId;
+    if (params?.roomId) queryParams.room_id = params.roomId;
+    if (params?.month) queryParams.month = params.month;
+    if (params?.minAmount !== undefined) queryParams.min_amount = params.minAmount;
+    if (params?.maxAmount !== undefined) queryParams.max_amount = params.maxAmount;
+    if (params?.startDate) queryParams.start_date = params.startDate;
+    if (params?.endDate) queryParams.end_date = params.endDate;
+    if (params?.offset !== undefined) queryParams.offset = params.offset;
+    if (params?.limit !== undefined) queryParams.limit = params.limit;
+
+    const response = await apiClient.get<BillsQueryResult>('/bills', { params: queryParams });
     return response.data;
   },
 

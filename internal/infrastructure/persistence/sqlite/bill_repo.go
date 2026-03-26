@@ -235,3 +235,164 @@ func (r *BillRepository) Delete(id string) error {
 	_, err := r.conn.DB().Exec("DELETE FROM bills WHERE id = ?", id)
 	return err
 }
+
+// FindByCriteria 按条件查找账单
+func (r *BillRepository) FindByCriteria(criteria repository.BillCriteria, offset, limit int) ([]*model.Bill, error) {
+	query := `
+		SELECT DISTINCT b.id, b.lease_id, b.type, b.status, b.amount, b.rent_amount, b.water_amount,
+			b.electric_amount, b.other_amount, b.paid_at, b.note, b.created_at, b.updated_at
+		FROM bills b
+	`
+	var args []interface{}
+	whereClauses := []string{"1 = 1"}
+
+	if criteria.RoomID != "" {
+		query += " LEFT JOIN leases l ON b.lease_id = l.id"
+		whereClauses = append(whereClauses, "l.room_id = ?")
+		args = append(args, criteria.RoomID)
+	}
+	if criteria.Type != "" {
+		whereClauses = append(whereClauses, "b.type = ?")
+		args = append(args, criteria.Type)
+	}
+	if criteria.Status != "" {
+		whereClauses = append(whereClauses, "b.status = ?")
+		args = append(args, criteria.Status)
+	}
+	if criteria.LeaseID != "" {
+		whereClauses = append(whereClauses, "b.lease_id = ?")
+		args = append(args, criteria.LeaseID)
+	}
+	if criteria.Month != "" {
+		if t, err := time.Parse("2006-01", criteria.Month); err == nil {
+			startDate := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
+			endDate := startDate.AddDate(0, 1, 0)
+			whereClauses = append(whereClauses, "b.paid_at >= ? AND b.paid_at < ?")
+			args = append(args, startDate, endDate)
+		}
+	}
+	if criteria.MinAmount > 0 {
+		whereClauses = append(whereClauses, "b.amount >= ?")
+		args = append(args, criteria.MinAmount)
+	}
+	if criteria.MaxAmount > 0 {
+		whereClauses = append(whereClauses, "b.amount <= ?")
+		args = append(args, criteria.MaxAmount)
+	}
+	if criteria.StartDate != nil {
+		whereClauses = append(whereClauses, "b.created_at >= ?")
+		args = append(args, criteria.StartDate)
+	}
+	if criteria.EndDate != nil {
+		whereClauses = append(whereClauses, "b.created_at <= ?")
+		args = append(args, criteria.EndDate)
+	}
+
+	// 构建WHERE子句
+	for i, clause := range whereClauses {
+		if i == 0 {
+			query += " WHERE " + clause
+		} else {
+			query += " AND " + clause
+		}
+	}
+
+	query += " ORDER BY b.created_at DESC LIMIT ? OFFSET ?"
+	args = append(args, limit, offset)
+
+	rows, err := r.conn.DB().Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var bills []*model.Bill
+	for rows.Next() {
+		bill := &model.Bill{}
+		var typeStr, statusStr string
+		var paidAt interface{}
+		err := rows.Scan(
+			&bill.ID, &bill.LeaseID, &typeStr, &statusStr, &bill.Amount,
+			&bill.RentAmount, &bill.WaterAmount, &bill.ElectricAmount, &bill.OtherAmount,
+			&paidAt, &bill.Note, &bill.CreatedAt, &bill.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		bill.Type = model.BillType(typeStr)
+		bill.Status = model.BillStatus(statusStr)
+		if paidAt != nil {
+			if t, ok := paidAt.(time.Time); ok {
+				bill.PaidAt = &t
+			}
+		}
+
+		bills = append(bills, bill)
+	}
+	return bills, nil
+}
+
+// CountByCriteria 按条件统计账单数量
+func (r *BillRepository) CountByCriteria(criteria repository.BillCriteria) (int, error) {
+	query := `
+		SELECT COUNT(DISTINCT b.id) FROM bills b
+	`
+	var args []interface{}
+	whereClauses := []string{"1 = 1"}
+
+	if criteria.RoomID != "" {
+		query += " LEFT JOIN leases l ON b.lease_id = l.id"
+		whereClauses = append(whereClauses, "l.room_id = ?")
+		args = append(args, criteria.RoomID)
+	}
+	if criteria.Type != "" {
+		whereClauses = append(whereClauses, "b.type = ?")
+		args = append(args, criteria.Type)
+	}
+	if criteria.Status != "" {
+		whereClauses = append(whereClauses, "b.status = ?")
+		args = append(args, criteria.Status)
+	}
+	if criteria.LeaseID != "" {
+		whereClauses = append(whereClauses, "b.lease_id = ?")
+		args = append(args, criteria.LeaseID)
+	}
+	if criteria.Month != "" {
+		if t, err := time.Parse("2006-01", criteria.Month); err == nil {
+			startDate := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
+			endDate := startDate.AddDate(0, 1, 0)
+			whereClauses = append(whereClauses, "b.paid_at >= ? AND b.paid_at < ?")
+			args = append(args, startDate, endDate)
+		}
+	}
+	if criteria.MinAmount > 0 {
+		whereClauses = append(whereClauses, "b.amount >= ?")
+		args = append(args, criteria.MinAmount)
+	}
+	if criteria.MaxAmount > 0 {
+		whereClauses = append(whereClauses, "b.amount <= ?")
+		args = append(args, criteria.MaxAmount)
+	}
+	if criteria.StartDate != nil {
+		whereClauses = append(whereClauses, "b.created_at >= ?")
+		args = append(args, criteria.StartDate)
+	}
+	if criteria.EndDate != nil {
+		whereClauses = append(whereClauses, "b.created_at <= ?")
+		args = append(args, criteria.EndDate)
+	}
+
+	// 构建WHERE子句
+	for i, clause := range whereClauses {
+		if i == 0 {
+			query += " WHERE " + clause
+		} else {
+			query += " AND " + clause
+		}
+	}
+
+	var count int
+	row := r.conn.DB().QueryRow(query, args...)
+	err := row.Scan(&count)
+	return count, err
+}

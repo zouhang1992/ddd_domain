@@ -1,6 +1,9 @@
 package query
 
-import "github.com/zouhang1992/ddd_domain/internal/domain/model"
+import (
+	"github.com/zouhang1992/ddd_domain/internal/domain/model"
+	"time"
+)
 
 // GetLeaseQuery 获取租约查询
 type GetLeaseQuery struct {
@@ -14,8 +17,17 @@ func (q GetLeaseQuery) QueryName() string {
 
 // ListLeasesQuery 列出租约查询
 type ListLeasesQuery struct {
-	Status string
-	RoomID string
+	// 查询条件
+	TenantName string     // 租户姓名（模糊搜索）
+	TenantPhone string    // 租户电话（模糊搜索）
+	Status      string     // 状态
+	LocationID  string     // 位置ID
+	RoomID      string     // 房间ID
+	StartDate   *time.Time // 开始日期范围
+	EndDate     *time.Time // 结束日期范围
+	// 分页参数
+	Offset      int        // 偏移量
+	Limit       int        // 每页数量
 }
 
 // QueryName 实现 Query 接口
@@ -30,5 +42,8 @@ type LeaseQueryResult struct {
 
 // LeasesQueryResult 租约列表查询结果
 type LeasesQueryResult struct {
-	Items []*model.Lease
+	Items []*model.Lease `json:"items"`
+	Total int           `json:"total"`
+	Page  int           `json:"page"`
+	Limit int           `json:"limit"`
 }

@@ -1,11 +1,36 @@
 import apiClient from './request';
 import type { Room } from '../types/api';
 
+export interface RoomsQueryResult {
+  items: Room[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface RoomQueryParams {
+  locationId?: string;
+  roomNumber?: string;
+  tags?: string[];
+  startDate?: string;
+  endDate?: string;
+  offset?: number;
+  limit?: number;
+}
+
 export const roomApi = {
-  list: async (locationId?: string) => {
-    const params = locationId ? { location_id: locationId } : {};
-    const response = await apiClient.get<Room[]>('/rooms', { params });
-    return response.data || [];
+  list: async (params?: RoomQueryParams) => {
+    const queryParams: any = {};
+    if (params?.locationId) queryParams.location_id = params.locationId;
+    if (params?.roomNumber) queryParams.room_number = params.roomNumber;
+    if (params?.tags) queryParams.tags = params.tags;
+    if (params?.startDate) queryParams.start_date = params.startDate;
+    if (params?.endDate) queryParams.end_date = params.endDate;
+    if (params?.offset !== undefined) queryParams.offset = params.offset;
+    if (params?.limit !== undefined) queryParams.limit = params.limit;
+
+    const response = await apiClient.get<RoomsQueryResult>('/rooms', { params: queryParams });
+    return response.data;
   },
 
   get: async (id: string) => {

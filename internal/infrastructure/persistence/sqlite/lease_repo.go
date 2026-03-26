@@ -281,3 +281,112 @@ func (r *LeaseRepository) HasDeposit(leaseID string) (bool, error) {
 	err := row.Scan(&count)
 	return count > 0, err
 }
+
+// FindByCriteria 按条件查找租约
+func (r *LeaseRepository) FindByCriteria(criteria repository.LeaseCriteria, offset, limit int) ([]*model.Lease, error) {
+	query := `
+		SELECT id, room_id, landlord_id, tenant_name, tenant_phone,
+			start_date, end_date, rent_amount, deposit_amount, status, note, last_charge_at,
+			created_at, updated_at
+		FROM leases
+		WHERE 1 = 1
+	`
+	var args []interface{}
+
+	if criteria.TenantName != "" {
+		query += " AND tenant_name LIKE ?"
+		args = append(args, "%"+criteria.TenantName+"%")
+	}
+	if criteria.TenantPhone != "" {
+		query += " AND tenant_phone LIKE ?"
+		args = append(args, "%"+criteria.TenantPhone+"%")
+	}
+	if criteria.Status != "" {
+		query += " AND status = ?"
+		args = append(args, criteria.Status)
+	}
+	if criteria.RoomID != "" {
+		query += " AND room_id = ?"
+		args = append(args, criteria.RoomID)
+	}
+	if criteria.StartDate != nil {
+		query += " AND start_date >= ?"
+		args = append(args, criteria.StartDate)
+	}
+	if criteria.EndDate != nil {
+		query += " AND end_date <= ?"
+		args = append(args, criteria.EndDate)
+	}
+
+	query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+	args = append(args, limit, offset)
+
+	rows, err := r.conn.DB().Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var leases []*model.Lease
+	for rows.Next() {
+		lease := &model.Lease{}
+		var statusStr string
+		var lastChargeAt interface{}
+		err := rows.Scan(
+			&lease.ID, &lease.RoomID, &lease.LandlordID, &lease.TenantName, &lease.TenantPhone,
+			&lease.StartDate, &lease.EndDate, &lease.RentAmount, &lease.DepositAmount, &statusStr, &lease.Note, &lastChargeAt,
+			&lease.CreatedAt, &lease.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		lease.Status = model.LeaseStatus(statusStr)
+		if lastChargeAt != nil {
+			if t, ok := lastChargeAt.(time.Time); ok {
+				lease.LastChargeAt = &t
+			}
+		}
+
+		leases = append(leases, lease)
+	}
+	return leases, nil
+}
+
+// CountByCriteria 按条件统计租约数量
+func (r *LeaseRepository) CountByCriteria(criteria repository.LeaseCriteria) (int, error) {
+	query := `
+		SELECT COUNT(*) FROM leases
+		WHERE 1 = 1
+	`
+	var args []interface{}
+
+	if criteria.TenantName != "" {
+		query += " AND tenant_name LIKE ?"
+		args = append(args, "%"+criteria.TenantName+"%")
+	}
+	if criteria.TenantPhone != "" {
+		query += " AND tenant_phone LIKE ?"
+		args = append(args, "%"+criteria.TenantPhone+"%")
+	}
+	if criteria.Status != "" {
+		query += " AND status = ?"
+		args = append(args, criteria.Status)
+	}
+	if criteria.RoomID != "" {
+		query += " AND room_id = ?"
+		args = append(args, criteria.RoomID)
+	}
+	if criteria.StartDate != nil {
+		query += " AND start_date >= ?"
+		args = append(args, criteria.StartDate)
+	}
+	if criteria.EndDate != nil {
+		query += " AND end_date <= ?"
+		args = append(args, criteria.EndDate)
+	}
+
+	var count int
+	row := r.conn.DB().QueryRow(query, args...)
+	err := row.Scan(&count)
+	return count, err
+}

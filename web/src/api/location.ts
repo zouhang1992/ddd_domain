@@ -1,10 +1,30 @@
 import apiClient from './request';
 import type { Location } from '../types/api';
 
+export interface LocationsQueryResult {
+  items: Location[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface LocationQueryParams {
+  shortName?: string;
+  detail?: string;
+  offset?: number;
+  limit?: number;
+}
+
 export const locationApi = {
-  list: async () => {
-    const response = await apiClient.get<Location[]>('/locations');
-    return response.data || [];
+  list: async (params?: LocationQueryParams) => {
+    const queryParams: any = {};
+    if (params?.shortName) queryParams.short_name = params.shortName;
+    if (params?.detail) queryParams.detail = params.detail;
+    if (params?.offset !== undefined) queryParams.offset = params.offset;
+    if (params?.limit !== undefined) queryParams.limit = params.limit;
+
+    const response = await apiClient.get<LocationsQueryResult>('/locations', { params: queryParams });
+    return response.data;
   },
 
   get: async (id: string) => {

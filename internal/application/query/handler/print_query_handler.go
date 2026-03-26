@@ -12,23 +12,78 @@ import (
 type PrintQueryHandler struct {
 	billRepo  repository.BillRepository
 	leaseRepo repository.LeaseRepository
+	printRepo repository.PrintJobRepository
 }
 
 // NewPrintQueryHandler 创建打印查询处理器
-func NewPrintQueryHandler(billRepo repository.BillRepository, leaseRepo repository.LeaseRepository) *PrintQueryHandler {
-	return &PrintQueryHandler{billRepo: billRepo, leaseRepo: leaseRepo}
+func NewPrintQueryHandler(billRepo repository.BillRepository, leaseRepo repository.LeaseRepository, printRepo repository.PrintJobRepository) *PrintQueryHandler {
+	return &PrintQueryHandler{billRepo: billRepo, leaseRepo: leaseRepo, printRepo: printRepo}
 }
 
 // HandleGetPrintJob 处理获取打印作业查询
 func (h *PrintQueryHandler) HandleGetPrintJob(q query.Query) (any, error) {
-	// 暂时返回空实现，实际项目中需要有打印作业仓储
-	return nil, nil
+	getQuery, ok := q.(query.GetPrintJobQuery)
+	if !ok {
+		return nil, model.ErrInvalidCommand
+	}
+
+	job, err := h.printRepo.FindByID(getQuery.JobID)
+	if err != nil {
+		return nil, err
+	}
+	if job == nil {
+		return nil, model.ErrNotFound
+	}
+
+	return job, nil
 }
 
 // HandleListPrintJobs 处理列出打印作业查询
 func (h *PrintQueryHandler) HandleListPrintJobs(q query.Query) (any, error) {
-	// 暂时返回空实现
-	return nil, nil
+	listQuery, ok := q.(query.ListPrintJobsQuery)
+	if !ok {
+		return nil, model.ErrInvalidCommand
+	}
+
+	// 构建查询条件
+	criteria := repository.PrintJobCriteria{
+		Status:     listQuery.Status,
+		StartTime:  listQuery.StartDate,
+		EndTime:    listQuery.EndDate,
+	}
+
+	// 设置默认分页大小
+	limit := listQuery.Limit
+	if limit <= 0 {
+		limit = 10 // 默认返回10条
+	}
+
+	// 查询数据
+	jobs, err := h.printRepo.FindByCriteria(criteria, listQuery.Offset, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取总数
+	total, err := h.printRepo.CountByCriteria(criteria)
+	if err != nil {
+		return nil, err
+	}
+
+	// 计算页码
+	page := 1
+	if listQuery.Offset > 0 && limit > 0 {
+		page = (listQuery.Offset / limit) + 1
+	}
+
+	result := &query.PrintJobsQueryResult{
+		Items: jobs,
+		Total: total,
+		Page:  page,
+		Limit: limit,
+	}
+
+	return result, nil
 }
 
 // HandleGetPrintContent 处理获取打印内容查询

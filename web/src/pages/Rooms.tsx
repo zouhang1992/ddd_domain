@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Select, message, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { roomApi } from '../api/room';
+import { Table, Button, Modal, Form, Input, Select, message, Popconfirm, Pagination } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, HistoryOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
+import { roomApi, type RoomQueryParams, type RoomsQueryResult } from '../api/room';
 import { locationApi } from '../api/location';
 import type { Room, Location } from '../types/api';
+import OperationLogModal from '../components/OperationLogModal';
 
 const { Option } = Select;
 
@@ -14,12 +15,24 @@ const Rooms: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [form] = Form.useForm();
+  const [operationLogVisible, setOperationLogVisible] = useState(false);
+  const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [queryForm] = Form.useForm();
 
-  const fetchRooms = async () => {
+  const fetchRooms = async (params?: RoomQueryParams) => {
     setLoading(true);
     try {
-      const data = await roomApi.list();
-      setRooms(data);
+      const queryParams = {
+        ...params,
+        offset: (page - 1) * pageSize,
+        limit: pageSize,
+      };
+      const data: RoomsQueryResult = await roomApi.list(queryParams);
+      setRooms(data.items);
+      setTotal(data.total);
     } catch (error) {
       message.error('获取房间列表失败');
     } finally {
@@ -30,7 +43,7 @@ const Rooms: React.FC = () => {
   const fetchLocations = async () => {
     try {
       const data = await locationApi.list();
-      setLocations(data || []);
+      setLocations(data.items || []);
     } catch (error) {
       message.error('获取位置列表失败');
       setLocations([]);
@@ -40,7 +53,24 @@ const Rooms: React.FC = () => {
   useEffect(() => {
     fetchRooms();
     fetchLocations();
-  }, []);
+  }, [page, pageSize]);
+
+  const handleQuery = async () => {
+    const values = await queryForm.validateFields();
+    setPage(1);
+    fetchRooms(values);
+  };
+
+  const handleReset = () => {
+    queryForm.resetFields();
+    setPage(1);
+    fetchRooms();
+  };
+
+  const handlePageChange = (pageNum: number, pageSizeNum: number) => {
+    setPage(pageNum);
+    setPageSize(pageSizeNum);
+  };
 
   const handleCreate = () => {
     setEditingRoom(null);
@@ -66,6 +96,11 @@ const Rooms: React.FC = () => {
     } catch (error) {
       message.error('删除失败');
     }
+  };
+
+  const handleViewOperationLogs = (room: Room) => {
+    setCurrentRoom(room);
+    setOperationLogVisible(true);
   };
 
   const handleModalOk = async () => {
@@ -107,6 +142,13 @@ const Rooms: React.FC = () => {
           <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ marginRight: 8 }}>
             编辑
           </Button>
+          <Button
+            icon={<HistoryOutlined />}
+            onClick={() => handleViewOperationLogs(record)}
+            style={{ marginRight: 8 }}
+          >
+            操作日志
+          </Button>
           <Popconfirm
             title="确定删除?"
             onConfirm={() => handleDelete(record.id)}
@@ -131,12 +173,51 @@ const Rooms: React.FC = () => {
         </Button>
       </div>
 
+      {/* 查询表单 */}
+      <Form form={queryForm} layout="inline" style={{ marginBottom: 16 }}>
+        <Form.Item name="locationId" label="位置">
+          <Select placeholder="请选择位置" style={{ width: 150 }}>
+            {locations.map(location => (
+              <Option key={location.id} value={location.id}>
+                {location.shortName}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+        <Form.Item name="roomNumber" label="房间号">
+          <Input placeholder="请输入房间号" style={{ width: 120 }} />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" icon={<SearchOutlined />} onClick={handleQuery} loading={loading}>
+            查询
+          </Button>
+        </Form.Item>
+        <Form.Item>
+          <Button icon={<ReloadOutlined />} onClick={handleReset} loading={loading}>
+            重置
+          </Button>
+        </Form.Item>
+      </Form>
+
       <Table
         columns={columns}
         dataSource={rooms}
         rowKey="id"
         loading={loading}
+        pagination={false}
       />
+
+      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+        <Pagination
+          current={page}
+          pageSize={pageSize}
+          total={total}
+          onChange={handlePageChange}
+          showSizeChanger
+          showQuickJumper
+          showTotal={(total) => `共 ${total} 条记录`}
+        />
+      </div>
 
       <Modal
         title={editingRoom ? '编辑房间' : '新增房间'}
@@ -174,6 +255,14 @@ const Rooms: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <OperationLogModal
+        visible={operationLogVisible}
+        aggregateId={currentRoom?.id || ''}
+        domainType="room"
+        title={`房间操作日志 - ${currentRoom?.roomNumber || ''}`}
+        onCancel={() => setOperationLogVisible(false)}
+      />
     </div>
   );
 };

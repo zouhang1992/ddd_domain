@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, message, Popconfirm, Select, DatePicker, InputNumber, Tag } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, PrinterOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, message, Popconfirm, Select, DatePicker, InputNumber, Tag, Pagination } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, PrinterOutlined, HistoryOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { Bill, Lease } from '../types/api';
-import { billApi } from '../api/bill';
+import { billApi, type BillQueryParams, type BillsQueryResult } from '../api/bill';
 import { leaseApi } from '../api/lease';
 import dayjs from 'dayjs';
+import OperationLogModal from '../components/OperationLogModal';
 
 const { Option } = Select;
 
@@ -35,12 +36,24 @@ const Bills: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
   const [form] = Form.useForm();
+  const [operationLogVisible, setOperationLogVisible] = useState(false);
+  const [currentBill, setCurrentBill] = useState<Bill | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [queryForm] = Form.useForm();
 
-  const fetchBills = async () => {
+  const fetchBills = async (params?: BillQueryParams) => {
     setLoading(true);
     try {
-      const data = await billApi.list();
-      setBills(data || []);
+      const queryParams = {
+        ...params,
+        offset: (page - 1) * pageSize,
+        limit: pageSize,
+      };
+      const data: BillsQueryResult = await billApi.list(queryParams);
+      setBills(data.items);
+      setTotal(data.total);
     } catch (error) {
       message.error('获取账单列表失败');
     } finally {
@@ -51,7 +64,7 @@ const Bills: React.FC = () => {
   const fetchLeases = async () => {
     try {
       const data = await leaseApi.list();
-      setLeases(data || []);
+      setLeases(data.items || []);
     } catch (error) {
       message.error('获取租约列表失败');
     }
@@ -60,7 +73,24 @@ const Bills: React.FC = () => {
   useEffect(() => {
     fetchBills();
     fetchLeases();
-  }, []);
+  }, [page, pageSize]);
+
+  const handleQuery = async () => {
+    const values = await queryForm.validateFields();
+    setPage(1);
+    fetchBills(values);
+  };
+
+  const handleReset = () => {
+    queryForm.resetFields();
+    setPage(1);
+    fetchBills();
+  };
+
+  const handlePageChange = (pageNum: number, pageSizeNum: number) => {
+    setPage(pageNum);
+    setPageSize(pageSizeNum);
+  };
 
   const handleCreate = () => {
     setEditingBill(null);
@@ -104,6 +134,11 @@ const Bills: React.FC = () => {
     } catch (error) {
       message.error('删除失败');
     }
+  };
+
+  const handleViewOperationLogs = (bill: Bill) => {
+    setCurrentBill(bill);
+    setOperationLogVisible(true);
   };
 
   const handleModalOk = async () => {
@@ -228,6 +263,14 @@ const Bills: React.FC = () => {
               </Button>
             </Popconfirm>
           )}
+          <Button
+            icon={<HistoryOutlined />}
+            onClick={() => handleViewOperationLogs(record)}
+            style={{ marginRight: 8 }}
+            size="small"
+          >
+            操作日志
+          </Button>
           <Popconfirm
             title="确定删除?"
             onConfirm={() => handleDelete(record.id)}
@@ -252,13 +295,59 @@ const Bills: React.FC = () => {
         </Button>
       </div>
 
+      {/* 查询表单 */}
+      <Form form={queryForm} layout="inline" style={{ marginBottom: 16 }}>
+        <Form.Item name="type" label="类型">
+          <Select placeholder="请选择类型" style={{ width: 120 }}>
+            <Option value="charge">收账</Option>
+            <Option value="checkout">退租结算</Option>
+          </Select>
+        </Form.Item>
+        <Form.Item name="status" label="状态">
+          <Select placeholder="请选择状态" style={{ width: 120 }}>
+            <Option value="pending">待到账</Option>
+            <Option value="paid">已到账</Option>
+          </Select>
+        </Form.Item>
+        <Form.Item name="month" label="月份">
+          <DatePicker
+            picker="month"
+            placeholder="请选择月份"
+            style={{ width: 150 }}
+          />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" icon={<SearchOutlined />} onClick={handleQuery} loading={loading}>
+            查询
+          </Button>
+        </Form.Item>
+        <Form.Item>
+          <Button icon={<ReloadOutlined />} onClick={handleReset} loading={loading}>
+            重置
+          </Button>
+        </Form.Item>
+      </Form>
+
       <Table
         columns={columns}
         dataSource={bills}
         rowKey="id"
         loading={loading}
+        pagination={false}
         scroll={{ x: 1800 }}
       />
+
+      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+        <Pagination
+          current={page}
+          pageSize={pageSize}
+          total={total}
+          onChange={handlePageChange}
+          showSizeChanger
+          showQuickJumper
+          showTotal={(total) => `共 ${total} 条记录`}
+        />
+      </div>
 
       <Modal
         title={editingBill ? '编辑账单' : '新增账单'}
@@ -339,6 +428,14 @@ const Bills: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <OperationLogModal
+        visible={operationLogVisible}
+        aggregateId={currentBill?.id || ''}
+        domainType="bill"
+        title={`账单操作日志 - ${currentBill?.id || ''}`}
+        onCancel={() => setOperationLogVisible(false)}
+      />
     </div>
   );
 };

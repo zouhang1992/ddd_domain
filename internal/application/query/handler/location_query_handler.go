@@ -36,15 +36,47 @@ func (h *LocationQueryHandler) HandleGetLocation(q query.Query) (any, error) {
 
 // HandleListLocations 处理列出所有位置查询
 func (h *LocationQueryHandler) HandleListLocations(q query.Query) (any, error) {
-	_, ok := q.(query.ListLocationsQuery)
+	listQuery, ok := q.(query.ListLocationsQuery)
 	if !ok {
 		return nil, model.ErrInvalidCommand
 	}
 
-	locations, err := h.repo.FindAll()
+	// 构建查询条件
+	criteria := repository.LocationCriteria{
+		ShortName: listQuery.ShortName,
+		Detail:    listQuery.Detail,
+	}
+
+	// 设置默认分页大小
+	limit := listQuery.Limit
+	if limit <= 0 {
+		limit = 10 // 默认返回10条
+	}
+
+	// 查询数据
+	locations, err := h.repo.FindByCriteria(criteria, listQuery.Offset, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	return &query.LocationsQueryResult{Items: locations}, nil
+	// 获取总数
+	total, err := h.repo.CountByCriteria(criteria)
+	if err != nil {
+		return nil, err
+	}
+
+	// 计算页码
+	page := 1
+	if listQuery.Offset > 0 && limit > 0 {
+		page = (listQuery.Offset / limit) + 1
+	}
+
+	result := &query.LocationsQueryResult{
+		Items: locations,
+		Total: total,
+		Page:  page,
+		Limit: limit,
+	}
+
+	return result, nil
 }

@@ -43,28 +43,51 @@ func (h *BillQueryHandler) HandleListBills(q query.Query) (any, error) {
 		return nil, model.ErrInvalidCommand
 	}
 
-	var bills []*model.Bill
-	var err error
-
-	if listQuery.Month != "" {
-		var year int
-		var mon time.Month
-		if _, parseErr := parseMonth(listQuery.Month, &year, &mon); parseErr == nil {
-			bills, err = h.billRepo.FindByMonth(year, mon)
-		}
-	} else if listQuery.RoomID != "" {
-		bills, err = h.billRepo.FindByRoomID(listQuery.RoomID)
-	} else if listQuery.LeaseID != "" {
-		bills, err = h.billRepo.FindByLeaseID(listQuery.LeaseID)
-	} else {
-		bills, err = h.billRepo.FindAll()
+	// 构建查询条件
+	criteria := repository.BillCriteria{
+		Type:        listQuery.Type,
+		Status:      listQuery.Status,
+		LeaseID:     listQuery.LeaseID,
+		RoomID:      listQuery.RoomID,
+		Month:       listQuery.Month,
+		MinAmount:   listQuery.MinAmount,
+		MaxAmount:   listQuery.MaxAmount,
+		StartDate:   listQuery.StartDate,
+		EndDate:     listQuery.EndDate,
 	}
 
+	// 设置默认分页大小
+	limit := listQuery.Limit
+	if limit <= 0 {
+		limit = 10 // 默认返回10条
+	}
+
+	// 查询数据
+	bills, err := h.billRepo.FindByCriteria(criteria, listQuery.Offset, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	return &query.BillsQueryResult{Items: bills}, nil
+	// 获取总数
+	total, err := h.billRepo.CountByCriteria(criteria)
+	if err != nil {
+		return nil, err
+	}
+
+	// 计算页码
+	page := 1
+	if listQuery.Offset > 0 && limit > 0 {
+		page = (listQuery.Offset / limit) + 1
+	}
+
+	result := &query.BillsQueryResult{
+		Items: bills,
+		Total: total,
+		Page:  page,
+		Limit: limit,
+	}
+
+	return result, nil
 }
 
 // HandleIncomeReport 处理收入报表查询

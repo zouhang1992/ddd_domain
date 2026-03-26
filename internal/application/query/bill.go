@@ -17,9 +17,19 @@ func (q GetBillQuery) QueryName() string {
 
 // ListBillsQuery 列出账单查询
 type ListBillsQuery struct {
-	LeaseID string
-	RoomID  string
-	Month   string
+	// 查询条件
+	Type        string     // 账单类型
+	Status      string     // 账单状态
+	LeaseID     string     // 租约ID
+	RoomID      string     // 房间ID
+	Month       string     // 月份 (格式: "2006-01")
+	MinAmount   int64      // 最小金额（分）
+	MaxAmount   int64      // 最大金额（分）
+	StartDate   *time.Time // 开始日期范围
+	EndDate     *time.Time // 结束日期范围
+	// 分页参数
+	Offset      int        // 偏移量
+	Limit       int        // 每页数量
 }
 
 // QueryName 实现 Query 接口
@@ -34,7 +44,10 @@ type BillQueryResult struct {
 
 // BillsQueryResult 账单列表查询结果
 type BillsQueryResult struct {
-	Items []*model.Bill
+	Items []*model.Bill `json:"items"`
+	Total int           `json:"total"`
+	Page  int           `json:"page"`
+	Limit int           `json:"limit"`
 }
 
 // IncomeReportQuery 收入报表查询

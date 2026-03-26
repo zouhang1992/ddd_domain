@@ -41,22 +41,46 @@ func (h *LeaseQueryHandler) HandleListLeases(q query.Query) (any, error) {
 		return nil, model.ErrInvalidCommand
 	}
 
-	var leases []*model.Lease
-	var err error
-
-	if listQuery.Status != "" && listQuery.RoomID != "" {
-		leases, err = h.repo.FindByRoomIDAndStatus(listQuery.RoomID, model.LeaseStatus(listQuery.Status))
-	} else if listQuery.Status != "" {
-		leases, err = h.repo.FindByStatus(model.LeaseStatus(listQuery.Status))
-	} else if listQuery.RoomID != "" {
-		leases, err = h.repo.FindByRoomID(listQuery.RoomID)
-	} else {
-		leases, err = h.repo.FindAll()
+	// 构建查询条件
+	criteria := repository.LeaseCriteria{
+		TenantName:  listQuery.TenantName,
+		TenantPhone: listQuery.TenantPhone,
+		Status:      listQuery.Status,
+		RoomID:      listQuery.RoomID,
+		StartDate:   listQuery.StartDate,
+		EndDate:     listQuery.EndDate,
 	}
 
+	// 设置默认分页大小
+	limit := listQuery.Limit
+	if limit <= 0 {
+		limit = 10 // 默认返回10条
+	}
+
+	// 查询数据
+	leases, err := h.repo.FindByCriteria(criteria, listQuery.Offset, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	return &query.LeasesQueryResult{Items: leases}, nil
+	// 获取总数
+	total, err := h.repo.CountByCriteria(criteria)
+	if err != nil {
+		return nil, err
+	}
+
+	// 计算页码
+	page := 1
+	if listQuery.Offset > 0 && limit > 0 {
+		page = (listQuery.Offset / limit) + 1
+	}
+
+	result := &query.LeasesQueryResult{
+		Items: leases,
+		Total: total,
+		Page:  page,
+		Limit: limit,
+	}
+
+	return result, nil
 }

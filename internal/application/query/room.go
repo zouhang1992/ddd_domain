@@ -1,6 +1,9 @@
 package query
 
-import "github.com/zouhang1992/ddd_domain/internal/domain/model"
+import (
+	"github.com/zouhang1992/ddd_domain/internal/domain/model"
+	"time"
+)
 
 // GetRoomQuery 获取房间查询
 type GetRoomQuery struct {
@@ -14,8 +17,15 @@ func (q GetRoomQuery) QueryName() string {
 
 // ListRoomsQuery 列出所有房间查询
 type ListRoomsQuery struct {
-	LocationID string
-	Tags       []string
+	// 查询条件
+	LocationID  string     // 位置ID
+	RoomNumber  string     // 房间号（模糊搜索）
+	Tags        []string   // 标签
+	StartDate   *time.Time // 创建开始日期
+	EndDate     *time.Time // 创建结束日期
+	// 分页参数
+	Offset      int        // 偏移量
+	Limit       int        // 每页数量
 }
 
 // QueryName 实现 Query 接口
@@ -40,5 +50,8 @@ type RoomQueryResult struct {
 
 // RoomsQueryResult 房间列表查询结果
 type RoomsQueryResult struct {
-	Items []*model.Room
+	Items []*model.Room `json:"items"`
+	Total int           `json:"total"`
+	Page  int           `json:"page"`
+	Limit int           `json:"limit"`
 }

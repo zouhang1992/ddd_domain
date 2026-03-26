@@ -7,6 +7,7 @@ import (
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -99,8 +100,22 @@ func (h *CQRSLeaseHandler) Create(w http.ResponseWriter, r *http.Request) {
 // List 列出租约
 func (h *CQRSLeaseHandler) List(w http.ResponseWriter, r *http.Request) {
 	q := query.ListLeasesQuery{
-		Status: r.URL.Query().Get("status"),
-		RoomID: r.URL.Query().Get("room_id"),
+		TenantName:  r.URL.Query().Get("tenant_name"),
+		TenantPhone: r.URL.Query().Get("tenant_phone"),
+		Status:      r.URL.Query().Get("status"),
+		RoomID:      r.URL.Query().Get("room_id"),
+	}
+
+	// 解析分页参数
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if offset, err := strconv.Atoi(offsetStr); err == nil {
+			q.Offset = offset
+		}
+	}
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if limit, err := strconv.Atoi(limitStr); err == nil {
+			q.Limit = limit
+		}
 	}
 
 	result, err := h.queryBus.Dispatch(q)
@@ -109,9 +124,8 @@ func (h *CQRSLeaseHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queryResult := result.(*query.LeasesQueryResult)
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(queryResult.Items)
+	_ = json.NewEncoder(w).Encode(result)
 }
 
 // Get 获取租约

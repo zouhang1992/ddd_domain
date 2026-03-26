@@ -1,12 +1,37 @@
 import apiClient from './request';
 import type { Lease } from '../types/api';
 
+export interface LeasesQueryResult {
+  items: Lease[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface LeaseQueryParams {
+  tenantName?: string;
+  tenantPhone?: string;
+  status?: string;
+  roomId?: string;
+  startDate?: string;
+  endDate?: string;
+  offset?: number;
+  limit?: number;
+}
+
 export const leaseApi = {
-  list: async (status?: string, roomId?: string) => {
-    const params: any = {};
-    if (status) params.status = status;
-    if (roomId) params.room_id = roomId;
-    const response = await apiClient.get<Lease[]>('/leases', { params });
+  list: async (params?: LeaseQueryParams) => {
+    const queryParams: any = {};
+    if (params?.tenantName) queryParams.tenant_name = params.tenantName;
+    if (params?.tenantPhone) queryParams.tenant_phone = params.tenantPhone;
+    if (params?.status) queryParams.status = params.status;
+    if (params?.roomId) queryParams.room_id = params.roomId;
+    if (params?.startDate) queryParams.start_date = params.startDate;
+    if (params?.endDate) queryParams.end_date = params.endDate;
+    if (params?.offset !== undefined) queryParams.offset = params.offset;
+    if (params?.limit !== undefined) queryParams.limit = params.limit;
+
+    const response = await apiClient.get<LeasesQueryResult>('/leases', { params: queryParams });
     return response.data;
   },
 

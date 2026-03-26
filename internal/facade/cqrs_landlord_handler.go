@@ -7,6 +7,7 @@ import (
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
+	"strconv"
 )
 
 // CQRSLandlordHandler 基于 CQRS 的房东 HTTP 处理器
@@ -64,7 +65,23 @@ func (h *CQRSLandlordHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // List 列出房东
 func (h *CQRSLandlordHandler) List(w http.ResponseWriter, r *http.Request) {
-	q := query.ListLandlordsQuery{}
+	// 解析查询参数
+	q := query.ListLandlordsQuery{
+		Name:   r.URL.Query().Get("name"),
+		Phone:  r.URL.Query().Get("phone"),
+	}
+
+	// 解析分页参数
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if offset, err := strconv.Atoi(offsetStr); err == nil {
+			q.Offset = offset
+		}
+	}
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if limit, err := strconv.Atoi(limitStr); err == nil {
+			q.Limit = limit
+		}
+	}
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
@@ -72,9 +89,8 @@ func (h *CQRSLandlordHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queryResult := result.(*query.LandlordsQueryResult)
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(queryResult.Items)
+	_ = json.NewEncoder(w).Encode(result)
 }
 
 // Get 获取房东

@@ -3,19 +3,23 @@ package query
 import (
 	"errors"
 	"fmt"
+
+	"go.uber.org/zap"
 )
 
 // Bus 查询总线
 type Bus struct {
 	handlers   map[string]QueryHandler
 	middleware []Middleware
+	log        *zap.Logger
 }
 
 // NewBus 创建查询总线
-func NewBus() *Bus {
+func NewBus(logger *zap.Logger) *Bus {
 	return &Bus{
 		handlers:   make(map[string]QueryHandler),
 		middleware: make([]Middleware, 0),
+		log:        logger,
 	}
 }
 
@@ -31,16 +35,24 @@ func (b *Bus) Use(m Middleware) {
 
 // Dispatch 分发查询
 func (b *Bus) Dispatch(q Query) (any, error) {
+	queryName := q.QueryName()
+	b.log.Info("Dispatching query", zap.String("query", queryName))
+
 	// 验证查询
 	if validator, ok := q.(interface{ Validate() error }); ok {
 		if err := validator.Validate(); err != nil {
+			b.log.Warn("Query validation failed",
+				zap.String("query", queryName),
+				zap.Error(err))
 			return nil, fmt.Errorf("%w: %v", ErrQueryValidation, err)
 		}
 	}
 
-	handler, ok := b.handlers[q.QueryName()]
+	handler, ok := b.handlers[queryName]
 	if !ok {
-		return nil, fmt.Errorf("no handler registered for query: %s", q.QueryName())
+		b.log.Error("No handler registered for query",
+			zap.String("query", queryName))
+		return nil, fmt.Errorf("no handler registered for query: %s", queryName)
 	}
 
 	// 构建中间件链
@@ -49,7 +61,17 @@ func (b *Bus) Dispatch(q Query) (any, error) {
 		finalHandler = b.middleware[i](finalHandler)
 	}
 
-	return finalHandler.Handle(q)
+	result, err := finalHandler.Handle(q)
+	if err != nil {
+		b.log.Error("Query execution failed",
+			zap.String("query", queryName),
+			zap.Error(err))
+	} else {
+		b.log.Info("Query executed successfully",
+			zap.String("query", queryName))
+	}
+
+	return result, err
 }
 
 // Middleware 查询中间件类型

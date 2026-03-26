@@ -7,6 +7,7 @@ import (
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
+	"strconv"
 )
 
 // CQRSRoomHandler 基于 CQRS 的房间 HTTP 处理器
@@ -67,9 +68,19 @@ func (h *CQRSRoomHandler) List(w http.ResponseWriter, r *http.Request) {
 	var q query.ListRoomsQuery
 
 	// 获取查询参数
-	locationID := r.URL.Query().Get("location_id")
-	if locationID != "" {
-		q.LocationID = locationID
+	q.LocationID = r.URL.Query().Get("location_id")
+	q.RoomNumber = r.URL.Query().Get("room_number")
+
+	// 解析分页参数
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if offset, err := strconv.Atoi(offsetStr); err == nil {
+			q.Offset = offset
+		}
+	}
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if limit, err := strconv.Atoi(limitStr); err == nil {
+			q.Limit = limit
+		}
 	}
 
 	result, err := h.queryBus.Dispatch(q)
@@ -78,9 +89,8 @@ func (h *CQRSRoomHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queryResult := result.(*query.RoomsQueryResult)
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(queryResult.Items)
+	_ = json.NewEncoder(w).Encode(result)
 }
 
 // Get 获取房间

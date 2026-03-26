@@ -1,10 +1,11 @@
 package main
 
 import (
-	"go.uber.org/fx"
-	"log"
 	"net/http"
 	"time"
+
+	"go.uber.org/fx"
+	"go.uber.org/zap"
 
 	"github.com/zouhang1992/ddd_domain/internal/application/command/handler"
 	eventhandler "github.com/zouhang1992/ddd_domain/internal/application/event/handler"
@@ -16,6 +17,7 @@ import (
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busevent "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/event"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
+	logging "github.com/zouhang1992/ddd_domain/internal/infrastructure/logging"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/persistence/sqlite"
 )
 
@@ -28,6 +30,7 @@ func main() {
 			}),
 		),
 		// 各个组件模块
+		logging.Module(),
 		sqlite.Module,
 		busmodule.Module,
 		handler.Module,
@@ -120,6 +123,7 @@ func registerQueryHandlers(
 }
 
 func startServer(
+	logger *zap.Logger,
 	locationHandler *facade.CQRSLocationHandler,
 	roomHandler *facade.CQRSRoomHandler,
 	landlordHandler *facade.CQRSLandlordHandler,
@@ -167,8 +171,8 @@ func startServer(
 	incomeHandler.RegisterRoutes(mux)
 	operationLogHandler.RegisterRoutes(mux)
 
-	log.Println("Starting server on :8080")
+	logger.Info("Starting server on :8080")
 	if err := http.ListenAndServe(":8080", corsHandler(mux)); err != nil {
-		log.Fatalf("Server failed: %v", err)
+		logger.Fatal("Server failed", zap.Error(err))
 	}
 }

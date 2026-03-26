@@ -3,6 +3,8 @@ package sqlite
 import (
 	"database/sql"
 	_ "modernc.org/sqlite"
+
+	"go.uber.org/zap"
 )
 
 // Config SQLite 配置
@@ -12,25 +14,34 @@ type Config struct {
 
 // Connection SQLite 连接
 type Connection struct {
-	db *sql.DB
+	db  *sql.DB
+	log *zap.Logger
 }
 
 // NewConnection 创建 SQLite 连接
-func NewConnection(cfg Config) (*Connection, error) {
+func NewConnection(cfg Config, logger *zap.Logger) (*Connection, error) {
+	logger.Info("Opening database connection", zap.String("dsn", cfg.DSN))
+
 	db, err := sql.Open("sqlite", cfg.DSN)
 	if err != nil {
+		logger.Error("Failed to open database", zap.Error(err))
 		return nil, err
 	}
 
 	if err := db.Ping(); err != nil {
+		logger.Error("Failed to ping database", zap.Error(err))
 		return nil, err
 	}
 
-	conn := &Connection{db: db}
+	logger.Info("Database connection established successfully")
+
+	conn := &Connection{db: db, log: logger}
 	if err := conn.initSchema(); err != nil {
+		logger.Error("Failed to initialize database schema", zap.Error(err))
 		return nil, err
 	}
 
+	logger.Info("Database schema initialized successfully")
 	return conn, nil
 }
 

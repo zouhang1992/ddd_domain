@@ -5,11 +5,18 @@ import (
 	busevent "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/event"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 // Module provides all bus components
 var Module = fx.Options(
-	fx.Provide(buscommand.NewBus),
-	fx.Provide(busevent.NewBus),
-	fx.Provide(busquery.NewBus),
+	fx.Provide(func(logger *zap.Logger) *buscommand.Bus {
+		return buscommand.NewBus(logger)
+	}),
+	fx.Provide(func(logger *zap.Logger) *busevent.Bus {
+		return busevent.NewBus(logger)
+	}),
+	fx.Provide(func(logger *zap.Logger) *busquery.Bus {
+		return busquery.NewBus(logger)
+	}),
 )

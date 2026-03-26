@@ -36,15 +36,47 @@ func (h *LandlordQueryHandler) HandleGetLandlord(q query.Query) (any, error) {
 
 // HandleListLandlords 处理列出租东查询
 func (h *LandlordQueryHandler) HandleListLandlords(q query.Query) (any, error) {
-	_, ok := q.(query.ListLandlordsQuery)
+	listQuery, ok := q.(query.ListLandlordsQuery)
 	if !ok {
 		return nil, model.ErrInvalidCommand
 	}
 
-	landlords, err := h.repo.FindAll()
+	// 构建查询条件
+	criteria := repository.LandlordCriteria{
+		Name:  listQuery.Name,
+		Phone: listQuery.Phone,
+	}
+
+	// 设置默认分页大小
+	limit := listQuery.Limit
+	if limit <= 0 {
+		limit = 10 // 默认返回10条
+	}
+
+	// 查询数据
+	landlords, err := h.repo.FindByCriteria(criteria, listQuery.Offset, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	return &query.LandlordsQueryResult{Items: landlords}, nil
+	// 获取总数
+	total, err := h.repo.CountByCriteria(criteria)
+	if err != nil {
+		return nil, err
+	}
+
+	// 计算页码
+	page := 1
+	if listQuery.Offset > 0 && limit > 0 {
+		page = (listQuery.Offset / limit) + 1
+	}
+
+	result := &query.LandlordsQueryResult{
+		Items: landlords,
+		Total: total,
+		Page:  page,
+		Limit: limit,
+	}
+
+	return result, nil
 }

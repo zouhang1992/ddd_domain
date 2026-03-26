@@ -1,10 +1,24 @@
 import apiClient from './request';
 import type { Landlord } from '../types/api';
 
+export interface LandlordsQueryResult {
+  items: Landlord[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface LandlordQueryParams {
+  name?: string;
+  phone?: string;
+  offset?: number;
+  limit?: number;
+}
+
 export const landlordApi = {
-  list: async () => {
-    const response = await apiClient.get<Landlord[]>('/landlords');
-    return response.data || [];
+  list: async (params?: LandlordQueryParams) => {
+    const response = await apiClient.get<LandlordsQueryResult>('/landlords', { params });
+    return response.data;
   },
 
   get: async (id: string) => {

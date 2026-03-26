@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Table, Button, Modal, Form, Input, message, Popconfirm, Select, DatePicker, InputNumber, Tag, Space } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, CheckOutlined, ReloadOutlined, PrinterOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, message, Popconfirm, Select, DatePicker, InputNumber, Tag, Space, Pagination } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, CheckOutlined, ReloadOutlined, PrinterOutlined, ThunderboltOutlined, HistoryOutlined, SearchOutlined } from '@ant-design/icons';
 import type { Lease, Room, Landlord, Location } from '../types/api';
-import { leaseApi } from '../api/lease';
+import { leaseApi, type LeaseQueryParams, type LeasesQueryResult } from '../api/lease';
 import { roomApi } from '../api/room';
 import { landlordApi } from '../api/landlord';
 import { locationApi } from '../api/location';
 import dayjs from 'dayjs';
+import OperationLogModal from '../components/OperationLogModal';
 
 const { Option } = Select;
 
@@ -36,12 +37,24 @@ const Leases: React.FC = () => {
   const [form] = Form.useForm();
   const [renewForm] = Form.useForm();
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
+  const [operationLogVisible, setOperationLogVisible] = useState(false);
+  const [currentLease, setCurrentLease] = useState<Lease | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [queryForm] = Form.useForm();
 
-  const fetchLeases = async () => {
+  const fetchLeases = async (params?: LeaseQueryParams) => {
     setLoading(true);
     try {
-      const data = await leaseApi.list();
-      setLeases(data || []);
+      const queryParams = {
+        ...params,
+        offset: (page - 1) * pageSize,
+        limit: pageSize,
+      };
+      const data: LeasesQueryResult = await leaseApi.list(queryParams);
+      setLeases(data.items);
+      setTotal(data.total);
     } catch (error) {
       message.error('获取租约列表失败');
     } finally {
@@ -52,7 +65,7 @@ const Leases: React.FC = () => {
   const fetchRooms = async () => {
     try {
       const data = await roomApi.list();
-      setRooms(data || []);
+      setRooms(data.items || []);
     } catch (error) {
       message.error('获取房间列表失败');
     }
@@ -61,7 +74,7 @@ const Leases: React.FC = () => {
   const fetchLandlords = async () => {
     try {
       const data = await landlordApi.list();
-      setLandlords(data || []);
+      setLandlords(data.items || []);
     } catch (error) {
       message.error('获取房东列表失败');
     }
@@ -70,7 +83,7 @@ const Leases: React.FC = () => {
   const fetchLocations = async () => {
     try {
       const data = await locationApi.list();
-      setLocations(data || []);
+      setLocations(data.items || []);
     } catch (error) {
       message.error('获取位置列表失败');
     }
@@ -81,7 +94,24 @@ const Leases: React.FC = () => {
     fetchRooms();
     fetchLandlords();
     fetchLocations();
-  }, []);
+  }, [page, pageSize]);
+
+  const handleQuery = async () => {
+    const values = await queryForm.validateFields();
+    setPage(1);
+    fetchLeases(values);
+  };
+
+  const handleReset = () => {
+    queryForm.resetFields();
+    setPage(1);
+    fetchLeases();
+  };
+
+  const handlePageChange = (pageNum: number, pageSizeNum: number) => {
+    setPage(pageNum);
+    setPageSize(pageSizeNum);
+  };
 
   const handleCreate = () => {
     setEditingLease(null);
@@ -204,6 +234,11 @@ const Leases: React.FC = () => {
     } catch (error) {
       message.error('租约生效失败');
     }
+  };
+
+  const handleViewOperationLogs = (lease: Lease) => {
+    setCurrentLease(lease);
+    setOperationLogVisible(true);
   };
 
   const columns = [
@@ -331,6 +366,13 @@ const Leases: React.FC = () => {
           >
             打印合同
           </Button>
+          <Button
+            icon={<HistoryOutlined />}
+            onClick={() => handleViewOperationLogs(record)}
+            size="small"
+          >
+            操作日志
+          </Button>
           <Popconfirm
             title="确定删除?"
             onConfirm={() => handleDelete(record.id)}
@@ -355,13 +397,54 @@ const Leases: React.FC = () => {
         </Button>
       </div>
 
+      {/* 查询表单 */}
+      <Form form={queryForm} layout="inline" style={{ marginBottom: 16 }}>
+        <Form.Item name="tenantName" label="租户姓名">
+          <Input placeholder="请输入租户姓名" style={{ width: 120 }} />
+        </Form.Item>
+        <Form.Item name="tenantPhone" label="租户电话">
+          <Input placeholder="请输入租户电话" style={{ width: 120 }} />
+        </Form.Item>
+        <Form.Item name="status" label="状态">
+          <Select placeholder="请选择状态" style={{ width: 120 }}>
+            <Option value="pending">待生效</Option>
+            <Option value="active">生效中</Option>
+            <Option value="expired">已过期</Option>
+            <Option value="checkout">已退租</Option>
+          </Select>
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" icon={<SearchOutlined />} onClick={handleQuery} loading={loading}>
+            查询
+          </Button>
+        </Form.Item>
+        <Form.Item>
+          <Button icon={<ReloadOutlined />} onClick={handleReset} loading={loading}>
+            重置
+          </Button>
+        </Form.Item>
+      </Form>
+
       <Table
         columns={columns}
         dataSource={leases}
         rowKey="id"
         loading={loading}
+        pagination={false}
         scroll={{ x: 1800 }}
       />
+
+      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+        <Pagination
+          current={page}
+          pageSize={pageSize}
+          total={total}
+          onChange={handlePageChange}
+          showSizeChanger
+          showQuickJumper
+          showTotal={(total) => `共 ${total} 条记录`}
+        />
+      </div>
 
       <Modal
         title={editingLease ? '编辑租约' : '新增租约'}
@@ -514,6 +597,14 @@ const Leases: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <OperationLogModal
+        visible={operationLogVisible}
+        aggregateId={currentLease?.id || ''}
+        domainType="lease"
+        title={`租约操作日志 - ${currentLease?.tenantName || ''}`}
+        onCancel={() => setOperationLogVisible(false)}
+      />
     </div>
   );
 };

@@ -41,27 +41,47 @@ func (h *RoomQueryHandler) HandleListRooms(q query.Query) (any, error) {
 		return nil, model.ErrInvalidCommand
 	}
 
-	// 先获取所有房间
-	allRooms, err := h.repo.FindAll()
+	// 构建查询条件
+	criteria := repository.RoomCriteria{
+		LocationID: listQuery.LocationID,
+		RoomNumber: listQuery.RoomNumber,
+		Tags:       listQuery.Tags,
+		StartTime:  listQuery.StartDate,
+		EndTime:    listQuery.EndDate,
+	}
+
+	// 设置默认分页大小
+	limit := listQuery.Limit
+	if limit <= 0 {
+		limit = 10 // 默认返回10条
+	}
+
+	// 查询数据
+	rooms, err := h.repo.FindByCriteria(criteria, listQuery.Offset, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	// 应用过滤
-	var filtered []*model.Room
-	for _, room := range allRooms {
-		// 按位置过滤
-		if listQuery.LocationID != "" && room.LocationID != listQuery.LocationID {
-			continue
-		}
-		// 按标签过滤
-		if len(listQuery.Tags) > 0 && !hasAnyTag(room.Tags, listQuery.Tags) {
-			continue
-		}
-		filtered = append(filtered, room)
+	// 获取总数
+	total, err := h.repo.CountByCriteria(criteria)
+	if err != nil {
+		return nil, err
 	}
 
-	return &query.RoomsQueryResult{Items: filtered}, nil
+	// 计算页码
+	page := 1
+	if listQuery.Offset > 0 && limit > 0 {
+		page = (listQuery.Offset / limit) + 1
+	}
+
+	result := &query.RoomsQueryResult{
+		Items: rooms,
+		Total: total,
+		Page:  page,
+		Limit: limit,
+	}
+
+	return result, nil
 }
 
 // HandleListRoomsByLocation 处理按位置列出房间查询

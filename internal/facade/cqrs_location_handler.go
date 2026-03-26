@@ -7,6 +7,7 @@ import (
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
+	"strconv"
 )
 
 // CQRSLocationHandler 基于 CQRS 的位置 HTTP 处理器
@@ -62,7 +63,22 @@ func (h *CQRSLocationHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // List 列出位置
 func (h *CQRSLocationHandler) List(w http.ResponseWriter, r *http.Request) {
-	q := query.ListLocationsQuery{}
+	q := query.ListLocationsQuery{
+		ShortName: r.URL.Query().Get("short_name"),
+		Detail:    r.URL.Query().Get("detail"),
+	}
+
+	// 解析分页参数
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if offset, err := strconv.Atoi(offsetStr); err == nil {
+			q.Offset = offset
+		}
+	}
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if limit, err := strconv.Atoi(limitStr); err == nil {
+			q.Limit = limit
+		}
+	}
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
@@ -70,9 +86,8 @@ func (h *CQRSLocationHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queryResult := result.(*query.LocationsQueryResult)
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(queryResult.Items)
+	_ = json.NewEncoder(w).Encode(result)
 }
 
 // Get 获取位置

@@ -87,6 +87,7 @@ func (h *CQRSBillHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // List 列出账单
 func (h *CQRSBillHandler) List(w http.ResponseWriter, r *http.Request) {
+	// 解析查询参数
 	q := query.ListBillsQuery{
 		LeaseID: r.URL.Query().Get("lease_id"),
 		RoomID:  r.URL.Query().Get("room_id"),
@@ -99,9 +100,8 @@ func (h *CQRSBillHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queryResult := result.(*query.BillsQueryResult)
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(queryResult.Items)
+	_ = json.NewEncoder(w).Encode(result)
 }
 
 // Get 获取账单
