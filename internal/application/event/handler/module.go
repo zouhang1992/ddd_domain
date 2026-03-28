@@ -11,4 +11,7 @@ var Module = fx.Options(
 	fx.Provide(func(repo repository.OperationLogRepository, logger *zap.Logger) *Handler {
 		return NewHandler(repo, logger)
 	}),
+	fx.Provide(func(roomRepo repository.RoomRepository, logger *zap.Logger) *LeaseRoomEventHandler {
+		return NewLeaseRoomEventHandler(roomRepo, logger)
+	}),
 )

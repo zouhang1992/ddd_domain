@@ -55,8 +55,16 @@ func main() {
 	).Run()
 }
 
-func registerEventHandlers(eventBus *busevent.Bus, logHandler *eventhandler.Handler) {
+func registerEventHandlers(eventBus *busevent.Bus, logHandler *eventhandler.Handler, leaseRoomHandler *eventhandler.LeaseRoomEventHandler, logger *zap.Logger) {
 	logHandler.SubscribeToAllEvents(eventBus)
+
+	// 订阅租约事件以处理房间状态变更
+	eventBus.Subscribe("lease.activated", leaseRoomHandler)
+	eventBus.Subscribe("lease.checkout", leaseRoomHandler)
+	eventBus.Subscribe("lease.expired", leaseRoomHandler)
+
+	logger.Info("Lease room event handler registered",
+		zap.String("events", "lease.activated, lease.checkout, lease.expired"))
 }
 
 func registerCommandHandlers(

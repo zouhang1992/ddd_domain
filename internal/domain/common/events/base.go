@@ -11,6 +11,7 @@ type DomainEvent interface {
 	EventName() string
 	EventID() string
 	TimeStamp() time.Time
+	OccurredAt() time.Time
 	AggregateID() string
 	Version() int
 }
@@ -43,6 +44,10 @@ func (e BaseEvent) EventID() string {
 }
 
 func (e BaseEvent) TimeStamp() time.Time {
+	return e.timeStamp
+}
+
+func (e BaseEvent) OccurredAt() time.Time {
 	return e.timeStamp
 }
 

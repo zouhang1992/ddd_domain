@@ -43,6 +43,14 @@ type roomUpdated struct {
 	Tags       []string
 }
 
+type roomRented struct {
+	events.BaseEvent
+}
+
+type roomAvailable struct {
+	events.BaseEvent
+}
+
 // NewRoom 创建新房间
 func NewRoom(id, locationID, roomNumber string, tags []string, note string) *Room {
 	now := time.Now()
@@ -88,10 +96,20 @@ func (r *Room) Update(locationID, roomNumber string, tags []string, note string)
 func (r *Room) MarkRented() {
 	r.Status = RoomStatusRented
 	r.UpdatedAt = time.Now()
+	// 创建并记录事件
+	evt := roomRented{
+		BaseEvent: events.NewBaseEvent("room.rented", r.ID(), r.Version()),
+	}
+	r.RecordEvent(evt)
 }
 
 // MarkAvailable 标记房间为可出租
 func (r *Room) MarkAvailable() {
 	r.Status = RoomStatusAvailable
 	r.UpdatedAt = time.Now()
+	// 创建并记录事件
+	evt := roomAvailable{
+		BaseEvent: events.NewBaseEvent("room.available", r.ID(), r.Version()),
+	}
+	r.RecordEvent(evt)
 }
