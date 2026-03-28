@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/zouhang1992/ddd_domain/internal/domain/common/model"
+	"github.com/zouhang1992/ddd_domain/internal/domain/common/events"
 )
 
 // BillType 账单类型
@@ -31,6 +32,24 @@ type Bill struct {
 	UpdatedAt time.Time
 }
 
+// 账单事件（本地定义，避免导入循环）
+type billCreated struct {
+	events.BaseEvent
+	LeaseID string
+	Type    string
+	Amount  int64
+}
+
+type billUpdated struct {
+	events.BaseEvent
+	Amount int64
+}
+
+type billPaid struct {
+	events.BaseEvent
+	PaidAt string
+}
+
 // NewBill 创建新账单
 func NewBill(id, leaseID string, billType BillType, amount int64,
 	dueDate time.Time, note string) *Bill {
@@ -45,8 +64,14 @@ func NewBill(id, leaseID string, billType BillType, amount int64,
 		CreatedAt:       now,
 		UpdatedAt:       now,
 	}
-	// 暂时注释掉，先解决导入循环问题
-	// bill.RecordEvent(events.NewBillCreated(bill.ID(), bill.LeaseID, bill.Version(), string(bill.Type), bill.Amount))
+	// 创建并记录事件
+	evt := billCreated{
+		BaseEvent: events.NewBaseEvent("bill.created", bill.ID(), bill.Version()),
+		LeaseID:   bill.LeaseID,
+		Type:      string(bill.Type),
+		Amount:    bill.Amount,
+	}
+	bill.RecordEvent(evt)
 	return bill
 }
 
@@ -55,12 +80,16 @@ func (b *Bill) MarkPaid() {
 	now := time.Now()
 	b.PaidAt = &now
 	b.UpdatedAt = now
-	// 暂时注释掉，先解决导入循环问题
-	// paidAt := ""
-	// if b.PaidAt != nil {
-	// 	paidAt = b.PaidAt.Format("2006-01-02")
-	// }
-	// b.RecordEvent(events.NewBillPaid(b.ID(), b.Version(), paidAt))
+	// 创建并记录事件
+	paidAt := ""
+	if b.PaidAt != nil {
+		paidAt = b.PaidAt.Format("2006-01-02")
+	}
+	evt := billPaid{
+		BaseEvent: events.NewBaseEvent("bill.paid", b.ID(), b.Version()),
+		PaidAt:    paidAt,
+	}
+	b.RecordEvent(evt)
 }
 
 // Update 更新账单信息
@@ -69,6 +98,10 @@ func (b *Bill) Update(amount int64, dueDate time.Time, note string) {
 	b.DueDate = dueDate
 	b.Note = note
 	b.UpdatedAt = time.Now()
-	// 暂时注释掉，先解决导入循环问题
-	// b.RecordEvent(events.NewBillUpdated(b.ID(), b.Version(), b.Amount))
+	// 创建并记录事件
+	evt := billUpdated{
+		BaseEvent: events.NewBaseEvent("bill.updated", b.ID(), b.Version()),
+		Amount:    b.Amount,
+	}
+	b.RecordEvent(evt)
 }

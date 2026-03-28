@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/zouhang1992/ddd_domain/internal/domain/common/model"
+	"github.com/zouhang1992/ddd_domain/internal/domain/common/events"
 )
 
 // Landlord 房东领域模型（聚合根）
@@ -14,6 +15,25 @@ type Landlord struct {
 	Note      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+// 房东事件（本地定义，避免导入循环）
+type landlordCreated struct {
+	events.BaseEvent
+	Name  string
+	Phone string
+	Note  string
+}
+
+type landlordUpdated struct {
+	events.BaseEvent
+	Name  string
+	Phone string
+	Note  string
+}
+
+type landlordDeleted struct {
+	events.BaseEvent
 }
 
 // NewLandlord 创建新房东
@@ -27,8 +47,14 @@ func NewLandlord(id, name, phone, note string) *Landlord {
 		CreatedAt:         now,
 		UpdatedAt:         now,
 	}
-	// 暂时注释掉，先解决导入循环问题
-	// landlord.RecordEvent(events.NewLandlordCreated(landlord.ID(), landlord.Version(), landlord.Name, landlord.Phone, landlord.Note))
+	// 创建并记录事件
+	evt := landlordCreated{
+		BaseEvent: events.NewBaseEvent("landlord.created", landlord.ID(), landlord.Version()),
+		Name:      landlord.Name,
+		Phone:     landlord.Phone,
+		Note:      landlord.Note,
+	}
+	landlord.RecordEvent(evt)
 	return landlord
 }
 
@@ -38,8 +64,14 @@ func (l *Landlord) Update(name, phone, note string) {
 	l.Phone = phone
 	l.Note = note
 	l.UpdatedAt = time.Now()
-	// 暂时注释掉，先解决导入循环问题
-	// l.RecordEvent(events.NewLandlordUpdated(l.ID(), l.Version(), l.Name, l.Phone, l.Note))
+	// 创建并记录事件
+	evt := landlordUpdated{
+		BaseEvent: events.NewBaseEvent("landlord.updated", l.ID(), l.Version()),
+		Name:      l.Name,
+		Phone:     l.Phone,
+		Note:      l.Note,
+	}
+	l.RecordEvent(evt)
 }
 
 // Equals 比较房东是否相等

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/zouhang1992/ddd_domain/internal/domain/common/model"
+	"github.com/zouhang1992/ddd_domain/internal/domain/common/events"
 )
 
 // LeaseStatus 租约状态
@@ -34,6 +35,34 @@ type Lease struct {
 	UpdatedAt      time.Time
 }
 
+// 租约事件（本地定义，避免导入循环）
+type leaseCreated struct {
+	events.BaseEvent
+	RoomID     string
+	LandlordID string
+	TenantName string
+}
+
+type leaseActivated struct {
+	events.BaseEvent
+	RoomID string
+}
+
+type leaseCheckout struct {
+	events.BaseEvent
+	RoomID string
+}
+
+type leaseExpired struct {
+	events.BaseEvent
+	RoomID string
+}
+
+type leaseRenewed struct {
+	events.BaseEvent
+	NewEndDate string
+}
+
 // NewLease 创建新租约
 func NewLease(id, roomID, landlordID, tenantName, tenantPhone string,
 	startDate, endDate time.Time, rentAmount, depositAmount int64, note string) *Lease {
@@ -54,9 +83,14 @@ func NewLease(id, roomID, landlordID, tenantName, tenantPhone string,
 		UpdatedAt:      now,
 	}
 
-	// 暂时注释掉，先解决导入循环问题
-	// 记录创建事件
-	// lease.RecordEvent(events.NewLeaseCreated(lease.ID(), lease.Version(), lease.RoomID, lease.LandlordID, lease.TenantName))
+	// 创建并记录事件
+	evt := leaseCreated{
+		BaseEvent:  events.NewBaseEvent("lease.created", lease.ID(), lease.Version()),
+		RoomID:     lease.RoomID,
+		LandlordID: lease.LandlordID,
+		TenantName: lease.TenantName,
+	}
+	lease.RecordEvent(evt)
 	return lease
 }
 
@@ -64,30 +98,46 @@ func NewLease(id, roomID, landlordID, tenantName, tenantPhone string,
 func (l *Lease) Activate() {
 	l.Status = LeaseStatusActive
 	l.UpdatedAt = time.Now()
-	// 暂时注释掉，先解决导入循环问题
-	// l.RecordEvent(events.NewLeaseActivated(l.ID(), l.Version(), l.RoomID))
+	// 创建并记录事件
+	evt := leaseActivated{
+		BaseEvent: events.NewBaseEvent("lease.activated", l.ID(), l.Version()),
+		RoomID:    l.RoomID,
+	}
+	l.RecordEvent(evt)
 }
 
 // Checkout 退租
 func (l *Lease) Checkout() {
 	l.Status = LeaseStatusCheckout
 	l.UpdatedAt = time.Now()
-	// 暂时注释掉，先解决导入循环问题
-	// l.RecordEvent(events.NewLeaseCheckout(l.ID(), l.Version(), l.RoomID))
+	// 创建并记录事件
+	evt := leaseCheckout{
+		BaseEvent: events.NewBaseEvent("lease.checkout", l.ID(), l.Version()),
+		RoomID:    l.RoomID,
+	}
+	l.RecordEvent(evt)
 }
 
 // Expire 标记租约为过期状态
 func (l *Lease) Expire() {
 	l.Status = LeaseStatusExpired
 	l.UpdatedAt = time.Now()
-	// 暂时注释掉，先解决导入循环问题
-	// l.RecordEvent(events.NewLeaseExpired(l.ID(), l.Version(), l.RoomID))
+	// 创建并记录事件
+	evt := leaseExpired{
+		BaseEvent: events.NewBaseEvent("lease.expired", l.ID(), l.Version()),
+		RoomID:    l.RoomID,
+	}
+	l.RecordEvent(evt)
 }
 
 // Renew 续租
 func (l *Lease) Renew(newEndDate time.Time) {
 	l.EndDate = newEndDate
 	l.UpdatedAt = time.Now()
-	// 暂时注释掉，先解决导入循环问题
-	// l.RecordEvent(events.NewLeaseRenewed(l.ID(), l.Version(), l.EndDate.Format("2006-01-02")))
+	// 创建并记录事件
+	evt := leaseRenewed{
+		BaseEvent:  events.NewBaseEvent("lease.renewed", l.ID(), l.Version()),
+		NewEndDate: l.EndDate.Format("2006-01-02"),
+	}
+	l.RecordEvent(evt)
 }

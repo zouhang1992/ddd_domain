@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/zouhang1992/ddd_domain/internal/domain/common/model"
+	"github.com/zouhang1992/ddd_domain/internal/domain/common/events"
 )
 
 // Location 位置领域模型（聚合根）
@@ -13,6 +14,19 @@ type Location struct {
 	Detail    string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+// 位置事件（本地定义，避免导入循环）
+type locationCreated struct {
+	events.BaseEvent
+	ShortName string
+	Detail    string
+}
+
+type locationUpdated struct {
+	events.BaseEvent
+	ShortName string
+	Detail    string
 }
 
 // NewLocation 创建新位置
@@ -25,8 +39,13 @@ func NewLocation(id, shortName, detail string) *Location {
 		CreatedAt:         now,
 		UpdatedAt:         now,
 	}
-	// 暂时注释掉，先解决导入循环问题
-	// location.RecordEvent(events.NewLocationCreated(location.ID(), location.Version(), location.ShortName, location.Detail))
+	// 创建并记录事件
+	evt := locationCreated{
+		BaseEvent: events.NewBaseEvent("location.created", location.ID(), location.Version()),
+		ShortName: location.ShortName,
+		Detail:    location.Detail,
+	}
+	location.RecordEvent(evt)
 	return location
 }
 
@@ -35,6 +54,11 @@ func (l *Location) Update(shortName, detail string) {
 	l.ShortName = shortName
 	l.Detail = detail
 	l.UpdatedAt = time.Now()
-	// 暂时注释掉，先解决导入循环问题
-	// l.RecordEvent(events.NewLocationUpdated(l.ID(), l.Version(), l.ShortName, l.Detail))
+	// 创建并记录事件
+	evt := locationUpdated{
+		BaseEvent: events.NewBaseEvent("location.updated", l.ID(), l.Version()),
+		ShortName: l.ShortName,
+		Detail:    l.Detail,
+	}
+	l.RecordEvent(evt)
 }

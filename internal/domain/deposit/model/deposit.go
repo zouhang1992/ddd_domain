@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/zouhang1992/ddd_domain/internal/domain/common/model"
+	"github.com/zouhang1992/ddd_domain/internal/domain/common/events"
 )
 
 // DepositStatus 押金状态
@@ -18,13 +19,28 @@ const (
 // Deposit 押金领域模型（聚合根）
 type Deposit struct {
 	model.BaseAggregateRoot
-	LeaseID  string
-	Amount   int64
-	Status   DepositStatus
+	LeaseID    string
+	Amount     int64
+	Status     DepositStatus
 	ReturnedAt *time.Time
-	Note     string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Note       string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+// 押金事件（本地定义，避免导入循环）
+type depositCreated struct {
+	events.BaseEvent
+	LeaseID string
+	Amount  int64
+}
+
+type depositReturning struct {
+	events.BaseEvent
+}
+
+type depositReturned struct {
+	events.BaseEvent
 }
 
 // NewDeposit 创建新押金
@@ -39,8 +55,13 @@ func NewDeposit(id, leaseID string, amount int64, note string) *Deposit {
 		CreatedAt:       now,
 		UpdatedAt:       now,
 	}
-	// 暂时注释掉，先解决导入循环问题
-	// deposit.RecordEvent(events.NewDepositCreated(deposit.ID(), deposit.Version(), deposit.LeaseID, deposit.Amount))
+	// 创建并记录事件
+	evt := depositCreated{
+		BaseEvent: events.NewBaseEvent("deposit.created", deposit.ID(), deposit.Version()),
+		LeaseID:   deposit.LeaseID,
+		Amount:    deposit.Amount,
+	}
+	deposit.RecordEvent(evt)
 	return deposit
 }
 
@@ -48,8 +69,11 @@ func NewDeposit(id, leaseID string, amount int64, note string) *Deposit {
 func (d *Deposit) MarkReturning() {
 	d.Status = DepositStatusReturning
 	d.UpdatedAt = time.Now()
-	// 暂时注释掉，先解决导入循环问题
-	// d.RecordEvent(events.NewDepositReturning(d.ID(), d.Version()))
+	// 创建并记录事件
+	evt := depositReturning{
+		BaseEvent: events.NewBaseEvent("deposit.returning", d.ID(), d.Version()),
+	}
+	d.RecordEvent(evt)
 }
 
 // MarkReturned 标记押金为已退还
@@ -58,6 +82,9 @@ func (d *Deposit) MarkReturned() {
 	d.Status = DepositStatusReturned
 	d.ReturnedAt = &now
 	d.UpdatedAt = now
-	// 暂时注释掉，先解决导入循环问题
-	// d.RecordEvent(events.NewDepositReturned(d.ID(), d.Version()))
+	// 创建并记录事件
+	evt := depositReturned{
+		BaseEvent: events.NewBaseEvent("deposit.returned", d.ID(), d.Version()),
+	}
+	d.RecordEvent(evt)
 }

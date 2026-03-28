@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/zouhang1992/ddd_domain/internal/domain/common/model"
+	"github.com/zouhang1992/ddd_domain/internal/domain/common/events"
 )
 
 // RoomStatus 房间状态
@@ -27,6 +28,21 @@ type Room struct {
 	UpdatedAt  time.Time
 }
 
+// 房间事件（本地定义，避免导入循环）
+type roomCreated struct {
+	events.BaseEvent
+	LocationID string
+	RoomNumber string
+	Tags       []string
+}
+
+type roomUpdated struct {
+	events.BaseEvent
+	LocationID string
+	RoomNumber string
+	Tags       []string
+}
+
 // NewRoom 创建新房间
 func NewRoom(id, locationID, roomNumber string, tags []string, note string) *Room {
 	now := time.Now()
@@ -40,8 +56,14 @@ func NewRoom(id, locationID, roomNumber string, tags []string, note string) *Roo
 		CreatedAt:         now,
 		UpdatedAt:         now,
 	}
-	// 暂时注释掉，先解决导入循环问题
-	// room.RecordEvent(events.NewRoomCreated(room.ID(), room.Version(), room.LocationID, room.RoomNumber, room.Tags))
+	// 创建并记录事件
+	evt := roomCreated{
+		BaseEvent:  events.NewBaseEvent("room.created", room.ID(), room.Version()),
+		LocationID: room.LocationID,
+		RoomNumber: room.RoomNumber,
+		Tags:       room.Tags,
+	}
+	room.RecordEvent(evt)
 	return room
 }
 
@@ -52,8 +74,14 @@ func (r *Room) Update(locationID, roomNumber string, tags []string, note string)
 	r.Tags = tags
 	r.Note = note
 	r.UpdatedAt = time.Now()
-	// 暂时注释掉，先解决导入循环问题
-	// r.RecordEvent(events.NewRoomUpdated(r.ID(), r.Version(), r.LocationID, r.RoomNumber, r.Tags))
+	// 创建并记录事件
+	evt := roomUpdated{
+		BaseEvent:  events.NewBaseEvent("room.updated", r.ID(), r.Version()),
+		LocationID: r.LocationID,
+		RoomNumber: r.RoomNumber,
+		Tags:       r.Tags,
+	}
+	r.RecordEvent(evt)
 }
 
 // MarkRented 标记房间为已出租
