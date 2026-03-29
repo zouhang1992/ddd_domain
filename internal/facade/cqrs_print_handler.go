@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-	"github.com/zouhang1992/ddd_domain/internal/application/command"
-	"github.com/zouhang1992/ddd_domain/internal/application/query"
+	"github.com/zouhang1992/ddd_domain/internal/application/print"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
@@ -44,7 +43,7 @@ func (h *CQRSPrintHandler) PrintBill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := command.PrintBillCommand{
+	cmd := print.PrintBillCommand{
 		BillID: req.BillID,
 	}
 
@@ -69,7 +68,7 @@ func (h *CQRSPrintHandler) PrintLease(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := command.PrintLeaseCommand{
+	cmd := print.PrintLeaseCommand{
 		LeaseID: req.LeaseID,
 	}
 
@@ -94,7 +93,7 @@ func (h *CQRSPrintHandler) PrintInvoice(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	cmd := command.PrintInvoiceCommand{
+	cmd := print.PrintInvoiceCommand{
 		BillID: req.BillID,
 	}
 
@@ -112,7 +111,7 @@ func (h *CQRSPrintHandler) PrintInvoice(w http.ResponseWriter, r *http.Request) 
 // GetPrintContent 获取打印内容
 func (h *CQRSPrintHandler) GetPrintContent(w http.ResponseWriter, r *http.Request) {
 	billID := r.PathValue("billId")
-	q := query.GetPrintContentQuery{BillID: billID}
+	q := print.GetPrintContentQuery{BillID: billID}
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
@@ -151,7 +150,7 @@ func (h *CQRSPrintHandler) ListPrintJobs(w http.ResponseWriter, r *http.Request)
 	}
 
 	// 构建查询对象
-	q := query.ListPrintJobsQuery{
+	q := print.ListPrintJobsQuery{
 		Status: status,
 		Offset: offset,
 		Limit:  limit,

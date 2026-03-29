@@ -2,7 +2,7 @@ package facade
 
 import (
 	"encoding/json"
-	"github.com/zouhang1992/ddd_domain/internal/application/service"
+	"github.com/zouhang1992/ddd_domain/internal/application/common/service"
 	"net/http"
 )
 

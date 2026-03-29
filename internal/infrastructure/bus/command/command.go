@@ -1,11 +1,11 @@
 package command
 
 import (
-	appcommand "github.com/zouhang1992/ddd_domain/internal/application/command"
+	appcommon "github.com/zouhang1992/ddd_domain/internal/application/common"
 )
 
 // Command 定义命令接口（使用 application 包的 Command 接口）
-type Command = appcommand.Command
+type Command = appcommon.Command
 
 // CommandHandler 定义命令处理器接口
 type CommandHandler interface {

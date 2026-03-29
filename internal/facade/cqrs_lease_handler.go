@@ -2,8 +2,7 @@ package facade
 
 import (
 	"encoding/json"
-	"github.com/zouhang1992/ddd_domain/internal/application/command"
-	"github.com/zouhang1992/ddd_domain/internal/application/query"
+	"github.com/zouhang1992/ddd_domain/internal/application/lease"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
@@ -68,7 +67,7 @@ func (h *CQRSLeaseHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := command.CreateLeaseCommand{
+	cmd := lease.CreateLeaseCommand{
 		RoomID:        req.RoomID,
 		LandlordID:    req.LandlordID,
 		TenantName:    req.TenantName,
@@ -99,7 +98,7 @@ func (h *CQRSLeaseHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // List 列出租约
 func (h *CQRSLeaseHandler) List(w http.ResponseWriter, r *http.Request) {
-	q := query.ListLeasesQuery{
+	q := lease.ListLeasesQuery{
 		TenantName:  r.URL.Query().Get("tenant_name"),
 		TenantPhone: r.URL.Query().Get("tenant_phone"),
 		Status:      r.URL.Query().Get("status"),
@@ -131,7 +130,7 @@ func (h *CQRSLeaseHandler) List(w http.ResponseWriter, r *http.Request) {
 // Get 获取租约
 func (h *CQRSLeaseHandler) Get(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	q := query.GetLeaseQuery{ID: id}
+	q := lease.GetLeaseQuery{ID: id}
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
@@ -143,7 +142,7 @@ func (h *CQRSLeaseHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queryResult := result.(*query.LeaseQueryResult)
+	queryResult := result.(*lease.LeaseQueryResult)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(queryResult.Lease)
 }
@@ -176,7 +175,7 @@ func (h *CQRSLeaseHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := command.UpdateLeaseCommand{
+	cmd := lease.UpdateLeaseCommand{
 		ID:          id,
 		TenantName:  req.TenantName,
 		TenantPhone: req.TenantPhone,
@@ -204,7 +203,7 @@ func (h *CQRSLeaseHandler) Update(w http.ResponseWriter, r *http.Request) {
 // Delete 删除租约
 func (h *CQRSLeaseHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	cmd := command.DeleteLeaseCommand{ID: id}
+	cmd := lease.DeleteLeaseCommand{ID: id}
 
 	if _, err := h.commandBus.Dispatch(cmd); err != nil {
 		if err.Error() == "cannot delete lease with bills or deposit, or active lease" {
@@ -244,7 +243,7 @@ func (h *CQRSLeaseHandler) Renew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := command.RenewLeaseCommand{
+	cmd := lease.RenewLeaseCommand{
 		ID:            id,
 		NewStartDate:  newStartDate,
 		NewEndDate:    newEndDate,
@@ -270,7 +269,7 @@ func (h *CQRSLeaseHandler) Renew(w http.ResponseWriter, r *http.Request) {
 // Checkout 退租
 func (h *CQRSLeaseHandler) Checkout(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	cmd := command.CheckoutLeaseCommand{ID: id}
+	cmd := lease.CheckoutLeaseCommand{ID: id}
 
 	result, err := h.commandBus.Dispatch(cmd)
 	if err != nil {
@@ -290,7 +289,7 @@ func (h *CQRSLeaseHandler) Checkout(w http.ResponseWriter, r *http.Request) {
 // Activate 租约生效
 func (h *CQRSLeaseHandler) Activate(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	cmd := command.ActivateLeaseCommand{ID: id}
+	cmd := lease.ActivateLeaseCommand{ID: id}
 
 	result, err := h.commandBus.Dispatch(cmd)
 	if err != nil {

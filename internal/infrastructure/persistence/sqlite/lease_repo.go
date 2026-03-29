@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/zouhang1992/ddd_domain/internal/domain/model"
-	"github.com/zouhang1992/ddd_domain/internal/domain/repository"
+	leasemodel "github.com/zouhang1992/ddd_domain/internal/domain/lease/model"
+	leaserepo "github.com/zouhang1992/ddd_domain/internal/domain/lease/repository"
 )
 
 // LeaseRepository SQLite 租约仓储实现
@@ -14,12 +14,30 @@ type LeaseRepository struct {
 }
 
 // NewLeaseRepository 创建租约仓储
-func NewLeaseRepository(conn *Connection) repository.LeaseRepository {
+func NewLeaseRepository(conn *Connection) leaserepo.LeaseRepository {
 	return &LeaseRepository{conn: conn}
 }
 
+// tempLease is a temporary struct for scanning
+type tempLease struct {
+	ID            string
+	RoomID        string
+	LandlordID    string
+	TenantName    string
+	TenantPhone   string
+	StartDate     time.Time
+	EndDate       time.Time
+	RentAmount    int64
+	DepositAmount int64
+	Status        string
+	Note          string
+	LastChargeAt  *time.Time
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
 // Save 保存租约
-func (r *LeaseRepository) Save(lease *model.Lease) error {
+func (r *LeaseRepository) Save(lease *leasemodel.Lease) error {
 	var lastChargeAt interface{}
 	if lease.LastChargeAt != nil {
 		lastChargeAt = *lease.LastChargeAt
@@ -31,29 +49,27 @@ func (r *LeaseRepository) Save(lease *model.Lease) error {
 			start_date, end_date, rent_amount, deposit_amount, status, note, last_charge_at,
 			created_at, updated_at
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`,
-		lease.ID, lease.RoomID, lease.LandlordID, lease.TenantName, lease.TenantPhone,
+		`,
+		lease.ID(), lease.RoomID, lease.LandlordID, lease.TenantName, lease.TenantPhone,
 		lease.StartDate, lease.EndDate, lease.RentAmount, lease.DepositAmount, string(lease.Status), lease.Note, lastChargeAt,
 		lease.CreatedAt, lease.UpdatedAt)
 	return err
 }
 
 // FindByID 根据ID查找租约
-func (r *LeaseRepository) FindByID(id string) (*model.Lease, error) {
+func (r *LeaseRepository) FindByID(id string) (*leasemodel.Lease, error) {
 	row := r.conn.DB().QueryRow(`
 		SELECT id, room_id, landlord_id, tenant_name, tenant_phone,
 			start_date, end_date, rent_amount, deposit_amount, status, note, last_charge_at,
 			created_at, updated_at
 		FROM leases WHERE id = ?
-	`, id)
+		`, id)
 
-	lease := &model.Lease{}
-	var statusStr string
-	var lastChargeAt interface{}
+	var temp tempLease
 	err := row.Scan(
-		&lease.ID, &lease.RoomID, &lease.LandlordID, &lease.TenantName, &lease.TenantPhone,
-		&lease.StartDate, &lease.EndDate, &lease.RentAmount, &lease.DepositAmount, &statusStr, &lease.Note, &lastChargeAt,
-		&lease.CreatedAt, &lease.UpdatedAt)
+		&temp.ID, &temp.RoomID, &temp.LandlordID, &temp.TenantName, &temp.TenantPhone,
+		&temp.StartDate, &temp.EndDate, &temp.RentAmount, &temp.DepositAmount, &temp.Status, &temp.Note, &temp.LastChargeAt,
+		&temp.CreatedAt, &temp.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -61,203 +77,51 @@ func (r *LeaseRepository) FindByID(id string) (*model.Lease, error) {
 		return nil, err
 	}
 
-	lease.Status = model.LeaseStatus(statusStr)
-	if lastChargeAt != nil {
-		if t, ok := lastChargeAt.(time.Time); ok {
-			lease.LastChargeAt = &t
-		}
-	}
+	// Now construct the lease using NewLease
+	lease := leasemodel.NewLease(temp.ID, temp.RoomID, temp.LandlordID, temp.TenantName, temp.TenantPhone,
+		temp.StartDate, temp.EndDate, temp.RentAmount, temp.DepositAmount, temp.Note)
+	lease.Status = leasemodel.LeaseStatus(temp.Status)
+	lease.LastChargeAt = temp.LastChargeAt
+	lease.CreatedAt = temp.CreatedAt
+	lease.UpdatedAt = temp.UpdatedAt
 
 	return lease, nil
 }
 
 // FindAll 查找所有租约
-func (r *LeaseRepository) FindAll() ([]*model.Lease, error) {
+func (r *LeaseRepository) FindAll() ([]*leasemodel.Lease, error) {
 	rows, err := r.conn.DB().Query(`
 		SELECT id, room_id, landlord_id, tenant_name, tenant_phone,
 			start_date, end_date, rent_amount, deposit_amount, status, note, last_charge_at,
 			created_at, updated_at
 		FROM leases ORDER BY created_at DESC
-	`)
+		`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var leases []*model.Lease
+	var leases []*leasemodel.Lease
 	for rows.Next() {
-		lease := &model.Lease{}
-		var statusStr string
-		var lastChargeAt interface{}
+		var temp tempLease
 		err := rows.Scan(
-			&lease.ID, &lease.RoomID, &lease.LandlordID, &lease.TenantName, &lease.TenantPhone,
-			&lease.StartDate, &lease.EndDate, &lease.RentAmount, &lease.DepositAmount, &statusStr, &lease.Note, &lastChargeAt,
-			&lease.CreatedAt, &lease.UpdatedAt)
+			&temp.ID, &temp.RoomID, &temp.LandlordID, &temp.TenantName, &temp.TenantPhone,
+			&temp.StartDate, &temp.EndDate, &temp.RentAmount, &temp.DepositAmount, &temp.Status, &temp.Note, &temp.LastChargeAt,
+			&temp.CreatedAt, &temp.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 
-		lease.Status = model.LeaseStatus(statusStr)
-		if lastChargeAt != nil {
-			if t, ok := lastChargeAt.(time.Time); ok {
-				lease.LastChargeAt = &t
-			}
-		}
+		lease := leasemodel.NewLease(temp.ID, temp.RoomID, temp.LandlordID, temp.TenantName, temp.TenantPhone,
+			temp.StartDate, temp.EndDate, temp.RentAmount, temp.DepositAmount, temp.Note)
+		lease.Status = leasemodel.LeaseStatus(temp.Status)
+		lease.LastChargeAt = temp.LastChargeAt
+		lease.CreatedAt = temp.CreatedAt
+		lease.UpdatedAt = temp.UpdatedAt
 
 		leases = append(leases, lease)
 	}
 	return leases, nil
-}
-
-// FindByRoomID 根据房间ID查找租约
-func (r *LeaseRepository) FindByRoomID(roomID string) ([]*model.Lease, error) {
-	rows, err := r.conn.DB().Query(`
-		SELECT id, room_id, landlord_id, tenant_name, tenant_phone,
-			start_date, end_date, rent_amount, deposit_amount, status, note, last_charge_at,
-			created_at, updated_at
-		FROM leases WHERE room_id = ? ORDER BY created_at DESC
-	`, roomID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var leases []*model.Lease
-	for rows.Next() {
-		lease := &model.Lease{}
-		var statusStr string
-		var lastChargeAt interface{}
-		err := rows.Scan(
-			&lease.ID, &lease.RoomID, &lease.LandlordID, &lease.TenantName, &lease.TenantPhone,
-			&lease.StartDate, &lease.EndDate, &lease.RentAmount, &lease.DepositAmount, &statusStr, &lease.Note, &lastChargeAt,
-			&lease.CreatedAt, &lease.UpdatedAt)
-		if err != nil {
-			return nil, err
-		}
-
-		lease.Status = model.LeaseStatus(statusStr)
-		if lastChargeAt != nil {
-			if t, ok := lastChargeAt.(time.Time); ok {
-				lease.LastChargeAt = &t
-			}
-		}
-
-		leases = append(leases, lease)
-	}
-	return leases, nil
-}
-
-// FindByStatus 根据状态查找租约
-func (r *LeaseRepository) FindByStatus(status model.LeaseStatus) ([]*model.Lease, error) {
-	rows, err := r.conn.DB().Query(`
-		SELECT id, room_id, landlord_id, tenant_name, tenant_phone,
-			start_date, end_date, rent_amount, deposit_amount, status, note, last_charge_at,
-			created_at, updated_at
-		FROM leases WHERE status = ? ORDER BY created_at DESC
-	`, string(status))
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var leases []*model.Lease
-	for rows.Next() {
-		lease := &model.Lease{}
-		var statusStr string
-		var lastChargeAt interface{}
-		err := rows.Scan(
-			&lease.ID, &lease.RoomID, &lease.LandlordID, &lease.TenantName, &lease.TenantPhone,
-			&lease.StartDate, &lease.EndDate, &lease.RentAmount, &lease.DepositAmount, &statusStr, &lease.Note, &lastChargeAt,
-			&lease.CreatedAt, &lease.UpdatedAt)
-		if err != nil {
-			return nil, err
-		}
-
-		lease.Status = model.LeaseStatus(statusStr)
-		if lastChargeAt != nil {
-			if t, ok := lastChargeAt.(time.Time); ok {
-				lease.LastChargeAt = &t
-			}
-		}
-
-		leases = append(leases, lease)
-	}
-	return leases, nil
-}
-
-// FindByRoomIDAndStatus 根据房间ID和状态查找租约
-func (r *LeaseRepository) FindByRoomIDAndStatus(roomID string, status model.LeaseStatus) ([]*model.Lease, error) {
-	rows, err := r.conn.DB().Query(`
-		SELECT id, room_id, landlord_id, tenant_name, tenant_phone,
-			start_date, end_date, rent_amount, deposit_amount, status, note, last_charge_at,
-			created_at, updated_at
-		FROM leases WHERE room_id = ? AND status = ? ORDER BY created_at DESC
-	`, roomID, string(status))
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var leases []*model.Lease
-	for rows.Next() {
-		lease := &model.Lease{}
-		var statusStr string
-		var lastChargeAt interface{}
-		err := rows.Scan(
-			&lease.ID, &lease.RoomID, &lease.LandlordID, &lease.TenantName, &lease.TenantPhone,
-			&lease.StartDate, &lease.EndDate, &lease.RentAmount, &lease.DepositAmount, &statusStr, &lease.Note, &lastChargeAt,
-			&lease.CreatedAt, &lease.UpdatedAt)
-		if err != nil {
-			return nil, err
-		}
-
-		lease.Status = model.LeaseStatus(statusStr)
-		if lastChargeAt != nil {
-			if t, ok := lastChargeAt.(time.Time); ok {
-				lease.LastChargeAt = &t
-			}
-		}
-
-		leases = append(leases, lease)
-	}
-	return leases, nil
-}
-
-// FindActiveByRoomID 查找房间的生效中租约
-func (r *LeaseRepository) FindActiveByRoomID(roomID string) (*model.Lease, error) {
-	rows, err := r.conn.DB().Query(`
-		SELECT id, room_id, landlord_id, tenant_name, tenant_phone,
-			start_date, end_date, rent_amount, deposit_amount, status, note, last_charge_at,
-			created_at, updated_at
-		FROM leases WHERE room_id = ? AND status = 'active' ORDER BY created_at DESC LIMIT 1
-	`, roomID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	if rows.Next() {
-		lease := &model.Lease{}
-		var statusStr string
-		var lastChargeAt interface{}
-		err := rows.Scan(
-			&lease.ID, &lease.RoomID, &lease.LandlordID, &lease.TenantName, &lease.TenantPhone,
-			&lease.StartDate, &lease.EndDate, &lease.RentAmount, &lease.DepositAmount, &statusStr, &lease.Note, &lastChargeAt,
-			&lease.CreatedAt, &lease.UpdatedAt)
-		if err != nil {
-			return nil, err
-		}
-
-		lease.Status = model.LeaseStatus(statusStr)
-		if lastChargeAt != nil {
-			if t, ok := lastChargeAt.(time.Time); ok {
-				lease.LastChargeAt = &t
-			}
-		}
-
-		return lease, nil
-	}
-	return nil, nil
 }
 
 // Delete 删除租约
@@ -282,111 +146,38 @@ func (r *LeaseRepository) HasDeposit(leaseID string) (bool, error) {
 	return count > 0, err
 }
 
-// FindByCriteria 按条件查找租约
-func (r *LeaseRepository) FindByCriteria(criteria repository.LeaseCriteria, offset, limit int) ([]*model.Lease, error) {
-	query := `
+// FindActiveLeasesExpiringBefore 查找即将过期的生效租约
+func (r *LeaseRepository) FindActiveLeasesExpiringBefore(expireTime time.Time) ([]*leasemodel.Lease, error) {
+	rows, err := r.conn.DB().Query(`
 		SELECT id, room_id, landlord_id, tenant_name, tenant_phone,
 			start_date, end_date, rent_amount, deposit_amount, status, note, last_charge_at,
 			created_at, updated_at
-		FROM leases
-		WHERE 1 = 1
-	`
-	var args []interface{}
-
-	if criteria.TenantName != "" {
-		query += " AND tenant_name LIKE ?"
-		args = append(args, "%"+criteria.TenantName+"%")
-	}
-	if criteria.TenantPhone != "" {
-		query += " AND tenant_phone LIKE ?"
-		args = append(args, "%"+criteria.TenantPhone+"%")
-	}
-	if criteria.Status != "" {
-		query += " AND status = ?"
-		args = append(args, criteria.Status)
-	}
-	if criteria.RoomID != "" {
-		query += " AND room_id = ?"
-		args = append(args, criteria.RoomID)
-	}
-	if criteria.StartDate != nil {
-		query += " AND start_date >= ?"
-		args = append(args, criteria.StartDate)
-	}
-	if criteria.EndDate != nil {
-		query += " AND end_date <= ?"
-		args = append(args, criteria.EndDate)
-	}
-
-	query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
-	args = append(args, limit, offset)
-
-	rows, err := r.conn.DB().Query(query, args...)
+		FROM leases WHERE status = 'active' AND end_date <= ? ORDER BY end_date ASC
+		`, expireTime)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var leases []*model.Lease
+	var leases []*leasemodel.Lease
 	for rows.Next() {
-		lease := &model.Lease{}
-		var statusStr string
-		var lastChargeAt interface{}
+		var temp tempLease
 		err := rows.Scan(
-			&lease.ID, &lease.RoomID, &lease.LandlordID, &lease.TenantName, &lease.TenantPhone,
-			&lease.StartDate, &lease.EndDate, &lease.RentAmount, &lease.DepositAmount, &statusStr, &lease.Note, &lastChargeAt,
-			&lease.CreatedAt, &lease.UpdatedAt)
+			&temp.ID, &temp.RoomID, &temp.LandlordID, &temp.TenantName, &temp.TenantPhone,
+			&temp.StartDate, &temp.EndDate, &temp.RentAmount, &temp.DepositAmount, &temp.Status, &temp.Note, &temp.LastChargeAt,
+			&temp.CreatedAt, &temp.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 
-		lease.Status = model.LeaseStatus(statusStr)
-		if lastChargeAt != nil {
-			if t, ok := lastChargeAt.(time.Time); ok {
-				lease.LastChargeAt = &t
-			}
-		}
+		lease := leasemodel.NewLease(temp.ID, temp.RoomID, temp.LandlordID, temp.TenantName, temp.TenantPhone,
+			temp.StartDate, temp.EndDate, temp.RentAmount, temp.DepositAmount, temp.Note)
+		lease.Status = leasemodel.LeaseStatus(temp.Status)
+		lease.LastChargeAt = temp.LastChargeAt
+		lease.CreatedAt = temp.CreatedAt
+		lease.UpdatedAt = temp.UpdatedAt
 
 		leases = append(leases, lease)
 	}
 	return leases, nil
-}
-
-// CountByCriteria 按条件统计租约数量
-func (r *LeaseRepository) CountByCriteria(criteria repository.LeaseCriteria) (int, error) {
-	query := `
-		SELECT COUNT(*) FROM leases
-		WHERE 1 = 1
-	`
-	var args []interface{}
-
-	if criteria.TenantName != "" {
-		query += " AND tenant_name LIKE ?"
-		args = append(args, "%"+criteria.TenantName+"%")
-	}
-	if criteria.TenantPhone != "" {
-		query += " AND tenant_phone LIKE ?"
-		args = append(args, "%"+criteria.TenantPhone+"%")
-	}
-	if criteria.Status != "" {
-		query += " AND status = ?"
-		args = append(args, criteria.Status)
-	}
-	if criteria.RoomID != "" {
-		query += " AND room_id = ?"
-		args = append(args, criteria.RoomID)
-	}
-	if criteria.StartDate != nil {
-		query += " AND start_date >= ?"
-		args = append(args, criteria.StartDate)
-	}
-	if criteria.EndDate != nil {
-		query += " AND end_date <= ?"
-		args = append(args, criteria.EndDate)
-	}
-
-	var count int
-	row := r.conn.DB().QueryRow(query, args...)
-	err := row.Scan(&count)
-	return count, err
 }

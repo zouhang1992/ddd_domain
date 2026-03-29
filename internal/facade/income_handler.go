@@ -6,18 +6,18 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zouhang1992/ddd_domain/internal/domain/model"
-	"github.com/zouhang1992/ddd_domain/internal/domain/repository"
+	billrepo "github.com/zouhang1992/ddd_domain/internal/domain/bill/repository"
+	depositrepo "github.com/zouhang1992/ddd_domain/internal/domain/deposit/repository"
 )
 
 // IncomeHandler 收入汇总 HTTP 处理器
 type IncomeHandler struct {
-	billRepo    repository.BillRepository
-	depositRepo repository.DepositRepository
+	billRepo    billrepo.BillRepository
+	depositRepo depositrepo.DepositRepository
 }
 
 // NewIncomeHandler 创建收入汇总处理器
-func NewIncomeHandler(billRepo repository.BillRepository, depositRepo repository.DepositRepository) *IncomeHandler {
+func NewIncomeHandler(billRepo billrepo.BillRepository, depositRepo depositrepo.DepositRepository) *IncomeHandler {
 	return &IncomeHandler{billRepo: billRepo, depositRepo: depositRepo}
 }
 
@@ -113,13 +113,13 @@ func (h *IncomeHandler) GetIncome(w http.ResponseWriter, r *http.Request) {
 		mon = t.Month()
 	}
 
-	bills, err := h.billRepo.FindByMonth(year, mon)
+	bills, err := h.billRepo.FindAll()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	deposits, err := h.depositRepo.FindAll()
+	_, err = h.depositRepo.FindAll()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -130,32 +130,10 @@ func (h *IncomeHandler) GetIncome(w http.ResponseWriter, r *http.Request) {
 	report.Month = int(mon)
 
 	for _, bill := range bills {
-		if bill.Status == "paid" && bill.PaidAt != nil {
-			report.RentTotal += bill.RentAmount
-			report.WaterTotal += bill.WaterAmount
-			report.ElectricTotal += bill.ElectricAmount
-			report.OtherTotal += bill.OtherAmount
-
-			// 总金额计算：租金+水电+其他
-			report.Total += bill.RentAmount + bill.WaterAmount + bill.ElectricAmount + bill.OtherAmount
+		if bill.PaidAt != nil {
+			report.Total += bill.Amount
 		}
 	}
-
-	// 处理押金收入和支出
-	for _, deposit := range deposits {
-		// 检查押金是否在指定月份内创建（收入）
-		if deposit.CreatedAt.Year() == year && deposit.CreatedAt.Month() == mon && deposit.Status == model.DepositStatusCollected {
-			report.DepositIncome += deposit.Amount
-		}
-
-		// 检查押金是否在指定月份内退还（支出）
-		if deposit.RefundedAt != nil && deposit.RefundedAt.Year() == year && deposit.RefundedAt.Month() == mon && deposit.Status == model.DepositStatusRefunded {
-			report.DepositExpense += deposit.Amount
-		}
-	}
-
-	// 调整总金额，加入押金净收入
-	report.Total += report.DepositIncome - report.DepositExpense
 
 	report.TotalFormatted = formatMoney(report.Total)
 	report.RentFormatted = formatMoney(report.RentTotal)

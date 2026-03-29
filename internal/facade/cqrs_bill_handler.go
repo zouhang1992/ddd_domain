@@ -2,10 +2,9 @@ package facade
 
 import (
 	"encoding/json"
-	"github.com/zouhang1992/ddd_domain/internal/application/command"
-	"github.com/zouhang1992/ddd_domain/internal/application/query"
-	"github.com/zouhang1992/ddd_domain/internal/application/service"
-	"github.com/zouhang1992/ddd_domain/internal/domain/model"
+	"github.com/zouhang1992/ddd_domain/internal/application/bill"
+	"github.com/zouhang1992/ddd_domain/internal/application/common/service"
+	billmodel "github.com/zouhang1992/ddd_domain/internal/domain/bill/model"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
@@ -42,31 +41,29 @@ func (h *CQRSBillHandler) RegisterRoutes(mux *http.ServeMux) {
 // Create 创建账单
 func (h *CQRSBillHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		LeaseID        string     `json:"lease_id"`
-		Type           string     `json:"type"`
-		Amount         int64      `json:"amount"`
-		RentAmount     int64      `json:"rent_amount"`
-		WaterAmount    int64      `json:"water_amount"`
-		ElectricAmount int64      `json:"electric_amount"`
-		OtherAmount    int64      `json:"other_amount"`
-		PaidAt         *time.Time `json:"paid_at"`
-		Note           string     `json:"note"`
+		LeaseID string     `json:"lease_id"`
+		Type    string     `json:"type"`
+		Amount  int64      `json:"amount"`
+		DueDate string     `json:"due_date"`
+		Note    string     `json:"note"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	cmd := command.CreateBillCommand{
-		LeaseID:        req.LeaseID,
-		Type:           model.BillType(req.Type),
-		Amount:         req.Amount,
-		RentAmount:     req.RentAmount,
-		WaterAmount:    req.WaterAmount,
-		ElectricAmount: req.ElectricAmount,
-		OtherAmount:    req.OtherAmount,
-		PaidAt:         req.PaidAt,
-		Note:           req.Note,
+	// Parse due date
+	dueDate, err := time.Parse("2006-01-02", req.DueDate)
+	if err != nil {
+		dueDate = time.Now().AddDate(0, 1, 0) // Default to 1 month from now
+	}
+
+	cmd := bill.CreateBillCommand{
+		LeaseID: req.LeaseID,
+		Type:    billmodel.BillType(req.Type),
+		Amount:  req.Amount,
+		DueDate: dueDate,
+		Note:    req.Note,
 	}
 
 	result, err := h.commandBus.Dispatch(cmd)
@@ -88,7 +85,7 @@ func (h *CQRSBillHandler) Create(w http.ResponseWriter, r *http.Request) {
 // List 列出账单
 func (h *CQRSBillHandler) List(w http.ResponseWriter, r *http.Request) {
 	// 解析查询参数
-	q := query.ListBillsQuery{
+	q := bill.ListBillsQuery{
 		LeaseID: r.URL.Query().Get("lease_id"),
 		RoomID:  r.URL.Query().Get("room_id"),
 		Month:   r.URL.Query().Get("month"),
@@ -107,7 +104,7 @@ func (h *CQRSBillHandler) List(w http.ResponseWriter, r *http.Request) {
 // Get 获取账单
 func (h *CQRSBillHandler) Get(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	q := query.GetBillQuery{ID: id}
+	q := bill.GetBillQuery{ID: id}
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
@@ -119,7 +116,7 @@ func (h *CQRSBillHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queryResult := result.(*query.BillQueryResult)
+	queryResult := result.(*bill.BillQueryResult)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(queryResult.Bill)
 }
@@ -128,28 +125,26 @@ func (h *CQRSBillHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *CQRSBillHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	var req struct {
-		Amount         int64      `json:"amount"`
-		RentAmount     int64      `json:"rent_amount"`
-		WaterAmount    int64      `json:"water_amount"`
-		ElectricAmount int64      `json:"electric_amount"`
-		OtherAmount    int64      `json:"other_amount"`
-		PaidAt         *time.Time `json:"paid_at"`
-		Note           string     `json:"note"`
+		Amount  int64      `json:"amount"`
+		DueDate string     `json:"due_date"`
+		Note    string     `json:"note"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	cmd := command.UpdateBillCommand{
-		ID:             id,
-		Amount:         req.Amount,
-		RentAmount:     req.RentAmount,
-		WaterAmount:    req.WaterAmount,
-		ElectricAmount: req.ElectricAmount,
-		OtherAmount:    req.OtherAmount,
-		PaidAt:         req.PaidAt,
-		Note:           req.Note,
+	// Parse due date
+	dueDate, err := time.Parse("2006-01-02", req.DueDate)
+	if err != nil {
+		dueDate = time.Now().AddDate(0, 1, 0) // Default to 1 month from now
+	}
+
+	cmd := bill.UpdateBillCommand{
+		ID:      id,
+		Amount:  req.Amount,
+		DueDate: dueDate,
+		Note:    req.Note,
 	}
 
 	result, err := h.commandBus.Dispatch(cmd)
@@ -170,7 +165,7 @@ func (h *CQRSBillHandler) Update(w http.ResponseWriter, r *http.Request) {
 // Delete 删除账单
 func (h *CQRSBillHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	cmd := command.DeleteBillCommand{ID: id}
+	cmd := bill.DeleteBillCommand{ID: id}
 
 	if _, err := h.commandBus.Dispatch(cmd); err != nil {
 		if err.Error() == "cannot delete this bill" {
@@ -219,7 +214,7 @@ func (h *CQRSBillHandler) ConfirmArrival(w http.ResponseWriter, r *http.Request)
 		paidAt = &now
 	}
 
-	cmd := command.ConfirmBillArrivalCommand{
+	cmd := bill.ConfirmBillArrivalCommand{
 		ID:     id,
 		PaidAt: *paidAt,
 	}

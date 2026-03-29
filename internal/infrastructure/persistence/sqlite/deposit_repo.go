@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/zouhang1992/ddd_domain/internal/domain/model"
-	"github.com/zouhang1992/ddd_domain/internal/domain/repository"
+	depositmodel "github.com/zouhang1992/ddd_domain/internal/domain/deposit/model"
+	depositrepo "github.com/zouhang1992/ddd_domain/internal/domain/deposit/repository"
 )
 
 // DepositRepository SQLite 押金仓储实现
@@ -14,45 +14,52 @@ type DepositRepository struct {
 }
 
 // NewDepositRepository 创建押金仓储
-func NewDepositRepository(conn *Connection) repository.DepositRepository {
+func NewDepositRepository(conn *Connection) depositrepo.DepositRepository {
 	return &DepositRepository{conn: conn}
 }
 
+// tempDeposit is a temporary struct for scanning
+type tempDeposit struct {
+	ID         string
+	LeaseID    string
+	Amount     int64
+	Status     string
+	ReturnedAt *time.Time
+	Note       string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
 // Save 保存押金
-func (r *DepositRepository) Save(deposit *model.Deposit) error {
-	var refundedAt, deductedAt interface{}
-	if deposit.RefundedAt != nil {
-		refundedAt = *deposit.RefundedAt
-	}
-	if deposit.DeductedAt != nil {
-		deductedAt = *deposit.DeductedAt
+func (r *DepositRepository) Save(deposit *depositmodel.Deposit) error {
+	var returnedAt interface{}
+	if deposit.ReturnedAt != nil {
+		returnedAt = *deposit.ReturnedAt
 	}
 
 	_, err := r.conn.DB().Exec(`
 		INSERT OR REPLACE INTO deposits (
-			id, lease_id, amount, status, refunded_at, deducted_at, note,
+			id, lease_id, amount, status, returned_at, note,
 			created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`,
-		deposit.ID, deposit.LeaseID, deposit.Amount, string(deposit.Status),
-		refundedAt, deductedAt, deposit.Note, deposit.CreatedAt, deposit.UpdatedAt)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		`,
+		deposit.ID(), deposit.LeaseID, deposit.Amount, string(deposit.Status),
+		returnedAt, deposit.Note, deposit.CreatedAt, deposit.UpdatedAt)
 	return err
 }
 
 // FindByID 根据ID查找押金
-func (r *DepositRepository) FindByID(id string) (*model.Deposit, error) {
+func (r *DepositRepository) FindByID(id string) (*depositmodel.Deposit, error) {
 	row := r.conn.DB().QueryRow(`
-		SELECT id, lease_id, amount, status, refunded_at, deducted_at, note,
+		SELECT id, lease_id, amount, status, returned_at, note,
 			created_at, updated_at
 		FROM deposits WHERE id = ?
-	`, id)
+		`, id)
 
-	deposit := &model.Deposit{}
-	var statusStr string
-	var refundedAt, deductedAt interface{}
+	var temp tempDeposit
 	err := row.Scan(
-		&deposit.ID, &deposit.LeaseID, &deposit.Amount, &statusStr,
-		&refundedAt, &deductedAt, &deposit.Note, &deposit.CreatedAt, &deposit.UpdatedAt)
+		&temp.ID, &temp.LeaseID, &temp.Amount, &temp.Status,
+		&temp.ReturnedAt, &temp.Note, &temp.CreatedAt, &temp.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -60,55 +67,41 @@ func (r *DepositRepository) FindByID(id string) (*model.Deposit, error) {
 		return nil, err
 	}
 
-	deposit.Status = model.DepositStatus(statusStr)
-	if refundedAt != nil {
-		if t, ok := refundedAt.(time.Time); ok {
-			deposit.RefundedAt = &t
-		}
-	}
-	if deductedAt != nil {
-		if t, ok := deductedAt.(time.Time); ok {
-			deposit.DeductedAt = &t
-		}
-	}
+	deposit := depositmodel.NewDeposit(temp.ID, temp.LeaseID, temp.Amount, temp.Note)
+	deposit.Status = depositmodel.DepositStatus(temp.Status)
+	deposit.ReturnedAt = temp.ReturnedAt
+	deposit.CreatedAt = temp.CreatedAt
+	deposit.UpdatedAt = temp.UpdatedAt
 
 	return deposit, nil
 }
 
 // FindByLeaseID 根据租约ID查找押金
-func (r *DepositRepository) FindByLeaseID(leaseID string) (*model.Deposit, error) {
+func (r *DepositRepository) FindByLeaseID(leaseID string) (*depositmodel.Deposit, error) {
 	rows, err := r.conn.DB().Query(`
-		SELECT id, lease_id, amount, status, refunded_at, deducted_at, note,
+		SELECT id, lease_id, amount, status, returned_at, note,
 			created_at, updated_at
 		FROM deposits WHERE lease_id = ? ORDER BY created_at DESC LIMIT 1
-	`, leaseID)
+		`, leaseID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	if rows.Next() {
-		deposit := &model.Deposit{}
-		var statusStr string
-		var refundedAt, deductedAt interface{}
+		var temp tempDeposit
 		err := rows.Scan(
-			&deposit.ID, &deposit.LeaseID, &deposit.Amount, &statusStr,
-			&refundedAt, &deductedAt, &deposit.Note, &deposit.CreatedAt, &deposit.UpdatedAt)
+			&temp.ID, &temp.LeaseID, &temp.Amount, &temp.Status,
+			&temp.ReturnedAt, &temp.Note, &temp.CreatedAt, &temp.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 
-		deposit.Status = model.DepositStatus(statusStr)
-		if refundedAt != nil {
-			if t, ok := refundedAt.(time.Time); ok {
-				deposit.RefundedAt = &t
-			}
-		}
-		if deductedAt != nil {
-			if t, ok := deductedAt.(time.Time); ok {
-				deposit.DeductedAt = &t
-			}
-		}
+		deposit := depositmodel.NewDeposit(temp.ID, temp.LeaseID, temp.Amount, temp.Note)
+		deposit.Status = depositmodel.DepositStatus(temp.Status)
+		deposit.ReturnedAt = temp.ReturnedAt
+		deposit.CreatedAt = temp.CreatedAt
+		deposit.UpdatedAt = temp.UpdatedAt
 
 		return deposit, nil
 	}
@@ -116,40 +109,32 @@ func (r *DepositRepository) FindByLeaseID(leaseID string) (*model.Deposit, error
 }
 
 // FindAll 查找所有押金
-func (r *DepositRepository) FindAll() ([]*model.Deposit, error) {
+func (r *DepositRepository) FindAll() ([]*depositmodel.Deposit, error) {
 	rows, err := r.conn.DB().Query(`
-		SELECT id, lease_id, amount, status, refunded_at, deducted_at, note,
+		SELECT id, lease_id, amount, status, returned_at, note,
 			created_at, updated_at
 		FROM deposits ORDER BY created_at DESC
-	`)
+		`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var deposits []*model.Deposit
+	var deposits []*depositmodel.Deposit
 	for rows.Next() {
-		deposit := &model.Deposit{}
-		var statusStr string
-		var refundedAt, deductedAt interface{}
+		var temp tempDeposit
 		err := rows.Scan(
-			&deposit.ID, &deposit.LeaseID, &deposit.Amount, &statusStr,
-			&refundedAt, &deductedAt, &deposit.Note, &deposit.CreatedAt, &deposit.UpdatedAt)
+			&temp.ID, &temp.LeaseID, &temp.Amount, &temp.Status,
+			&temp.ReturnedAt, &temp.Note, &temp.CreatedAt, &temp.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 
-		deposit.Status = model.DepositStatus(statusStr)
-		if refundedAt != nil {
-			if t, ok := refundedAt.(time.Time); ok {
-				deposit.RefundedAt = &t
-			}
-		}
-		if deductedAt != nil {
-			if t, ok := deductedAt.(time.Time); ok {
-				deposit.DeductedAt = &t
-			}
-		}
+		deposit := depositmodel.NewDeposit(temp.ID, temp.LeaseID, temp.Amount, temp.Note)
+		deposit.Status = depositmodel.DepositStatus(temp.Status)
+		deposit.ReturnedAt = temp.ReturnedAt
+		deposit.CreatedAt = temp.CreatedAt
+		deposit.UpdatedAt = temp.UpdatedAt
 
 		deposits = append(deposits, deposit)
 	}

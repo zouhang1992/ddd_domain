@@ -2,8 +2,7 @@ package facade
 
 import (
 	"encoding/json"
-	"github.com/zouhang1992/ddd_domain/internal/application/command"
-	"github.com/zouhang1992/ddd_domain/internal/application/query"
+	"github.com/zouhang1992/ddd_domain/internal/application/room"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
@@ -45,7 +44,7 @@ func (h *CQRSRoomHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := command.CreateRoomCommand{
+	cmd := room.CreateRoomCommand{
 		LocationID: req.LocationID,
 		RoomNumber: req.RoomNumber,
 		Tags:       req.Tags,
@@ -65,7 +64,7 @@ func (h *CQRSRoomHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // List 列出房间
 func (h *CQRSRoomHandler) List(w http.ResponseWriter, r *http.Request) {
-	var q query.ListRoomsQuery
+	var q room.ListRoomsQuery
 
 	// 获取查询参数
 	q.LocationID = r.URL.Query().Get("location_id")
@@ -96,7 +95,7 @@ func (h *CQRSRoomHandler) List(w http.ResponseWriter, r *http.Request) {
 // Get 获取房间
 func (h *CQRSRoomHandler) Get(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	q := query.GetRoomQuery{ID: id}
+	q := room.GetRoomQuery{ID: id}
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
@@ -104,7 +103,7 @@ func (h *CQRSRoomHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queryResult := result.(*query.RoomQueryResult)
+	queryResult := result.(*room.RoomQueryResult)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(queryResult.Room)
 }
@@ -122,7 +121,7 @@ func (h *CQRSRoomHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := command.UpdateRoomCommand{
+	cmd := room.UpdateRoomCommand{
 		ID:         id,
 		LocationID: req.LocationID,
 		RoomNumber: req.RoomNumber,
@@ -143,7 +142,7 @@ func (h *CQRSRoomHandler) Update(w http.ResponseWriter, r *http.Request) {
 // Delete 删除房间
 func (h *CQRSRoomHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	cmd := command.DeleteRoomCommand{ID: id}
+	cmd := room.DeleteRoomCommand{ID: id}
 
 	if _, err := h.commandBus.Dispatch(cmd); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

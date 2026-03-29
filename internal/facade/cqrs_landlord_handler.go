@@ -2,8 +2,7 @@ package facade
 
 import (
 	"encoding/json"
-	"github.com/zouhang1992/ddd_domain/internal/application/command"
-	"github.com/zouhang1992/ddd_domain/internal/application/query"
+	"github.com/zouhang1992/ddd_domain/internal/application/landlord"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
@@ -45,7 +44,7 @@ func (h *CQRSLandlordHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := command.CreateLandlordCommand{
+	cmd := landlord.CreateLandlordCommand{
 		Name:  req.Name,
 		Phone: req.Phone,
 		Note:  req.Note,
@@ -66,9 +65,9 @@ func (h *CQRSLandlordHandler) Create(w http.ResponseWriter, r *http.Request) {
 // List 列出房东
 func (h *CQRSLandlordHandler) List(w http.ResponseWriter, r *http.Request) {
 	// 解析查询参数
-	q := query.ListLandlordsQuery{
-		Name:   r.URL.Query().Get("name"),
-		Phone:  r.URL.Query().Get("phone"),
+	q := landlord.ListLandlordsQuery{
+		Name:  r.URL.Query().Get("name"),
+		Phone: r.URL.Query().Get("phone"),
 	}
 
 	// 解析分页参数
@@ -96,7 +95,7 @@ func (h *CQRSLandlordHandler) List(w http.ResponseWriter, r *http.Request) {
 // Get 获取房东
 func (h *CQRSLandlordHandler) Get(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	q := query.GetLandlordQuery{ID: id}
+	q := landlord.GetLandlordQuery{ID: id}
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
@@ -108,7 +107,7 @@ func (h *CQRSLandlordHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queryResult := result.(*query.LandlordQueryResult)
+	queryResult := result.(*landlord.LandlordQueryResult)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(queryResult.Landlord)
 }
@@ -126,7 +125,7 @@ func (h *CQRSLandlordHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := command.UpdateLandlordCommand{
+	cmd := landlord.UpdateLandlordCommand{
 		ID:    id,
 		Name:  req.Name,
 		Phone: req.Phone,
@@ -151,7 +150,7 @@ func (h *CQRSLandlordHandler) Update(w http.ResponseWriter, r *http.Request) {
 // Delete 删除房东
 func (h *CQRSLandlordHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	cmd := command.DeleteLandlordCommand{ID: id}
+	cmd := landlord.DeleteLandlordCommand{ID: id}
 
 	if _, err := h.commandBus.Dispatch(cmd); err != nil {
 		if err.Error() == "cannot delete landlord with associated leases" {

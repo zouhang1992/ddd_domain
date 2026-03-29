@@ -2,16 +2,18 @@ package main
 
 import (
 	"net/http"
-	"time"
 
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
-	"github.com/zouhang1992/ddd_domain/internal/application/command/handler"
-	eventhandler "github.com/zouhang1992/ddd_domain/internal/application/event/handler"
-	queryhandler "github.com/zouhang1992/ddd_domain/internal/application/query/handler"
-	"github.com/zouhang1992/ddd_domain/internal/application/service"
-	"github.com/zouhang1992/ddd_domain/internal/domain/repository"
+	"github.com/zouhang1992/ddd_domain/internal/application"
+	"github.com/zouhang1992/ddd_domain/internal/application/bill"
+	"github.com/zouhang1992/ddd_domain/internal/application/common/service"
+	"github.com/zouhang1992/ddd_domain/internal/application/landlord"
+	"github.com/zouhang1992/ddd_domain/internal/application/lease"
+	"github.com/zouhang1992/ddd_domain/internal/application/location"
+	"github.com/zouhang1992/ddd_domain/internal/application/print"
+	"github.com/zouhang1992/ddd_domain/internal/application/room"
 	"github.com/zouhang1992/ddd_domain/internal/facade"
 	busmodule "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
@@ -33,19 +35,8 @@ func main() {
 		logging.Module(),
 		sqlite.Module,
 		busmodule.Module,
-		handler.Module,
-		eventhandler.Module,
-		queryhandler.Module,
+		application.Module,
 		facade.Module,
-		// 应用服务
-		fx.Options(
-			fx.Provide(func() *service.AuthService {
-				return service.NewAuthService("", 7*24*time.Hour)
-			}),
-			fx.Provide(func(billRepo repository.BillRepository, leaseRepo repository.LeaseRepository) *service.PrintService {
-				return service.NewPrintService(billRepo, leaseRepo)
-			}),
-		),
 		// 注册处理器到总线
 		fx.Invoke(registerCommandHandlers),
 		fx.Invoke(registerQueryHandlers),
@@ -55,9 +46,7 @@ func main() {
 	).Run()
 }
 
-func registerEventHandlers(eventBus *busevent.Bus, logHandler *eventhandler.Handler, leaseRoomHandler *eventhandler.LeaseRoomEventHandler, logger *zap.Logger) {
-	logHandler.SubscribeToAllEvents(eventBus)
-
+func registerEventHandlers(eventBus *busevent.Bus, leaseRoomHandler *lease.LeaseRoomEventHandler, logger *zap.Logger) {
 	// 订阅租约事件以处理房间状态变更
 	eventBus.Subscribe("lease.activated", leaseRoomHandler)
 	eventBus.Subscribe("lease.checkout", leaseRoomHandler)
@@ -69,12 +58,12 @@ func registerEventHandlers(eventBus *busevent.Bus, logHandler *eventhandler.Hand
 
 func registerCommandHandlers(
 	bus *buscommand.Bus,
-	landlordHandler *handler.LandlordCommandHandler,
-	leaseHandler *handler.LeaseCommandHandler,
-	billHandler *handler.BillCommandHandler,
-	locationHandler *handler.LocationCommandHandler,
-	roomHandler *handler.RoomCommandHandler,
-	printHandler *handler.PrintCommandHandler,
+	landlordHandler *landlord.CommandHandler,
+	leaseHandler *lease.CommandHandler,
+	billHandler *bill.CommandHandler,
+	locationHandler *location.CommandHandler,
+	roomHandler *room.CommandHandler,
+	printHandler *print.CommandHandler,
 ) {
 	bus.Register("create_landlord", buscommand.HandlerFunc(landlordHandler.HandleCreateLandlord))
 	bus.Register("update_landlord", buscommand.HandlerFunc(landlordHandler.HandleUpdateLandlord))
@@ -102,13 +91,12 @@ func registerCommandHandlers(
 
 func registerQueryHandlers(
 	queryBus *busquery.Bus,
-	landlordQueryHandler *queryhandler.LandlordQueryHandler,
-	leaseQueryHandler *queryhandler.LeaseQueryHandler,
-	billQueryHandler *queryhandler.BillQueryHandler,
-	locationQueryHandler *queryhandler.LocationQueryHandler,
-	roomQueryHandler *queryhandler.RoomQueryHandler,
-	printQueryHandler *queryhandler.PrintQueryHandler,
-	operationLogQueryHandler *queryhandler.OperationLogQueryHandler,
+	landlordQueryHandler *landlord.QueryHandler,
+	leaseQueryHandler *lease.QueryHandler,
+	billQueryHandler *bill.QueryHandler,
+	locationQueryHandler *location.QueryHandler,
+	roomQueryHandler *room.QueryHandler,
+	printQueryHandler *print.QueryHandler,
 ) {
 	queryBus.Register("get_landlord", busquery.HandlerFunc(landlordQueryHandler.HandleGetLandlord))
 	queryBus.Register("list_landlords", busquery.HandlerFunc(landlordQueryHandler.HandleListLandlords))
@@ -125,9 +113,6 @@ func registerQueryHandlers(
 	queryBus.Register("get_print_job", busquery.HandlerFunc(printQueryHandler.HandleGetPrintJob))
 	queryBus.Register("list_print_jobs", busquery.HandlerFunc(printQueryHandler.HandleListPrintJobs))
 	queryBus.Register("get_print_content", busquery.HandlerFunc(printQueryHandler.HandleGetPrintContent))
-	// 操作日志查询
-	queryBus.Register("list_operation_logs", busquery.HandlerFunc(operationLogQueryHandler.HandleListOperationLogs))
-	queryBus.Register("get_operation_log", busquery.HandlerFunc(operationLogQueryHandler.HandleGetOperationLog))
 }
 
 func startServer(
@@ -140,7 +125,8 @@ func startServer(
 	printHandler *facade.CQRSPrintHandler,
 	authHandler *facade.AuthHandler,
 	incomeHandler *facade.IncomeHandler,
-	operationLogHandler *facade.CQRSOperationLogHandler,
+	authService *service.AuthService,
+	printService *service.PrintService,
 ) {
 	mux := http.NewServeMux()
 
@@ -177,7 +163,6 @@ func startServer(
 	printHandler.RegisterRoutes(mux)
 	authHandler.RegisterRoutes(mux)
 	incomeHandler.RegisterRoutes(mux)
-	operationLogHandler.RegisterRoutes(mux)
 
 	logger.Info("Starting server on :8080")
 	if err := http.ListenAndServe(":8080", corsHandler(mux)); err != nil {

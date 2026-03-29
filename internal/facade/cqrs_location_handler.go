@@ -2,8 +2,7 @@ package facade
 
 import (
 	"encoding/json"
-	"github.com/zouhang1992/ddd_domain/internal/application/command"
-	"github.com/zouhang1992/ddd_domain/internal/application/query"
+	"github.com/zouhang1992/ddd_domain/internal/application/location"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
@@ -44,7 +43,7 @@ func (h *CQRSLocationHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := command.CreateLocationCommand{
+	cmd := location.CreateLocationCommand{
 		ShortName: req.ShortName,
 		Detail:    req.Detail,
 	}
@@ -63,7 +62,7 @@ func (h *CQRSLocationHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // List 列出位置
 func (h *CQRSLocationHandler) List(w http.ResponseWriter, r *http.Request) {
-	q := query.ListLocationsQuery{
+	q := location.ListLocationsQuery{
 		ShortName: r.URL.Query().Get("short_name"),
 		Detail:    r.URL.Query().Get("detail"),
 	}
@@ -93,7 +92,7 @@ func (h *CQRSLocationHandler) List(w http.ResponseWriter, r *http.Request) {
 // Get 获取位置
 func (h *CQRSLocationHandler) Get(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	q := query.GetLocationQuery{ID: id}
+	q := location.GetLocationQuery{ID: id}
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
@@ -101,7 +100,7 @@ func (h *CQRSLocationHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queryResult := result.(*query.LocationQueryResult)
+	queryResult := result.(*location.LocationQueryResult)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(queryResult.Location)
 }
@@ -118,7 +117,7 @@ func (h *CQRSLocationHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := command.UpdateLocationCommand{
+	cmd := location.UpdateLocationCommand{
 		ID:        id,
 		ShortName: req.ShortName,
 		Detail:    req.Detail,
@@ -138,7 +137,7 @@ func (h *CQRSLocationHandler) Update(w http.ResponseWriter, r *http.Request) {
 // Delete 删除位置
 func (h *CQRSLocationHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	cmd := command.DeleteLocationCommand{ID: id}
+	cmd := location.DeleteLocationCommand{ID: id}
 
 	if _, err := h.commandBus.Dispatch(cmd); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

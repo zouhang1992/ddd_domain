@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/zouhang1992/ddd_domain/internal/application/service"
+	"github.com/zouhang1992/ddd_domain/internal/application/common/service"
 )
 
 // contextKey 上下文键类型
