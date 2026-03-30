@@ -33,6 +33,7 @@ func (h *CQRSLeaseHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("DELETE /leases/{id}", h.Delete)
 	mux.HandleFunc("POST /leases/{id}/renew", h.Renew)
 	mux.HandleFunc("POST /leases/{id}/checkout", h.Checkout)
+	mux.HandleFunc("POST /leases/{id}/checkout-with-bills", h.CheckoutWithBills)
 	mux.HandleFunc("PUT /leases/{id}/activate", h.Activate)
 }
 
@@ -308,4 +309,44 @@ func (h *CQRSLeaseHandler) Activate(w http.ResponseWriter, r *http.Request) {
 	lease := result.(any)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(lease)
+}
+
+// CheckoutWithBills 退租并创建结算账单
+func (h *CQRSLeaseHandler) CheckoutWithBills(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	var req struct {
+		RefundRentAmount    int64  `json:"refund_rent_amount"`
+		RefundDepositAmount int64  `json:"refund_deposit_amount"`
+		WaterAmount         int64  `json:"water_amount"`
+		ElectricAmount      int64  `json:"electric_amount"`
+		OtherAmount         int64  `json:"other_amount"`
+		Note                string `json:"note"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	cmd := lease.CheckoutWithBillsCommand{
+		ID:                 id,
+		RefundRentAmount:    req.RefundRentAmount,
+		RefundDepositAmount: req.RefundDepositAmount,
+		WaterAmount:        req.WaterAmount,
+		ElectricAmount:     req.ElectricAmount,
+		OtherAmount:        req.OtherAmount,
+		Note:               req.Note,
+	}
+
+	result, err := h.commandBus.Dispatch(cmd)
+	if err != nil {
+		if err.Error() == "lease not found" {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(result)
 }

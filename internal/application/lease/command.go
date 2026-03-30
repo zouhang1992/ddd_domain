@@ -156,6 +156,45 @@ func (c CheckoutLeaseCommand) Validate() error {
 	return nil
 }
 
+// CheckoutWithBillsCommand 退租并创建结算账单命令
+type CheckoutWithBillsCommand struct {
+	ID              string
+	RefundRentAmount   int64  // 退还租金金额（分）
+	RefundDepositAmount int64 // 退还押金金额（分）
+	WaterAmount       int64  // 水费（分，收取）
+	ElectricAmount    int64  // 电费（分，收取）
+	OtherAmount       int64  // 其他费用（分，收取）
+	Note              string // 备注
+}
+
+// CommandName 实现 Command 接口
+func (c CheckoutWithBillsCommand) CommandName() string {
+	return "checkout_with_bills"
+}
+
+// Validate 验证命令
+func (c CheckoutWithBillsCommand) Validate() error {
+	if c.ID == "" {
+		return errors.New("id is required")
+	}
+	if c.RefundRentAmount < 0 {
+		return errors.New("refund_rent_amount cannot be negative")
+	}
+	if c.RefundDepositAmount < 0 {
+		return errors.New("refund_deposit_amount cannot be negative")
+	}
+	if c.WaterAmount < 0 {
+		return errors.New("water_amount cannot be negative")
+	}
+	if c.ElectricAmount < 0 {
+		return errors.New("electric_amount cannot be negative")
+	}
+	if c.OtherAmount < 0 {
+		return errors.New("other_amount cannot be negative")
+	}
+	return nil
+}
+
 // ActivateLeaseCommand 租约生效命令
 type ActivateLeaseCommand struct {
 	ID string

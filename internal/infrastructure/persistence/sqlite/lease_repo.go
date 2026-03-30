@@ -50,7 +50,7 @@ func (r *LeaseRepository) Save(lease *leasemodel.Lease) error {
 			created_at, updated_at
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`,
-		lease.ID(), lease.RoomID, lease.LandlordID, lease.TenantName, lease.TenantPhone,
+		lease.IDField, lease.RoomID, lease.LandlordID, lease.TenantName, lease.TenantPhone,
 		lease.StartDate, lease.EndDate, lease.RentAmount, lease.DepositAmount, string(lease.Status), lease.Note, lastChargeAt,
 		lease.CreatedAt, lease.UpdatedAt)
 	return err
@@ -180,4 +180,15 @@ func (r *LeaseRepository) FindActiveLeasesExpiringBefore(expireTime time.Time) (
 		leases = append(leases, lease)
 	}
 	return leases, nil
+}
+
+// HasActiveLeaseForRoom 检查房间是否有活跃的租约（pending 或 active 状态）
+func (r *LeaseRepository) HasActiveLeaseForRoom(roomID string) (bool, error) {
+	var count int
+	row := r.conn.DB().QueryRow(`
+		SELECT COUNT(*) FROM leases
+		WHERE room_id = ? AND status IN ('pending', 'active')
+		`, roomID)
+	err := row.Scan(&count)
+	return count > 0, err
 }

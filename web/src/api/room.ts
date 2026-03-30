@@ -20,16 +20,7 @@ export interface RoomQueryParams {
 
 export const roomApi = {
   list: async (params?: RoomQueryParams) => {
-    const queryParams: any = {};
-    if (params?.locationId) queryParams.location_id = params.locationId;
-    if (params?.roomNumber) queryParams.room_number = params.roomNumber;
-    if (params?.tags) queryParams.tags = params.tags;
-    if (params?.startDate) queryParams.start_date = params.startDate;
-    if (params?.endDate) queryParams.end_date = params.endDate;
-    if (params?.offset !== undefined) queryParams.offset = params.offset;
-    if (params?.limit !== undefined) queryParams.limit = params.limit;
-
-    const response = await apiClient.get<RoomsQueryResult>('/rooms', { params: queryParams });
+    const response = await apiClient.get<RoomsQueryResult>('/rooms', { params });
     return response.data;
   },
 
@@ -39,20 +30,12 @@ export const roomApi = {
   },
 
   create: async (data: { locationId: string; roomNumber: string; tags: string[] }) => {
-    const response = await apiClient.post<Room>('/rooms', {
-      location_id: data.locationId,
-      room_number: data.roomNumber,
-      tags: data.tags,
-    });
+    const response = await apiClient.post<Room>('/rooms', data);
     return response.data;
   },
 
   update: async (id: string, data: { locationId: string; roomNumber: string; tags: string[] }) => {
-    const response = await apiClient.put<Room>(`/rooms/${id}`, {
-      location_id: data.locationId,
-      room_number: data.roomNumber,
-      tags: data.tags,
-    });
+    const response = await apiClient.put<Room>(`/rooms/${id}`, data);
     return response.data;
   },
 

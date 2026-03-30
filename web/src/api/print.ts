@@ -17,17 +17,17 @@ export interface PrintJobsQueryResult {
 
 export const printApi = {
   printBill: async (billId: string) => {
-    const response = await apiClient.post<{ job_id: string }>('/print/bill', { bill_id: billId });
+    const response = await apiClient.post<{ jobId: string }>('/print/bill', { billId });
     return response.data;
   },
 
   printLease: async (leaseId: string) => {
-    const response = await apiClient.post<{ job_id: string }>('/print/lease', { lease_id: leaseId });
+    const response = await apiClient.post<{ jobId: string }>('/print/lease', { leaseId });
     return response.data;
   },
 
   printInvoice: async (billId: string) => {
-    const response = await apiClient.post<{ job_id: string }>('/print/invoice', { bill_id: billId });
+    const response = await apiClient.post<{ jobId: string }>('/print/invoice', { billId });
     return response.data;
   },
 
@@ -39,14 +39,7 @@ export const printApi = {
   },
 
   listPrintJobs: async (params?: PrintJobQueryParams) => {
-    const queryParams: any = {};
-    if (params?.status) queryParams.status = params.status;
-    if (params?.startDate) queryParams.start_date = params.startDate;
-    if (params?.endDate) queryParams.end_date = params.endDate;
-    if (params?.offset !== undefined) queryParams.offset = params.offset;
-    if (params?.limit !== undefined) queryParams.limit = params.limit;
-
-    const response = await apiClient.get<PrintJobsQueryResult>('/print/jobs', { params: queryParams });
+    const response = await apiClient.get<PrintJobsQueryResult>('/print/jobs', { params });
     return response.data;
   },
 

@@ -36,8 +36,10 @@ func NewConnection(cfg Config, logger *zap.Logger) (*Connection, error) {
 	logger.Info("Database connection established successfully")
 
 	conn := &Connection{db: db, log: logger}
-	if err := conn.initSchema(); err != nil {
-		logger.Error("Failed to initialize database schema", zap.Error(err))
+
+	// Run migrations (this will create/update all tables)
+	if err := RunMigrations(db); err != nil {
+		logger.Error("Failed to run database migrations", zap.Error(err))
 		return nil, err
 	}
 
@@ -62,121 +64,6 @@ func (c *Connection) BeginTx() (*Tx, error) {
 		return nil, err
 	}
 	return &Tx{tx: tx}, nil
-}
-
-// initSchema 初始化数据库表
-func (c *Connection) initSchema() error {
-	schema := `
-CREATE TABLE IF NOT EXISTS sagas (
-	id TEXT PRIMARY KEY,
-	name TEXT NOT NULL,
-	state TEXT NOT NULL,
-	current_step INTEGER NOT NULL DEFAULT 0,
-	error TEXT,
-	data BLOB,
-	created_at DATETIME NOT NULL,
-	updated_at DATETIME NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS locations (
-	id TEXT PRIMARY KEY,
-	short_name TEXT NOT NULL,
-	detail TEXT,
-	created_at DATETIME NOT NULL,
-	updated_at DATETIME NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS rooms (
-	id TEXT PRIMARY KEY,
-	location_id TEXT NOT NULL,
-	room_number TEXT NOT NULL,
-	tags TEXT,
-	created_at DATETIME NOT NULL,
-	updated_at DATETIME NOT NULL,
-	FOREIGN KEY (location_id) REFERENCES locations(id),
-	UNIQUE(location_id, room_number)
-);
-
-CREATE TABLE IF NOT EXISTS landlords (
-	id TEXT PRIMARY KEY,
-	name TEXT NOT NULL,
-	phone TEXT,
-	note TEXT,
-	created_at DATETIME NOT NULL,
-	updated_at DATETIME NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS leases (
-	id TEXT PRIMARY KEY,
-	room_id TEXT NOT NULL,
-	landlord_id TEXT,
-	tenant_name TEXT NOT NULL,
-	tenant_phone TEXT,
-	start_date DATETIME NOT NULL,
-	end_date DATETIME NOT NULL,
-	rent_amount INTEGER NOT NULL DEFAULT 0,
-	deposit_amount INTEGER NOT NULL DEFAULT 0,
-	status TEXT NOT NULL DEFAULT 'pending',
-	note TEXT,
-	last_charge_at DATETIME,
-	created_at DATETIME NOT NULL,
-	updated_at DATETIME NOT NULL,
-	FOREIGN KEY (room_id) REFERENCES rooms(id),
-	FOREIGN KEY (landlord_id) REFERENCES landlords(id)
-);
-
-CREATE TABLE IF NOT EXISTS bills (
-	id TEXT PRIMARY KEY,
-	lease_id TEXT NOT NULL,
-	type TEXT NOT NULL,
-	status TEXT NOT NULL DEFAULT 'pending',
-	amount INTEGER NOT NULL DEFAULT 0,
-	rent_amount INTEGER NOT NULL DEFAULT 0,
-	water_amount INTEGER NOT NULL DEFAULT 0,
-	electric_amount INTEGER NOT NULL DEFAULT 0,
-	other_amount INTEGER NOT NULL DEFAULT 0,
-	paid_at DATETIME,
-	note TEXT,
-	created_at DATETIME NOT NULL,
-	updated_at DATETIME NOT NULL,
-	FOREIGN KEY (lease_id) REFERENCES leases(id)
-);
-
-CREATE TABLE IF NOT EXISTS deposits (
-	id TEXT PRIMARY KEY,
-	lease_id TEXT NOT NULL,
-	amount INTEGER NOT NULL DEFAULT 0,
-	status TEXT NOT NULL DEFAULT 'collected',
-	refunded_at DATETIME,
-	deducted_at DATETIME,
-	note TEXT,
-	created_at DATETIME NOT NULL,
-	updated_at DATETIME NOT NULL,
-	FOREIGN KEY (lease_id) REFERENCES leases(id)
-);
-
-CREATE TABLE IF NOT EXISTS operation_logs (
-	id TEXT PRIMARY KEY,
-	timestamp DATETIME NOT NULL,
-	event_name TEXT NOT NULL,
-	domain_type TEXT NOT NULL,
-	aggregate_id TEXT,
-	operator_id TEXT,
-	action TEXT NOT NULL,
-	details TEXT,
-	metadata TEXT,
-	created_at DATETIME NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_operation_logs_timestamp ON operation_logs(timestamp);
-CREATE INDEX IF NOT EXISTS idx_operation_logs_event_name ON operation_logs(event_name);
-CREATE INDEX IF NOT EXISTS idx_operation_logs_domain_type ON operation_logs(domain_type);
-CREATE INDEX IF NOT EXISTS idx_operation_logs_aggregate_id ON operation_logs(aggregate_id);
-CREATE INDEX IF NOT EXISTS idx_operation_logs_operator_id ON operation_logs(operator_id);
-CREATE INDEX IF NOT EXISTS idx_operation_logs_created_at ON operation_logs(created_at);
-`
-	_, err := c.db.Exec(schema)
-	return err
 }
 
 // Tx 事务包装

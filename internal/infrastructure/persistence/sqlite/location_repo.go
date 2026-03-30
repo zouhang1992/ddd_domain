@@ -32,7 +32,7 @@ func (r *LocationRepository) Save(location *locationmodel.Location) error {
 	_, err := r.conn.DB().Exec(`
 		INSERT OR REPLACE INTO locations (id, short_name, detail, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?)
-	`, location.ID(), location.ShortName, location.Detail, location.CreatedAt, location.UpdatedAt)
+	`, location.IDField, location.ShortName, location.Detail, location.CreatedAt, location.UpdatedAt)
 	return err
 }
 

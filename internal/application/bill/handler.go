@@ -33,7 +33,26 @@ func (h *CommandHandler) HandleCreateBill(cmd common.Command) (any, error) {
 	}
 
 	id := uuid.NewString()
-	bill := billmodel.NewBill(id, createCmd.LeaseID, createCmd.Type, createCmd.Amount, createCmd.DueDate, createCmd.Note)
+	var bill *billmodel.Bill
+
+	// If detailed amounts are provided, use the new constructor
+	if createCmd.RentAmount > 0 || createCmd.WaterAmount > 0 || createCmd.ElectricAmount > 0 || createCmd.OtherAmount > 0 {
+		bill = billmodel.NewBillWithDetails(
+			id,
+			createCmd.LeaseID,
+			createCmd.Type,
+			createCmd.RentAmount,
+			createCmd.WaterAmount,
+			createCmd.ElectricAmount,
+			createCmd.OtherAmount,
+			createCmd.DueDate,
+			createCmd.Note,
+		)
+	} else {
+		// Fall back to traditional single amount
+		bill = billmodel.NewBill(id, createCmd.LeaseID, createCmd.Type, createCmd.Amount, createCmd.DueDate, createCmd.Note)
+	}
+
 	if err := h.repo.Save(bill); err != nil {
 		return nil, err
 	}
@@ -68,7 +87,21 @@ func (h *CommandHandler) HandleUpdateBill(cmd common.Command) (any, error) {
 		return nil, domerrors.ErrNotFound
 	}
 
-	bill.Update(updateCmd.Amount, updateCmd.DueDate, updateCmd.Note)
+	// If detailed amounts are provided, use the new update method
+	if updateCmd.RentAmount > 0 || updateCmd.WaterAmount > 0 || updateCmd.ElectricAmount > 0 || updateCmd.OtherAmount > 0 {
+		bill.UpdateWithDetails(
+			updateCmd.RentAmount,
+			updateCmd.WaterAmount,
+			updateCmd.ElectricAmount,
+			updateCmd.OtherAmount,
+			updateCmd.DueDate,
+			updateCmd.Note,
+		)
+	} else {
+		// Fall back to traditional single amount update
+		bill.Update(updateCmd.Amount, updateCmd.DueDate, updateCmd.Note)
+	}
+
 	if err := h.repo.Save(bill); err != nil {
 		return nil, err
 	}

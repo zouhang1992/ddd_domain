@@ -33,9 +33,12 @@ const Leases: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [renewModalVisible, setRenewModalVisible] = useState(false);
+  const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
   const [editingLease, setEditingLease] = useState<Lease | null>(null);
+  const [checkoutLease, setCheckoutLease] = useState<Lease | null>(null);
   const [form] = Form.useForm();
   const [renewForm] = Form.useForm();
+  const [checkoutForm] = Form.useForm();
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const [operationLogVisible, setOperationLogVisible] = useState(false);
   const [currentLease, setCurrentLease] = useState<Lease | null>(null);
@@ -139,10 +142,27 @@ const Leases: React.FC = () => {
     setRenewModalVisible(true);
   };
 
-  const handleCheckout = async (lease: Lease) => {
+  const handleCheckout = (lease: Lease) => {
+    setCheckoutLease(lease);
+    checkoutForm.resetFields();
+    checkoutForm.setFieldsValue({
+      refundRentAmount: 0,
+      refundDepositAmount: lease.depositAmount || 0,
+      waterAmount: 0,
+      electricAmount: 0,
+      otherAmount: 0,
+      note: '',
+    });
+    setCheckoutModalVisible(true);
+  };
+
+  const handleCheckoutSubmit = async () => {
+    if (!checkoutLease) return;
     try {
-      await leaseApi.checkout(lease.id);
+      const values = await checkoutForm.validateFields();
+      await leaseApi.checkoutWithBills(checkoutLease.id, values);
       message.success('退租成功');
+      setCheckoutModalVisible(false);
       fetchLeases();
     } catch (error) {
       message.error('退租失败');
@@ -203,12 +223,14 @@ const Leases: React.FC = () => {
     return `¥${(amount / 100).toFixed(2)}`;
   };
 
-  // 根据选择的位置筛选房间
+  // 根据选择的位置筛选房间，同时过滤掉已出租的房间
   const filteredRooms = useMemo(() => {
-    if (!selectedLocationId) {
-      return rooms;
+    let result = rooms;
+    if (selectedLocationId) {
+      result = result.filter(room => room.locationId === selectedLocationId);
     }
-    return rooms.filter(room => room.locationId === selectedLocationId);
+    // 只显示可出租的房间
+    return result.filter(room => room.status === 'available');
   }, [rooms, selectedLocationId]);
 
   // 处理位置选择变化
@@ -477,7 +499,13 @@ const Leases: React.FC = () => {
                 label="房间"
                 rules={[{ required: true, message: '请选择房间' }]}
               >
-                <Select placeholder="请先选择位置，再选择房间">
+                <Select
+                  placeholder={
+                    filteredRooms.length === 0
+                      ? (selectedLocationId ? '该位置暂无可出租房间' : '请先选择位置，再选择房间')
+                      : '请选择房间'
+                  }
+                >
                   {filteredRooms.map(room => {
                     const location = locations.find(l => l.id === room.locationId);
                     return (
@@ -589,6 +617,104 @@ const Leases: React.FC = () => {
           >
             <InputNumber style={{ width: '100%' }} placeholder="请输入新租金（分）" />
           </Form.Item>
+          <Form.Item
+            name="note"
+            label="备注"
+          >
+            <Input.TextArea placeholder="请输入备注" rows={3} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="退租结算"
+        open={checkoutModalVisible}
+        onOk={handleCheckoutSubmit}
+        onCancel={() => setCheckoutModalVisible(false)}
+        width={600}
+      >
+        <Form form={checkoutForm} layout="vertical">
+          {/* 租约信息 */}
+          <div style={{ marginBottom: 16, padding: 16, background: '#f5f5f5', borderRadius: 8 }}>
+            <h4 style={{ margin: '0 0 12px 0', color: '#666' }}>租约信息</h4>
+            <p style={{ margin: '0 0 8px 0' }}><strong>租户:</strong> {checkoutLease?.tenantName}</p>
+            <p style={{ margin: 0 }}><strong>押金金额:</strong> {formatAmount(checkoutLease?.depositAmount || 0)}</p>
+          </div>
+
+          {/* 退还金额 */}
+          <div style={{ marginBottom: 16, padding: 16, border: '1px solid #d9d9d9', borderRadius: 8 }}>
+            <h4 style={{ margin: '0 0 16px 0', color: '#1890ff' }}>退还金额</h4>
+            <Form.Item
+              name="refundRentAmount"
+              label="退还租金（分）"
+              rules={[{ required: true, message: '请输入退还租金' }]}
+            >
+              <InputNumber
+                style={{ width: '100%' }}
+                placeholder="请输入退还租金（分）"
+                min={0}
+              />
+            </Form.Item>
+            <Form.Item
+              name="refundDepositAmount"
+              label="退还押金"
+              rules={[
+                { required: true, message: '请输入退还押金' },
+                {
+                  validator(_, value) {
+                    if (!value || value <= (checkoutLease?.depositAmount || 0)) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error('退还押金不能超过押金总额'));
+                  },
+                },
+              ]}
+            >
+              <InputNumber
+                style={{ width: '100%' }}
+                placeholder="请输入退还押金（分）"
+                min={0}
+                max={checkoutLease?.depositAmount || 0}
+              />
+            </Form.Item>
+          </div>
+
+          {/* 收取费用 */}
+          <div style={{ marginBottom: 16, padding: 16, border: '1px solid #d9d9d9', borderRadius: 8 }}>
+            <h4 style={{ margin: '0 0 16px 0', color: '#52c41a' }}>收取费用</h4>
+            <Form.Item
+              name="waterAmount"
+              label="水费（分）"
+            >
+              <InputNumber
+                style={{ width: '100%' }}
+                placeholder="请输入水费（分）"
+                min={0}
+              />
+            </Form.Item>
+            <Form.Item
+              name="electricAmount"
+              label="电费（分）"
+            >
+              <InputNumber
+                style={{ width: '100%' }}
+                placeholder="请输入电费（分）"
+                min={0}
+              />
+            </Form.Item>
+            <Form.Item
+              name="otherAmount"
+              label="其他费用（分）"
+            >
+              <InputNumber
+                style={{ width: '100%' }}
+                placeholder="请输入其他费用（分）"
+                min={0}
+              />
+            </Form.Item>
+          </div>
+
+          {/* 备注 */}
           <Form.Item
             name="note"
             label="备注"

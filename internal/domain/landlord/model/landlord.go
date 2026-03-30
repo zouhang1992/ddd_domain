@@ -10,11 +10,11 @@ import (
 // Landlord 房东领域模型（聚合根）
 type Landlord struct {
 	model.BaseAggregateRoot
-	Name      string
-	Phone     string
-	Note      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Name      string    `json:"name"`
+	Phone     string    `json:"phone"`
+	Note      string    `json:"note"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // 房东事件（本地定义，避免导入循环）

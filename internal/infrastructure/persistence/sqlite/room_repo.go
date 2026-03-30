@@ -24,9 +24,9 @@ type tempRoom struct {
 	ID         string
 	LocationID string
 	RoomNumber string
-	Status     string
-	Tags       string
-	Note       string
+	Status     sql.NullString
+	Tags       sql.NullString
+	Note       sql.NullString
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
@@ -37,7 +37,7 @@ func (r *RoomRepository) Save(room *roommodel.Room) error {
 	_, err := r.conn.DB().Exec(`
 		INSERT OR REPLACE INTO rooms (id, location_id, room_number, status, tags, note, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-	`, room.ID(), room.LocationID, room.RoomNumber, string(room.Status), tagsStr, room.Note, room.CreatedAt, room.UpdatedAt)
+	`, room.IDField, room.LocationID, room.RoomNumber, string(room.Status), tagsStr, room.Note, room.CreatedAt, room.UpdatedAt)
 	return err
 }
 
@@ -58,14 +58,24 @@ func (r *RoomRepository) FindByID(id string) (*roommodel.Room, error) {
 	}
 
 	var tags []string
-	if temp.Tags != "" {
-		tags = strings.Split(temp.Tags, ",")
+	if temp.Tags.Valid && temp.Tags.String != "" {
+		tags = strings.Split(temp.Tags.String, ",")
 	} else {
 		tags = []string{}
 	}
 
-	room := roommodel.NewRoom(temp.ID, temp.LocationID, temp.RoomNumber, tags, temp.Note)
-	room.Status = roommodel.RoomStatus(temp.Status)
+	note := ""
+	if temp.Note.Valid {
+		note = temp.Note.String
+	}
+
+	status := roommodel.RoomStatusAvailable
+	if temp.Status.Valid && temp.Status.String != "" {
+		status = roommodel.RoomStatus(temp.Status.String)
+	}
+
+	room := roommodel.NewRoom(temp.ID, temp.LocationID, temp.RoomNumber, tags, note)
+	room.Status = status
 	room.CreatedAt = temp.CreatedAt
 	room.UpdatedAt = temp.UpdatedAt
 
@@ -92,14 +102,24 @@ func (r *RoomRepository) FindAll() ([]*roommodel.Room, error) {
 		}
 
 		var tags []string
-		if temp.Tags != "" {
-			tags = strings.Split(temp.Tags, ",")
+		if temp.Tags.Valid && temp.Tags.String != "" {
+			tags = strings.Split(temp.Tags.String, ",")
 		} else {
 			tags = []string{}
 		}
 
-		room := roommodel.NewRoom(temp.ID, temp.LocationID, temp.RoomNumber, tags, temp.Note)
-		room.Status = roommodel.RoomStatus(temp.Status)
+		note := ""
+		if temp.Note.Valid {
+			note = temp.Note.String
+		}
+
+		status := roommodel.RoomStatusAvailable
+		if temp.Status.Valid && temp.Status.String != "" {
+			status = roommodel.RoomStatus(temp.Status.String)
+		}
+
+		room := roommodel.NewRoom(temp.ID, temp.LocationID, temp.RoomNumber, tags, note)
+		room.Status = status
 		room.CreatedAt = temp.CreatedAt
 		room.UpdatedAt = temp.UpdatedAt
 

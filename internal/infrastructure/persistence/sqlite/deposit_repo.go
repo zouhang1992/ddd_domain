@@ -24,7 +24,8 @@ type tempDeposit struct {
 	LeaseID    string
 	Amount     int64
 	Status     string
-	ReturnedAt *time.Time
+	RefundedAt *time.Time
+	DeductedAt *time.Time
 	Note       string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
@@ -32,26 +33,30 @@ type tempDeposit struct {
 
 // Save 保存押金
 func (r *DepositRepository) Save(deposit *depositmodel.Deposit) error {
-	var returnedAt interface{}
-	if deposit.ReturnedAt != nil {
-		returnedAt = *deposit.ReturnedAt
+	var refundedAt interface{}
+	if deposit.RefundedAt != nil {
+		refundedAt = *deposit.RefundedAt
+	}
+	var deductedAt interface{}
+	if deposit.DeductedAt != nil {
+		deductedAt = *deposit.DeductedAt
 	}
 
 	_, err := r.conn.DB().Exec(`
 		INSERT OR REPLACE INTO deposits (
-			id, lease_id, amount, status, returned_at, note,
+			id, lease_id, amount, status, refunded_at, deducted_at, note,
 			created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`,
-		deposit.ID(), deposit.LeaseID, deposit.Amount, string(deposit.Status),
-		returnedAt, deposit.Note, deposit.CreatedAt, deposit.UpdatedAt)
+		deposit.IDField, deposit.LeaseID, deposit.Amount, string(deposit.Status),
+		refundedAt, deductedAt, deposit.Note, deposit.CreatedAt, deposit.UpdatedAt)
 	return err
 }
 
 // FindByID 根据ID查找押金
 func (r *DepositRepository) FindByID(id string) (*depositmodel.Deposit, error) {
 	row := r.conn.DB().QueryRow(`
-		SELECT id, lease_id, amount, status, returned_at, note,
+		SELECT id, lease_id, amount, status, refunded_at, deducted_at, note,
 			created_at, updated_at
 		FROM deposits WHERE id = ?
 		`, id)
@@ -59,7 +64,7 @@ func (r *DepositRepository) FindByID(id string) (*depositmodel.Deposit, error) {
 	var temp tempDeposit
 	err := row.Scan(
 		&temp.ID, &temp.LeaseID, &temp.Amount, &temp.Status,
-		&temp.ReturnedAt, &temp.Note, &temp.CreatedAt, &temp.UpdatedAt)
+		&temp.RefundedAt, &temp.DeductedAt, &temp.Note, &temp.CreatedAt, &temp.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -69,7 +74,8 @@ func (r *DepositRepository) FindByID(id string) (*depositmodel.Deposit, error) {
 
 	deposit := depositmodel.NewDeposit(temp.ID, temp.LeaseID, temp.Amount, temp.Note)
 	deposit.Status = depositmodel.DepositStatus(temp.Status)
-	deposit.ReturnedAt = temp.ReturnedAt
+	deposit.RefundedAt = temp.RefundedAt
+	deposit.DeductedAt = temp.DeductedAt
 	deposit.CreatedAt = temp.CreatedAt
 	deposit.UpdatedAt = temp.UpdatedAt
 
@@ -79,7 +85,7 @@ func (r *DepositRepository) FindByID(id string) (*depositmodel.Deposit, error) {
 // FindByLeaseID 根据租约ID查找押金
 func (r *DepositRepository) FindByLeaseID(leaseID string) (*depositmodel.Deposit, error) {
 	rows, err := r.conn.DB().Query(`
-		SELECT id, lease_id, amount, status, returned_at, note,
+		SELECT id, lease_id, amount, status, refunded_at, deducted_at, note,
 			created_at, updated_at
 		FROM deposits WHERE lease_id = ? ORDER BY created_at DESC LIMIT 1
 		`, leaseID)
@@ -92,14 +98,15 @@ func (r *DepositRepository) FindByLeaseID(leaseID string) (*depositmodel.Deposit
 		var temp tempDeposit
 		err := rows.Scan(
 			&temp.ID, &temp.LeaseID, &temp.Amount, &temp.Status,
-			&temp.ReturnedAt, &temp.Note, &temp.CreatedAt, &temp.UpdatedAt)
+			&temp.RefundedAt, &temp.DeductedAt, &temp.Note, &temp.CreatedAt, &temp.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 
 		deposit := depositmodel.NewDeposit(temp.ID, temp.LeaseID, temp.Amount, temp.Note)
 		deposit.Status = depositmodel.DepositStatus(temp.Status)
-		deposit.ReturnedAt = temp.ReturnedAt
+		deposit.RefundedAt = temp.RefundedAt
+		deposit.DeductedAt = temp.DeductedAt
 		deposit.CreatedAt = temp.CreatedAt
 		deposit.UpdatedAt = temp.UpdatedAt
 
@@ -111,7 +118,7 @@ func (r *DepositRepository) FindByLeaseID(leaseID string) (*depositmodel.Deposit
 // FindAll 查找所有押金
 func (r *DepositRepository) FindAll() ([]*depositmodel.Deposit, error) {
 	rows, err := r.conn.DB().Query(`
-		SELECT id, lease_id, amount, status, returned_at, note,
+		SELECT id, lease_id, amount, status, refunded_at, deducted_at, note,
 			created_at, updated_at
 		FROM deposits ORDER BY created_at DESC
 		`)
@@ -125,14 +132,15 @@ func (r *DepositRepository) FindAll() ([]*depositmodel.Deposit, error) {
 		var temp tempDeposit
 		err := rows.Scan(
 			&temp.ID, &temp.LeaseID, &temp.Amount, &temp.Status,
-			&temp.ReturnedAt, &temp.Note, &temp.CreatedAt, &temp.UpdatedAt)
+			&temp.RefundedAt, &temp.DeductedAt, &temp.Note, &temp.CreatedAt, &temp.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 
 		deposit := depositmodel.NewDeposit(temp.ID, temp.LeaseID, temp.Amount, temp.Note)
 		deposit.Status = depositmodel.DepositStatus(temp.Status)
-		deposit.ReturnedAt = temp.ReturnedAt
+		deposit.RefundedAt = temp.RefundedAt
+		deposit.DeductedAt = temp.DeductedAt
 		deposit.CreatedAt = temp.CreatedAt
 		deposit.UpdatedAt = temp.UpdatedAt
 

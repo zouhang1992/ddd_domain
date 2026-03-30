@@ -55,7 +55,7 @@ func (h *CQRSPrintHandler) PrintBill(w http.ResponseWriter, r *http.Request) {
 
 	jobID := result.(string)
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(map[string]string{"job_id": jobID})
+	_ = json.NewEncoder(w).Encode(map[string]string{"jobId": jobID})
 }
 
 // PrintLease 打印租约
@@ -80,7 +80,7 @@ func (h *CQRSPrintHandler) PrintLease(w http.ResponseWriter, r *http.Request) {
 
 	jobID := result.(string)
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(map[string]string{"job_id": jobID})
+	_ = json.NewEncoder(w).Encode(map[string]string{"jobId": jobID})
 }
 
 // PrintInvoice 打印发票
@@ -105,7 +105,7 @@ func (h *CQRSPrintHandler) PrintInvoice(w http.ResponseWriter, r *http.Request) 
 
 	jobID := result.(string)
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(map[string]string{"job_id": jobID})
+	_ = json.NewEncoder(w).Encode(map[string]string{"jobId": jobID})
 }
 
 // GetPrintContent 获取打印内容

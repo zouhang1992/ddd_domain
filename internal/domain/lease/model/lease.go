@@ -20,19 +20,19 @@ const (
 // Lease 租约领域模型（聚合根）
 type Lease struct {
 	model.BaseAggregateRoot
-	RoomID         string
-	LandlordID     string
-	TenantName     string
-	TenantPhone    string
-	StartDate      time.Time
-	EndDate        time.Time
-	RentAmount     int64
-	DepositAmount  int64
-	Status         LeaseStatus
-	Note           string
-	LastChargeAt   *time.Time
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	RoomID        string       `json:"room_id"`
+	LandlordID    string       `json:"landlord_id"`
+	TenantName    string       `json:"tenant_name"`
+	TenantPhone   string       `json:"tenant_phone"`
+	StartDate     time.Time    `json:"start_date"`
+	EndDate       time.Time    `json:"end_date"`
+	RentAmount    int64        `json:"rent_amount"`
+	DepositAmount int64        `json:"deposit_amount"`
+	Status        LeaseStatus  `json:"status"`
+	Note          string       `json:"note"`
+	LastChargeAt  *time.Time   `json:"last_charge_at"`
+	CreatedAt     time.Time    `json:"created_at"`
+	UpdatedAt     time.Time    `json:"updated_at"`
 }
 
 // 租约事件（本地定义，避免导入循环）
@@ -63,24 +63,28 @@ type leaseRenewed struct {
 	NewEndDate string
 }
 
+type leaseDeleted struct {
+	events.BaseEvent
+}
+
 // NewLease 创建新租约
 func NewLease(id, roomID, landlordID, tenantName, tenantPhone string,
 	startDate, endDate time.Time, rentAmount, depositAmount int64, note string) *Lease {
 	now := time.Now()
 	lease := &Lease{
 		BaseAggregateRoot: model.NewBaseAggregateRoot(id),
-		RoomID:         roomID,
-		LandlordID:     landlordID,
-		TenantName:     tenantName,
-		TenantPhone:    tenantPhone,
-		StartDate:      startDate,
-		EndDate:        endDate,
-		RentAmount:     rentAmount,
-		DepositAmount:  depositAmount,
-		Status:         LeaseStatusPending,
-		Note:           note,
-		CreatedAt:      now,
-		UpdatedAt:      now,
+		RoomID:            roomID,
+		LandlordID:        landlordID,
+		TenantName:        tenantName,
+		TenantPhone:       tenantPhone,
+		StartDate:         startDate,
+		EndDate:           endDate,
+		RentAmount:        rentAmount,
+		DepositAmount:     depositAmount,
+		Status:            LeaseStatusPending,
+		Note:              note,
+		CreatedAt:         now,
+		UpdatedAt:         now,
 	}
 
 	// 创建并记录事件
@@ -140,4 +144,9 @@ func (l *Lease) Renew(newEndDate time.Time) {
 		NewEndDate: l.EndDate.Format("2006-01-02"),
 	}
 	l.RecordEvent(evt)
+}
+
+// Equals 比较租约是否相等
+func (l *Lease) Equals(other *Lease) bool {
+	return l.ID() == other.ID()
 }

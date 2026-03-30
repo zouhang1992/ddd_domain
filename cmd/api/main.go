@@ -9,9 +9,11 @@ import (
 	"github.com/zouhang1992/ddd_domain/internal/application"
 	"github.com/zouhang1992/ddd_domain/internal/application/bill"
 	"github.com/zouhang1992/ddd_domain/internal/application/common/service"
+	"github.com/zouhang1992/ddd_domain/internal/application/deposit"
 	"github.com/zouhang1992/ddd_domain/internal/application/landlord"
 	"github.com/zouhang1992/ddd_domain/internal/application/lease"
 	"github.com/zouhang1992/ddd_domain/internal/application/location"
+	"github.com/zouhang1992/ddd_domain/internal/application/operationlog"
 	"github.com/zouhang1992/ddd_domain/internal/application/print"
 	"github.com/zouhang1992/ddd_domain/internal/application/room"
 	"github.com/zouhang1992/ddd_domain/internal/facade"
@@ -41,12 +43,14 @@ func main() {
 		fx.Invoke(registerCommandHandlers),
 		fx.Invoke(registerQueryHandlers),
 		fx.Invoke(registerEventHandlers),
+		// 启动定时任务
+		fx.Invoke(startLeaseExpirationScheduler),
 		// 设置服务器
 		fx.Invoke(startServer),
 	).Run()
 }
 
-func registerEventHandlers(eventBus *busevent.Bus, leaseRoomHandler *lease.LeaseRoomEventHandler, logger *zap.Logger) {
+func registerEventHandlers(eventBus *busevent.Bus, leaseRoomHandler *lease.LeaseRoomEventHandler, operationLogHandler *operationlog.OperationLogEventHandler, logger *zap.Logger) {
 	// 订阅租约事件以处理房间状态变更
 	eventBus.Subscribe("lease.activated", leaseRoomHandler)
 	eventBus.Subscribe("lease.checkout", leaseRoomHandler)
@@ -54,6 +58,29 @@ func registerEventHandlers(eventBus *busevent.Bus, leaseRoomHandler *lease.Lease
 
 	logger.Info("Lease room event handler registered",
 		zap.String("events", "lease.activated, lease.checkout, lease.expired"))
+
+	// 订阅所有领域事件以记录操作日志
+	allEvents := []string{
+		// Room events
+		"room.created", "room.updated", "room.deleted", "room.rented", "room.available",
+		// Lease events
+		"lease.created", "lease.activated", "lease.checkout", "lease.expired", "lease.renewed", "lease.deleted",
+		// Landlord events
+		"landlord.created", "landlord.updated", "landlord.deleted",
+		// Bill events
+		"bill.created", "bill.updated", "bill.paid", "bill.deleted",
+		// Location events
+		"location.created", "location.updated", "location.deleted",
+		// Deposit events
+		"deposit.created", "deposit.returning", "deposit.returned", "deposit.deleted",
+	}
+
+	for _, evt := range allEvents {
+		eventBus.Subscribe(evt, operationLogHandler)
+	}
+
+	logger.Info("Operation log event handler registered",
+		zap.Strings("events", allEvents))
 }
 
 func registerCommandHandlers(
@@ -61,6 +88,7 @@ func registerCommandHandlers(
 	landlordHandler *landlord.CommandHandler,
 	leaseHandler *lease.CommandHandler,
 	billHandler *bill.CommandHandler,
+	depositHandler *deposit.CommandHandler,
 	locationHandler *location.CommandHandler,
 	roomHandler *room.CommandHandler,
 	printHandler *print.CommandHandler,
@@ -73,11 +101,14 @@ func registerCommandHandlers(
 	bus.Register("delete_lease", buscommand.HandlerFunc(leaseHandler.HandleDeleteLease))
 	bus.Register("renew_lease", buscommand.HandlerFunc(leaseHandler.HandleRenewLease))
 	bus.Register("checkout_lease", buscommand.HandlerFunc(leaseHandler.HandleCheckoutLease))
+	bus.Register("checkout_with_bills", buscommand.HandlerFunc(leaseHandler.HandleCheckoutWithBills))
 	bus.Register("activate_lease", buscommand.HandlerFunc(leaseHandler.HandleActivateLease))
 	bus.Register("create_bill", buscommand.HandlerFunc(billHandler.HandleCreateBill))
 	bus.Register("update_bill", buscommand.HandlerFunc(billHandler.HandleUpdateBill))
 	bus.Register("delete_bill", buscommand.HandlerFunc(billHandler.HandleDeleteBill))
 	bus.Register("confirm_bill_arrival", buscommand.HandlerFunc(billHandler.HandleConfirmBillArrival))
+	bus.Register("mark_deposit_returning", buscommand.HandlerFunc(depositHandler.HandleMarkReturning))
+	bus.Register("mark_deposit_returned", buscommand.HandlerFunc(depositHandler.HandleMarkReturned))
 	bus.Register("create_location", buscommand.HandlerFunc(locationHandler.HandleCreateLocation))
 	bus.Register("update_location", buscommand.HandlerFunc(locationHandler.HandleUpdateLocation))
 	bus.Register("delete_location", buscommand.HandlerFunc(locationHandler.HandleDeleteLocation))
@@ -94,6 +125,7 @@ func registerQueryHandlers(
 	landlordQueryHandler *landlord.QueryHandler,
 	leaseQueryHandler *lease.QueryHandler,
 	billQueryHandler *bill.QueryHandler,
+	depositQueryHandler *deposit.QueryHandler,
 	locationQueryHandler *location.QueryHandler,
 	roomQueryHandler *room.QueryHandler,
 	printQueryHandler *print.QueryHandler,
@@ -105,6 +137,8 @@ func registerQueryHandlers(
 	queryBus.Register("get_bill", busquery.HandlerFunc(billQueryHandler.HandleGetBill))
 	queryBus.Register("list_bills", busquery.HandlerFunc(billQueryHandler.HandleListBills))
 	queryBus.Register("income_report", busquery.HandlerFunc(billQueryHandler.HandleIncomeReport))
+	queryBus.Register("get_deposit", busquery.HandlerFunc(depositQueryHandler.HandleGetDeposit))
+	queryBus.Register("list_deposits", busquery.HandlerFunc(depositQueryHandler.HandleListDeposits))
 	queryBus.Register("get_location", busquery.HandlerFunc(locationQueryHandler.HandleGetLocation))
 	queryBus.Register("list_locations", busquery.HandlerFunc(locationQueryHandler.HandleListLocations))
 	queryBus.Register("get_room", busquery.HandlerFunc(roomQueryHandler.HandleGetRoom))
@@ -122,9 +156,11 @@ func startServer(
 	landlordHandler *facade.CQRSLandlordHandler,
 	leaseHandler *facade.CQRSLeaseHandler,
 	billHandler *facade.CQRSBillHandler,
+	depositHandler *facade.CQRSDepositHandler,
 	printHandler *facade.CQRSPrintHandler,
 	authHandler *facade.AuthHandler,
 	incomeHandler *facade.IncomeHandler,
+	operationLogHandler *facade.OperationLogHandler,
 	authService *service.AuthService,
 	printService *service.PrintService,
 ) {
@@ -160,12 +196,20 @@ func startServer(
 	landlordHandler.RegisterRoutes(mux)
 	leaseHandler.RegisterRoutes(mux)
 	billHandler.RegisterRoutes(mux)
+	depositHandler.RegisterRoutes(mux)
 	printHandler.RegisterRoutes(mux)
 	authHandler.RegisterRoutes(mux)
 	incomeHandler.RegisterRoutes(mux)
+	operationLogHandler.RegisterRoutes(mux)
 
 	logger.Info("Starting server on :8080")
 	if err := http.ListenAndServe(":8080", corsHandler(mux)); err != nil {
 		logger.Fatal("Server failed", zap.Error(err))
+	}
+}
+
+func startLeaseExpirationScheduler(scheduler *lease.LeaseExpirationScheduler, logger *zap.Logger) {
+	if err := scheduler.Start(); err != nil {
+		logger.Error("Failed to start lease expiration scheduler", zap.Error(err))
 	}
 }

@@ -16,7 +16,9 @@ export interface Room {
   id: string;
   locationId: string;
   roomNumber: string;
+  status: string;
   tags: string[];
+  note?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -68,6 +70,18 @@ export interface PrintJob {
   type: string;
   status: string;
   content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Deposit {
+  id: string;
+  leaseId: string;
+  amount: number;
+  status: string;
+  refundedAt?: string;
+  deductedAt?: string;
+  note: string;
   createdAt: string;
   updatedAt: string;
 }

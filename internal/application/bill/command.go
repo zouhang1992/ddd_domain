@@ -9,11 +9,15 @@ import (
 
 // CreateBillCommand 创建账单命令
 type CreateBillCommand struct {
-	LeaseID string
-	Type    billmodel.BillType
-	Amount  int64
-	DueDate time.Time
-	Note    string
+	LeaseID        string
+	Type           billmodel.BillType
+	Amount         int64
+	RentAmount     int64
+	WaterAmount    int64
+	ElectricAmount int64
+	OtherAmount    int64
+	DueDate        time.Time
+	Note           string
 }
 
 // CommandName 实现 Command 接口
@@ -31,21 +35,38 @@ func (c CreateBillCommand) Validate() error {
 	}
 	if c.Type != billmodel.BillTypeRent && c.Type != billmodel.BillTypeWater &&
 		c.Type != billmodel.BillTypeElectric && c.Type != billmodel.BillTypeGas &&
-		c.Type != billmodel.BillTypeInternet && c.Type != billmodel.BillTypeOther {
+		c.Type != billmodel.BillTypeInternet && c.Type != billmodel.BillTypeOther &&
+		c.Type != billmodel.BillTypeCharge && c.Type != billmodel.BillTypeCheckout {
 		return errors.New("invalid bill type")
 	}
 	if c.Amount < 0 {
 		return errors.New("amount cannot be negative")
+	}
+	if c.RentAmount < 0 {
+		return errors.New("rent_amount cannot be negative")
+	}
+	if c.WaterAmount < 0 {
+		return errors.New("water_amount cannot be negative")
+	}
+	if c.ElectricAmount < 0 {
+		return errors.New("electric_amount cannot be negative")
+	}
+	if c.OtherAmount < 0 {
+		return errors.New("other_amount cannot be negative")
 	}
 	return nil
 }
 
 // UpdateBillCommand 更新账单命令
 type UpdateBillCommand struct {
-	ID      string
-	Amount  int64
-	DueDate time.Time
-	Note    string
+	ID             string
+	Amount         int64
+	RentAmount     int64
+	WaterAmount    int64
+	ElectricAmount int64
+	OtherAmount    int64
+	DueDate        time.Time
+	Note           string
 }
 
 // CommandName 实现 Command 接口
@@ -60,6 +81,18 @@ func (c UpdateBillCommand) Validate() error {
 	}
 	if c.Amount < 0 {
 		return errors.New("amount cannot be negative")
+	}
+	if c.RentAmount < 0 {
+		return errors.New("rent_amount cannot be negative")
+	}
+	if c.WaterAmount < 0 {
+		return errors.New("water_amount cannot be negative")
+	}
+	if c.ElectricAmount < 0 {
+		return errors.New("electric_amount cannot be negative")
+	}
+	if c.OtherAmount < 0 {
+		return errors.New("other_amount cannot be negative")
 	}
 	return nil
 }

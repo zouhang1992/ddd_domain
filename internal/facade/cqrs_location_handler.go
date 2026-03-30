@@ -35,7 +35,7 @@ func (h *CQRSLocationHandler) RegisterRoutes(mux *http.ServeMux) {
 // Create 创建位置
 func (h *CQRSLocationHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		ShortName string `json:"shortName"`
+		ShortName string `json:"short_name"`
 		Detail    string `json:"detail"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -109,7 +109,7 @@ func (h *CQRSLocationHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *CQRSLocationHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	var req struct {
-		ShortName string `json:"shortName"`
+		ShortName string `json:"short_name"`
 		Detail    string `json:"detail"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

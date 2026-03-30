@@ -11,6 +11,7 @@ interface IncomeItem {
   amount: number;
   formattedAmount: string;
   percentage: string;
+  isExpense?: boolean;
 }
 
 // 安全计算占比函数
@@ -18,7 +19,6 @@ const calculatePercentage = (value: number, total: number): string => {
   if (!total || total === 0 || isNaN(total)) {
     return '0%';
   }
-  // 使用绝对值计算占比（押金支出是负数）
   const absoluteValue = Math.abs(value);
   const percentage = (absoluteValue / total) * 100;
   if (isNaN(percentage) || !isFinite(percentage)) {
@@ -26,7 +26,6 @@ const calculatePercentage = (value: number, total: number): string => {
   }
   return percentage.toFixed(1) + '%';
 };
-
 
 const Income: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -74,49 +73,49 @@ const Income: React.FC = () => {
     return isNaN(num) ? defaultValue : num;
   };
 
-  // 计算用于占比计算的有效总金额（押金支出取绝对值）
+  // 计算用于占比计算的有效总金额（取绝对值）
   const getEffectiveTotal = (data: any): number => {
     if (!data) return 0;
-    const rent = safeNumber(data.rentTotal);
-    const water = safeNumber(data.waterTotal);
-    const electric = safeNumber(data.electricTotal);
-    const other = safeNumber(data.otherTotal);
+    const rentIncome = safeNumber(data.rentIncome);
+    const waterIncome = safeNumber(data.waterIncome);
+    const electricIncome = safeNumber(data.electricIncome);
+    const otherIncome = safeNumber(data.otherIncome);
     const depositIncome = safeNumber(data.depositIncome);
+    const rentExpense = safeNumber(data.rentExpense);
     const depositExpense = safeNumber(data.depositExpense);
-    // 押金支出取绝对值，其他保持原样
-    return rent + water + electric + other + depositIncome + Math.abs(depositExpense);
+    return rentIncome + waterIncome + electricIncome + otherIncome + depositIncome + rentExpense + depositExpense;
   };
 
   const effectiveTotal = incomeData ? getEffectiveTotal(incomeData) : 0;
 
   const incomeItems: IncomeItem[] = [
     {
-      key: 'rent',
-      type: '租金',
-      amount: safeNumber(incomeData?.rentTotal),
-      formattedAmount: incomeData?.rentFormatted || '0.00',
-      percentage: calculatePercentage(safeNumber(incomeData?.rentTotal), effectiveTotal),
+      key: 'rentIncome',
+      type: '租金收入',
+      amount: safeNumber(incomeData?.rentIncome),
+      formattedAmount: incomeData?.rentIncomeFormatted || '0.00',
+      percentage: calculatePercentage(safeNumber(incomeData?.rentIncome), effectiveTotal),
     },
     {
-      key: 'water',
-      type: '水费',
-      amount: safeNumber(incomeData?.waterTotal),
-      formattedAmount: incomeData?.waterFormatted || '0.00',
-      percentage: calculatePercentage(safeNumber(incomeData?.waterTotal), effectiveTotal),
+      key: 'waterIncome',
+      type: '水费收入',
+      amount: safeNumber(incomeData?.waterIncome),
+      formattedAmount: incomeData?.waterIncomeFormatted || '0.00',
+      percentage: calculatePercentage(safeNumber(incomeData?.waterIncome), effectiveTotal),
     },
     {
-      key: 'electric',
-      type: '电费',
-      amount: safeNumber(incomeData?.electricTotal),
-      formattedAmount: incomeData?.electricFormatted || '0.00',
-      percentage: calculatePercentage(safeNumber(incomeData?.electricTotal), effectiveTotal),
+      key: 'electricIncome',
+      type: '电费收入',
+      amount: safeNumber(incomeData?.electricIncome),
+      formattedAmount: incomeData?.electricIncomeFormatted || '0.00',
+      percentage: calculatePercentage(safeNumber(incomeData?.electricIncome), effectiveTotal),
     },
     {
-      key: 'other',
-      type: '其他',
-      amount: safeNumber(incomeData?.otherTotal),
-      formattedAmount: incomeData?.otherFormatted || '0.00',
-      percentage: calculatePercentage(safeNumber(incomeData?.otherTotal), effectiveTotal),
+      key: 'otherIncome',
+      type: '其他收入',
+      amount: safeNumber(incomeData?.otherIncome),
+      formattedAmount: incomeData?.otherIncomeFormatted || '0.00',
+      percentage: calculatePercentage(safeNumber(incomeData?.otherIncome), effectiveTotal),
     },
     {
       key: 'depositIncome',
@@ -126,22 +125,31 @@ const Income: React.FC = () => {
       percentage: calculatePercentage(safeNumber(incomeData?.depositIncome), effectiveTotal),
     },
     {
+      key: 'rentExpense',
+      type: '租金支出',
+      amount: safeNumber(incomeData?.rentExpense),
+      formattedAmount: incomeData?.rentExpenseFormatted || '0.00',
+      percentage: calculatePercentage(safeNumber(incomeData?.rentExpense), effectiveTotal),
+      isExpense: true,
+    },
+    {
       key: 'depositExpense',
       type: '押金支出',
       amount: safeNumber(incomeData?.depositExpense),
       formattedAmount: incomeData?.depositExpenseFormatted || '0.00',
       percentage: calculatePercentage(safeNumber(incomeData?.depositExpense), effectiveTotal),
+      isExpense: true,
     },
   ];
 
   const tableColumns = [
     {
-      title: '收入类型',
+      title: '收支类型',
       dataIndex: 'type',
       key: 'type',
       width: 120,
       render: (text: string, record: IncomeItem) => (
-        <Tag color={record.key === 'depositExpense' ? 'red' : 'blue'}>
+        <Tag color={record.isExpense ? 'red' : 'blue'}>
           {text}
         </Tag>
       ),
@@ -150,10 +158,10 @@ const Income: React.FC = () => {
       title: '金额（元）',
       dataIndex: 'formattedAmount',
       key: 'formattedAmount',
-      width: 120,
+      width: 140,
       render: (text: string, record: IncomeItem) => (
-        <span style={{ color: record.key === 'depositExpense' ? '#cf1322' : 'inherit' }}>
-          {record.key === 'depositExpense' ? '-' : ''}¥{text}
+        <span style={{ color: record.isExpense ? '#cf1322' : 'inherit' }}>
+          {record.isExpense ? '-' : ''}¥{text}
         </span>
       ),
     },
@@ -174,6 +182,9 @@ const Income: React.FC = () => {
     const num = Number(value);
     return isNaN(num) ? 0 : num;
   };
+
+  const netIncome = incomeData ? safeStatValue(incomeData.netIncome) : 0;
+  const netIncomeColor = netIncome >= 0 ? '#3f8600' : '#cf1322';
 
   return (
     <div>
@@ -225,8 +236,8 @@ const Income: React.FC = () => {
               <Col xs={24} sm={12} lg={8}>
                 <Card>
                   <Statistic
-                    title={monthTitle}
-                    value={safeStatValue(incomeData.total) / 100}
+                    title="总收入"
+                    value={safeStatValue(incomeData.totalIncome) / 100}
                     precision={2}
                     valueStyle={{ color: '#3f8600', fontSize: '28px' }}
                     prefix={<DollarOutlined />}
@@ -237,20 +248,8 @@ const Income: React.FC = () => {
               <Col xs={24} sm={12} lg={8}>
                 <Card>
                   <Statistic
-                    title="押金收入"
-                    value={safeStatValue(incomeData.depositIncome) / 100}
-                    precision={2}
-                    valueStyle={{ color: '#3f8600', fontSize: '28px' }}
-                    prefix={<DollarOutlined />}
-                    suffix="元"
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} lg={8}>
-                <Card>
-                  <Statistic
-                    title="押金支出"
-                    value={safeStatValue(incomeData.depositExpense) / 100}
+                    title="总支出"
+                    value={safeStatValue(incomeData.totalExpense) / 100}
                     precision={2}
                     valueStyle={{ color: '#cf1322', fontSize: '28px' }}
                     prefix={<DollarOutlined />}
@@ -258,9 +257,21 @@ const Income: React.FC = () => {
                   />
                 </Card>
               </Col>
+              <Col xs={24} sm={12} lg={8}>
+                <Card>
+                  <Statistic
+                    title="净收入"
+                    value={netIncome / 100}
+                    precision={2}
+                    valueStyle={{ color: netIncomeColor, fontSize: '28px' }}
+                    prefix={<DollarOutlined />}
+                    suffix="元"
+                  />
+                </Card>
+              </Col>
             </Row>
 
-            <Card title="收入明细">
+            <Card title="收支明细">
               <Table
                 dataSource={incomeItems}
                 columns={tableColumns}

@@ -33,7 +33,7 @@ func (r *LandlordRepository) Save(landlord *landlordmodel.Landlord) error {
 	_, err := r.conn.DB().Exec(`
 		INSERT OR REPLACE INTO landlords (id, name, phone, note, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?)
-	`, landlord.ID(), landlord.Name, landlord.Phone, landlord.Note, landlord.CreatedAt, landlord.UpdatedAt)
+	`, landlord.IDField, landlord.Name, landlord.Phone, landlord.Note, landlord.CreatedAt, landlord.UpdatedAt)
 	return err
 }
 

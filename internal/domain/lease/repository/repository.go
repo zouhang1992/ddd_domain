@@ -14,4 +14,5 @@ type LeaseRepository interface {
 	FindActiveLeasesExpiringBefore(time time.Time) ([]*model.Lease, error)
 	HasBills(leaseID string) (bool, error)
 	HasDeposit(leaseID string) (bool, error)
+	HasActiveLeaseForRoom(roomID string) (bool, error)
 }

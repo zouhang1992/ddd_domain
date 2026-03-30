@@ -30,63 +30,44 @@ func (h *IncomeHandler) RegisterRoutes(mux *http.ServeMux) {
 type IncomeReport struct {
 	Year                  int    `json:"year"`
 	Month                 int    `json:"month"`
-	RentTotal             int64  `json:"rent_total"`
-	WaterTotal            int64  `json:"water_total"`
-	ElectricTotal         int64  `json:"electric_total"`
-	OtherTotal            int64  `json:"other_total"`
+
+	// 收入部分
+	RentIncome            int64  `json:"rent_income"`
+	WaterIncome           int64  `json:"water_income"`
+	ElectricIncome        int64  `json:"electric_income"`
+	OtherIncome           int64  `json:"other_income"`
 	DepositIncome         int64  `json:"deposit_income"`
+
+	// 支出部分
+	RentExpense           int64  `json:"rent_expense"`
 	DepositExpense        int64  `json:"deposit_expense"`
-	Total                 int64  `json:"total"`
-	TotalFormatted        string `json:"total_formatted"`
-	RentFormatted         string `json:"rent_formatted"`
-	WaterFormatted        string `json:"water_formatted"`
-	ElectricFormatted     string `json:"electric_formatted"`
-	OtherFormatted        string `json:"other_formatted"`
-	DepositIncomeFormatted string `json:"deposit_income_formatted"`
+
+	// 计算结果
+	TotalIncome           int64  `json:"total_income"`
+	TotalExpense          int64  `json:"total_expense"`
+	NetIncome             int64  `json:"net_income"`
+
+	// 格式化字符串
+	RentIncomeFormatted     string `json:"rent_income_formatted"`
+	WaterIncomeFormatted    string `json:"water_income_formatted"`
+	ElectricIncomeFormatted string `json:"electric_income_formatted"`
+	OtherIncomeFormatted    string `json:"other_income_formatted"`
+	DepositIncomeFormatted  string `json:"deposit_income_formatted"`
+	RentExpenseFormatted    string `json:"rent_expense_formatted"`
 	DepositExpenseFormatted string `json:"deposit_expense_formatted"`
+	TotalIncomeFormatted    string `json:"total_income_formatted"`
+	TotalExpenseFormatted   string `json:"total_expense_formatted"`
+	NetIncomeFormatted      string `json:"net_income_formatted"`
 }
 
 // formatMoney 格式化金额
 func formatMoney(amount int64) string {
-	return stringFormat("%.2f", float64(amount)/100)
+	return fmt.Sprintf("%.2f", float64(amount)/100)
 }
 
-// stringFormat 字符串格式化（简单实现）
-func stringFormat(format string, a ...interface{}) string {
-	var buf [64]byte
-	n := 0
-	for _, v := range a {
-		switch val := v.(type) {
-		case float64:
-			n = copy(buf[n:], formatFloat64(val))
-		}
-	}
-	return string(buf[:n])
-}
-
-// formatFloat64 格式化浮点数
-func formatFloat64(f float64) string {
-	var s string
-	i := int(f)
-	d := int((f - float64(i)) * 100)
-	if d < 0 {
-		d = -d
-	}
-	s = stringFormatInt(i) + "." + stringFormatInt2(d)
-	return s
-}
-
-// stringFormatInt 格式化整数
-func stringFormatInt(i int) string {
-	return fmt.Sprintf("%d", i) // 使用 fmt.Sprintf 正确格式化整数
-}
-
-// stringFormatInt2 格式化两位数
-func stringFormatInt2(i int) string {
-	if i < 10 {
-		return "0" + stringFormatInt(i)
-	}
-	return stringFormatInt(i)
+// isSameMonth 检查时间是否在指定年月
+func isSameMonth(t time.Time, year int, month time.Month) bool {
+	return t.Year() == year && t.Month() == month
 }
 
 // GetIncome 获取收入汇总
@@ -96,7 +77,6 @@ func (h *IncomeHandler) GetIncome(w http.ResponseWriter, r *http.Request) {
 
 	var year int
 	var mon time.Month
-	var err error
 
 	if monthStr == "" {
 		// 默认当前月份
@@ -119,7 +99,7 @@ func (h *IncomeHandler) GetIncome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.depositRepo.FindAll()
+	deposits, err := h.depositRepo.FindAll()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -129,19 +109,60 @@ func (h *IncomeHandler) GetIncome(w http.ResponseWriter, r *http.Request) {
 	report.Year = year
 	report.Month = int(mon)
 
+	// 计算账单收入和支出（只统计已支付且在指定月份的账单）
 	for _, bill := range bills {
-		if bill.PaidAt != nil {
-			report.Total += bill.Amount
+		if bill.PaidAt != nil && isSameMonth(*bill.PaidAt, year, mon) {
+			if bill.Type == "checkout" {
+				// 退租结算账单：分别处理租金的收入和支出
+				if bill.RentAmount < 0 {
+					// 负数表示退还租金，算作支出
+					report.RentExpense += -bill.RentAmount
+				} else {
+					// 正数表示收取租金，算作收入
+					report.RentIncome += bill.RentAmount
+				}
+				// 水费、电费、其他费用始终算作收入
+				report.WaterIncome += bill.WaterAmount
+				report.ElectricIncome += bill.ElectricAmount
+				report.OtherIncome += bill.OtherAmount
+			} else {
+				// 普通账单：所有金额算作收入
+				report.RentIncome += bill.RentAmount
+				report.WaterIncome += bill.WaterAmount
+				report.ElectricIncome += bill.ElectricAmount
+				report.OtherIncome += bill.OtherAmount
+			}
 		}
 	}
 
-	report.TotalFormatted = formatMoney(report.Total)
-	report.RentFormatted = formatMoney(report.RentTotal)
-	report.WaterFormatted = formatMoney(report.WaterTotal)
-	report.ElectricFormatted = formatMoney(report.ElectricTotal)
-	report.OtherFormatted = formatMoney(report.OtherTotal)
+	// 计算押金收入和支出
+	for _, deposit := range deposits {
+		// 押金收入：created_at 在指定月份
+		if isSameMonth(deposit.CreatedAt, year, mon) {
+			report.DepositIncome += deposit.Amount
+		}
+		// 押金支出：refunded_at 在指定月份
+		if deposit.RefundedAt != nil && isSameMonth(*deposit.RefundedAt, year, mon) {
+			report.DepositExpense += deposit.Amount
+		}
+	}
+
+	// 计算总计
+	report.TotalIncome = report.RentIncome + report.WaterIncome + report.ElectricIncome + report.OtherIncome + report.DepositIncome
+	report.TotalExpense = report.RentExpense + report.DepositExpense
+	report.NetIncome = report.TotalIncome - report.TotalExpense
+
+	// 格式化金额
+	report.RentIncomeFormatted = formatMoney(report.RentIncome)
+	report.WaterIncomeFormatted = formatMoney(report.WaterIncome)
+	report.ElectricIncomeFormatted = formatMoney(report.ElectricIncome)
+	report.OtherIncomeFormatted = formatMoney(report.OtherIncome)
 	report.DepositIncomeFormatted = formatMoney(report.DepositIncome)
+	report.RentExpenseFormatted = formatMoney(report.RentExpense)
 	report.DepositExpenseFormatted = formatMoney(report.DepositExpense)
+	report.TotalIncomeFormatted = formatMoney(report.TotalIncome)
+	report.TotalExpenseFormatted = formatMoney(report.TotalExpense)
+	report.NetIncomeFormatted = formatMoney(report.NetIncome)
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(report)

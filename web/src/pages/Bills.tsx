@@ -10,12 +10,12 @@ import OperationLogModal from '../components/OperationLogModal';
 const { Option } = Select;
 
 const typeMap: Record<string, string> = {
-  charge: '收账',
+  rent: '租金',
   checkout: '退租结算',
 };
 
 const typeColorMap: Record<string, string> = {
-  charge: 'success',
+  rent: 'blue',
   checkout: 'warning',
 };
 
@@ -42,6 +42,7 @@ const Bills: React.FC = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [queryForm] = Form.useForm();
+  const [selectedType, setSelectedType] = useState<string>('');
 
   const fetchBills = async (params?: BillQueryParams) => {
     setLoading(true);
@@ -94,8 +95,13 @@ const Bills: React.FC = () => {
 
   const handleCreate = () => {
     setEditingBill(null);
+    setSelectedType('');
     form.resetFields();
     setModalVisible(true);
+  };
+
+  const handleTypeChange = (value: string) => {
+    setSelectedType(value);
   };
 
   const handleEdit = (bill: Bill) => {
@@ -195,34 +201,14 @@ const Bills: React.FC = () => {
       ),
     },
     {
-      title: '总金额',
-      dataIndex: 'amount',
-      key: 'amount',
-      render: formatAmount,
-    },
-    {
-      title: '租金',
+      title: '金额',
       dataIndex: 'rentAmount',
       key: 'rentAmount',
-      render: formatAmount,
-    },
-    {
-      title: '水费',
-      dataIndex: 'waterAmount',
-      key: 'waterAmount',
-      render: formatAmount,
-    },
-    {
-      title: '电费',
-      dataIndex: 'electricAmount',
-      key: 'electricAmount',
-      render: formatAmount,
-    },
-    {
-      title: '其他',
-      dataIndex: 'otherAmount',
-      key: 'otherAmount',
-      render: formatAmount,
+      render: (amount: number, record: Bill) => {
+        const total = (record.rentAmount || 0) + (record.waterAmount || 0) +
+                      (record.electricAmount || 0) + (record.otherAmount || 0);
+        return formatAmount(total);
+      },
     },
     { title: '到账时间', dataIndex: 'paidAt', key: 'paidAt' },
     { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt' },
@@ -299,7 +285,7 @@ const Bills: React.FC = () => {
       <Form form={queryForm} layout="inline" style={{ marginBottom: 16 }}>
         <Form.Item name="type" label="类型">
           <Select placeholder="请选择类型" style={{ width: 120 }}>
-            <Option value="charge">收账</Option>
+            <Option value="rent">租金</Option>
             <Option value="checkout">退租结算</Option>
           </Select>
         </Form.Item>
@@ -372,48 +358,90 @@ const Bills: React.FC = () => {
               </Select>
             </Form.Item>
           )}
-          <Form.Item
-            name="type"
-            label="类型"
-            rules={[{ required: true, message: '请选择类型' }]}
-          >
-            <Select placeholder="请选择类型">
-              <Option value="charge">收账</Option>
-              <Option value="checkout">退租结算</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="amount"
-            label="总金额（分）"
-            rules={[{ required: true, message: '请输入总金额' }]}
-          >
-            <InputNumber style={{ width: '100%' }} placeholder="请输入总金额（分）" />
-          </Form.Item>
-          <Form.Item
-            name="rentAmount"
-            label="租金（分）"
-            rules={[{ required: true, message: '请输入租金' }]}
-          >
-            <InputNumber style={{ width: '100%' }} placeholder="请输入租金（分）" />
-          </Form.Item>
-          <Form.Item
-            name="waterAmount"
-            label="水费（分）"
-          >
-            <InputNumber style={{ width: '100%' }} placeholder="请输入水费（分）" />
-          </Form.Item>
-          <Form.Item
-            name="electricAmount"
-            label="电费（分）"
-          >
-            <InputNumber style={{ width: '100%' }} placeholder="请输入电费（分）" />
-          </Form.Item>
-          <Form.Item
-            name="otherAmount"
-            label="其他金额（分）"
-          >
-            <InputNumber style={{ width: '100%' }} placeholder="请输入其他金额（分）" />
-          </Form.Item>
+          {editingBill ? (
+            <Form.Item
+              name="type"
+              label="类型"
+            >
+              <Select disabled>
+                <Option value="rent">租金</Option>
+                <Option value="checkout">退租结算</Option>
+              </Select>
+            </Form.Item>
+          ) : (
+            <Form.Item
+              name="type"
+              label="类型"
+              rules={[{ required: true, message: '请选择类型' }]}
+              initialValue="rent"
+            >
+              <Select placeholder="请选择类型" onChange={handleTypeChange}>
+                <Option value="rent">租金</Option>
+              </Select>
+            </Form.Item>
+          )}
+
+          {/* 租金账单 - 显示所有金额字段 */}
+          {(!editingBill || editingBill?.type === 'rent') && (
+            <>
+              <Form.Item
+                name="rentAmount"
+                label="租金（分）"
+                rules={[{ required: true, message: '请输入租金' }]}
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="请输入租金（分）" />
+              </Form.Item>
+              <Form.Item
+                name="waterAmount"
+                label="水费（分）"
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="请输入水费（分）" />
+              </Form.Item>
+              <Form.Item
+                name="electricAmount"
+                label="电费（分）"
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="请输入电费（分）" />
+              </Form.Item>
+              <Form.Item
+                name="otherAmount"
+                label="其他金额（分）"
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="请输入其他金额（分）" />
+              </Form.Item>
+            </>
+          )}
+
+          {/* 退租结算账单 - 显示所有金额字段 */}
+          {editingBill?.type === 'checkout' && (
+            <>
+              <Form.Item
+                name="rentAmount"
+                label="租金（分，负数表示退还）"
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="请输入租金（分）" />
+              </Form.Item>
+              <Form.Item
+                name="waterAmount"
+                label="水费（分）"
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="请输入水费（分）" />
+              </Form.Item>
+              <Form.Item
+                name="electricAmount"
+                label="电费（分）"
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="请输入电费（分）" />
+              </Form.Item>
+              <Form.Item
+                name="otherAmount"
+                label="其他金额（分）"
+              >
+                <InputNumber style={{ width: '100%' }} placeholder="请输入其他金额（分）" />
+              </Form.Item>
+            </>
+          )}
+
           <Form.Item
             name="paidAt"
             label="到账时间"

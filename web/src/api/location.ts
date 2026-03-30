@@ -17,13 +17,7 @@ export interface LocationQueryParams {
 
 export const locationApi = {
   list: async (params?: LocationQueryParams) => {
-    const queryParams: any = {};
-    if (params?.shortName) queryParams.short_name = params.shortName;
-    if (params?.detail) queryParams.detail = params.detail;
-    if (params?.offset !== undefined) queryParams.offset = params.offset;
-    if (params?.limit !== undefined) queryParams.limit = params.limit;
-
-    const response = await apiClient.get<LocationsQueryResult>('/locations', { params: queryParams });
+    const response = await apiClient.get<LocationsQueryResult>('/locations', { params });
     return response.data;
   },
 

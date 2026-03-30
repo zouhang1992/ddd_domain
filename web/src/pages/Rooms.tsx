@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Select, message, Popconfirm, Pagination } from 'antd';
+import { Table, Button, Modal, Form, Input, Select, message, Popconfirm, Pagination, Tag } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, HistoryOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { roomApi, type RoomQueryParams, type RoomsQueryResult } from '../api/room';
 import { locationApi } from '../api/location';
@@ -7,6 +7,19 @@ import type { Room, Location } from '../types/api';
 import OperationLogModal from '../components/OperationLogModal';
 
 const { Option } = Select;
+
+// 房间状态映射
+const roomStatusMap: Record<string, { label: string; color: string }> = {
+  available: { label: '可出租', color: 'green' },
+  rented: { label: '已出租', color: 'red' },
+  maintain: { label: '维护中', color: 'orange' },
+};
+
+// 获取状态显示
+const getRoomStatusDisplay = (status: string) => {
+  const config = roomStatusMap[status] || { label: status, color: 'default' };
+  return <Tag color={config.color}>{config.label}</Tag>;
+};
 
 const Rooms: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -132,6 +145,12 @@ const Rooms: React.FC = () => {
       },
     },
     { title: '房间号', dataIndex: 'roomNumber', key: 'roomNumber' },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => getRoomStatusDisplay(status),
+    },
     { title: '标签', dataIndex: 'tags', key: 'tags', render: (tags: string[]) => tags.join(', ') },
     { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt' },
     {

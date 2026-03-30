@@ -24,20 +24,7 @@ export interface BillQueryParams {
 
 export const billApi = {
   list: async (params?: BillQueryParams) => {
-    const queryParams: any = {};
-    if (params?.type) queryParams.type = params.type;
-    if (params?.status) queryParams.status = params.status;
-    if (params?.leaseId) queryParams.lease_id = params.leaseId;
-    if (params?.roomId) queryParams.room_id = params.roomId;
-    if (params?.month) queryParams.month = params.month;
-    if (params?.minAmount !== undefined) queryParams.min_amount = params.minAmount;
-    if (params?.maxAmount !== undefined) queryParams.max_amount = params.maxAmount;
-    if (params?.startDate) queryParams.start_date = params.startDate;
-    if (params?.endDate) queryParams.end_date = params.endDate;
-    if (params?.offset !== undefined) queryParams.offset = params.offset;
-    if (params?.limit !== undefined) queryParams.limit = params.limit;
-
-    const response = await apiClient.get<BillsQueryResult>('/bills', { params: queryParams });
+    const response = await apiClient.get<BillsQueryResult>('/bills', { params });
     return response.data;
   },
 
@@ -57,17 +44,7 @@ export const billApi = {
     paidAt: string | null;
     note: string;
   }) => {
-    const response = await apiClient.post<Bill>('/bills', {
-      lease_id: data.leaseId,
-      type: data.type,
-      amount: data.amount,
-      rent_amount: data.rentAmount,
-      water_amount: data.waterAmount,
-      electric_amount: data.electricAmount,
-      other_amount: data.otherAmount,
-      paid_at: data.paidAt,
-      note: data.note,
-    });
+    const response = await apiClient.post<Bill>('/bills', data);
     return response.data;
   },
 
@@ -80,15 +57,7 @@ export const billApi = {
     paidAt: string | null;
     note: string;
   }) => {
-    const response = await apiClient.put<Bill>(`/bills/${id}`, {
-      amount: data.amount,
-      rent_amount: data.rentAmount,
-      water_amount: data.waterAmount,
-      electric_amount: data.electricAmount,
-      other_amount: data.otherAmount,
-      paid_at: data.paidAt,
-      note: data.note,
-    });
+    const response = await apiClient.put<Bill>(`/bills/${id}`, data);
     return response.data;
   },
 
@@ -110,7 +79,7 @@ export const billApi = {
   },
 
   confirmArrival: async (id: string, paidAt?: string) => {
-    const response = await apiClient.post(`/bills/${id}/confirm-arrival`, paidAt ? { paid_at: paidAt } : {});
+    const response = await apiClient.post(`/bills/${id}/confirm-arrival`, paidAt ? { paidAt } : {});
     return response.data;
   },
 };

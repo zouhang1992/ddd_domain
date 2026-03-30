@@ -11,6 +11,7 @@ import Rooms from './pages/Rooms';
 import Landlords from './pages/Landlords';
 import Leases from './pages/Leases';
 import Bills from './pages/Bills';
+import Deposits from './pages/Deposits';
 import Print from './pages/Print';
 import Income from './pages/Income';
 import OperationLogs from './pages/OperationLogs';
@@ -39,6 +40,7 @@ const App: React.FC = () => {
               <Route path="landlords" element={<Landlords />} />
               <Route path="leases" element={<Leases />} />
               <Route path="bills" element={<Bills />} />
+              <Route path="deposits" element={<Deposits />} />
               <Route path="print" element={<Print />} />
               <Route path="income" element={<Income />} />
               <Route path="operation-logs" element={<OperationLogs />} />

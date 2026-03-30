@@ -16,6 +16,9 @@ type Migration interface {
 var migrations = []Migration{
 	&BaseMigration{},
 	&AddDepositAmountToLeasesMigration{},
+	&AddOperationLogsTableMigration{},
+	&AddStatusAndNoteToRoomsMigration{},
+	&AddDueDateToBillsMigration{},
 }
 
 // AddDepositAmountToLeasesMigration 为 leases 表添加 deposit_amount 字段
@@ -27,10 +30,28 @@ func (m *AddDepositAmountToLeasesMigration) Version() string {
 
 func (m *AddDepositAmountToLeasesMigration) Up(tx *sql.Tx) error {
 	// 检查列是否已存在
-	var colCount int
-	row := tx.QueryRow("PRAGMA table_info(leases) WHERE name = 'deposit_amount'")
-	if err := row.Scan(&colCount, &colCount, &colCount, &colCount, &colCount); err != nil && err != sql.ErrNoRows {
-		// 列不存在，添加它
+	rows, err := tx.Query("PRAGMA table_info(leases)")
+	if err != nil {
+		return fmt.Errorf("failed to check table info: %w", err)
+	}
+	defer rows.Close()
+
+	colExists := false
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notnull, pk int
+		var dflt_value sql.NullString
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt_value, &pk); err != nil {
+			return fmt.Errorf("failed to scan table info: %w", err)
+		}
+		if name == "deposit_amount" {
+			colExists = true
+			break
+		}
+	}
+
+	if !colExists {
 		if _, err := tx.Exec("ALTER TABLE leases ADD COLUMN deposit_amount INTEGER NOT NULL DEFAULT 0"); err != nil {
 			return fmt.Errorf("failed to add deposit_amount column: %w", err)
 		}
@@ -43,6 +64,185 @@ func (m *AddDepositAmountToLeasesMigration) Down(tx *sql.Tx) error {
 	return nil
 }
 
+// AddOperationLogsTableMigration 创建 operation_logs 表
+type AddOperationLogsTableMigration struct{}
+
+func (m *AddOperationLogsTableMigration) Version() string {
+	return "202603292100" // 格式：YYYYMMDDHHMM
+}
+
+func (m *AddOperationLogsTableMigration) Up(tx *sql.Tx) error {
+	// 创建 operation_logs 表
+	if _, err := tx.Exec(`
+	CREATE TABLE IF NOT EXISTS operation_logs (
+		id TEXT PRIMARY KEY,
+		timestamp DATETIME NOT NULL,
+		event_name TEXT NOT NULL,
+		domain_type TEXT NOT NULL,
+		aggregate_id TEXT NOT NULL,
+		operator_id TEXT,
+		action TEXT,
+		details TEXT,
+		metadata TEXT,
+		created_at DATETIME NOT NULL
+	)
+	`); err != nil {
+		return fmt.Errorf("failed to create operation_logs table: %w", err)
+	}
+
+	// 创建索引
+	if _, err := tx.Exec(`CREATE INDEX IF NOT EXISTS idx_operation_logs_timestamp ON operation_logs(timestamp)`); err != nil {
+		return fmt.Errorf("failed to create idx_operation_logs_timestamp index: %w", err)
+	}
+
+	if _, err := tx.Exec(`CREATE INDEX IF NOT EXISTS idx_operation_logs_event_name ON operation_logs(event_name)`); err != nil {
+		return fmt.Errorf("failed to create idx_operation_logs_event_name index: %w", err)
+	}
+
+	if _, err := tx.Exec(`CREATE INDEX IF NOT EXISTS idx_operation_logs_domain_type ON operation_logs(domain_type)`); err != nil {
+		return fmt.Errorf("failed to create idx_operation_logs_domain_type index: %w", err)
+	}
+
+	if _, err := tx.Exec(`CREATE INDEX IF NOT EXISTS idx_operation_logs_aggregate_id ON operation_logs(aggregate_id)`); err != nil {
+		return fmt.Errorf("failed to create idx_operation_logs_aggregate_id index: %w", err)
+	}
+
+	if _, err := tx.Exec(`CREATE INDEX IF NOT EXISTS idx_operation_logs_operator_id ON operation_logs(operator_id)`); err != nil {
+		return fmt.Errorf("failed to create idx_operation_logs_operator_id index: %w", err)
+	}
+
+	if _, err := tx.Exec(`CREATE INDEX IF NOT EXISTS idx_operation_logs_created_at ON operation_logs(created_at)`); err != nil {
+		return fmt.Errorf("failed to create idx_operation_logs_created_at index: %w", err)
+	}
+
+	return nil
+}
+
+func (m *AddOperationLogsTableMigration) Down(tx *sql.Tx) error {
+	// 删除索引
+	if _, err := tx.Exec("DROP INDEX IF EXISTS idx_operation_logs_timestamp"); err != nil {
+		return err
+	}
+	if _, err := tx.Exec("DROP INDEX IF EXISTS idx_operation_logs_event_name"); err != nil {
+		return err
+	}
+	if _, err := tx.Exec("DROP INDEX IF EXISTS idx_operation_logs_domain_type"); err != nil {
+		return err
+	}
+	if _, err := tx.Exec("DROP INDEX IF EXISTS idx_operation_logs_aggregate_id"); err != nil {
+		return err
+	}
+	if _, err := tx.Exec("DROP INDEX IF EXISTS idx_operation_logs_operator_id"); err != nil {
+		return err
+	}
+	if _, err := tx.Exec("DROP INDEX IF EXISTS idx_operation_logs_created_at"); err != nil {
+		return err
+	}
+
+	// 删除表
+	if _, err := tx.Exec("DROP TABLE IF EXISTS operation_logs"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AddStatusAndNoteToRoomsMigration 为 rooms 表添加 status 和 note 字段
+type AddStatusAndNoteToRoomsMigration struct{}
+
+func (m *AddStatusAndNoteToRoomsMigration) Version() string {
+	return "202603292200" // 格式：YYYYMMDDHHMM
+}
+
+func (m *AddStatusAndNoteToRoomsMigration) Up(tx *sql.Tx) error {
+	// 检查列是否已存在
+	rows, err := tx.Query("PRAGMA table_info(rooms)")
+	if err != nil {
+		return fmt.Errorf("failed to check table info: %w", err)
+	}
+	defer rows.Close()
+
+	statusExists := false
+	noteExists := false
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notnull, pk int
+		var dflt_value sql.NullString
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt_value, &pk); err != nil {
+			return fmt.Errorf("failed to scan table info: %w", err)
+		}
+		if name == "status" {
+			statusExists = true
+		}
+		if name == "note" {
+			noteExists = true
+		}
+	}
+
+	if !statusExists {
+		if _, err := tx.Exec("ALTER TABLE rooms ADD COLUMN status TEXT NOT NULL DEFAULT 'available'"); err != nil {
+			return fmt.Errorf("failed to add status column: %w", err)
+		}
+	}
+
+	if !noteExists {
+		if _, err := tx.Exec("ALTER TABLE rooms ADD COLUMN note TEXT"); err != nil {
+			return fmt.Errorf("failed to add note column: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (m *AddStatusAndNoteToRoomsMigration) Down(tx *sql.Tx) error {
+	// SQLite 不支持直接删除列，我们不处理回滚
+	return nil
+}
+
+// AddDueDateToBillsMigration 为 bills 表添加 due_date 字段
+type AddDueDateToBillsMigration struct{}
+
+func (m *AddDueDateToBillsMigration) Version() string {
+	return "202603292300" // 格式：YYYYMMDDHHMM
+}
+
+func (m *AddDueDateToBillsMigration) Up(tx *sql.Tx) error {
+	// 检查 due_date 列是否已存在
+	rows, err := tx.Query("PRAGMA table_info(bills)")
+	if err != nil {
+		return fmt.Errorf("failed to check table info: %w", err)
+	}
+	defer rows.Close()
+
+	dueDateExists := false
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notnull, pk int
+		var dflt_value sql.NullString
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt_value, &pk); err != nil {
+			return fmt.Errorf("failed to scan table info: %w", err)
+		}
+		if name == "due_date" {
+			dueDateExists = true
+			break
+		}
+	}
+
+	if !dueDateExists {
+		if _, err := tx.Exec("ALTER TABLE bills ADD COLUMN due_date DATETIME"); err != nil {
+			return fmt.Errorf("failed to add due_date column: %w", err)
+		}
+	}
+	return nil
+}
+
+func (m *AddDueDateToBillsMigration) Down(tx *sql.Tx) error {
+	// SQLite 不支持直接删除列，我们不处理回滚
+	return nil
+}
+
 // BaseMigration 基础数据模型迁移（创建所有表）
 type BaseMigration struct{}
 
@@ -51,6 +251,22 @@ func (m *BaseMigration) Version() string {
 }
 
 func (m *BaseMigration) Up(tx *sql.Tx) error {
+	// 创建 sagas 表
+	if _, err := tx.Exec(`
+	CREATE TABLE IF NOT EXISTS sagas (
+		id TEXT PRIMARY KEY,
+		name TEXT NOT NULL,
+		state TEXT NOT NULL,
+		current_step INTEGER NOT NULL DEFAULT 0,
+		error TEXT,
+		data BLOB,
+		created_at DATETIME NOT NULL,
+		updated_at DATETIME NOT NULL
+	)
+	`); err != nil {
+		return fmt.Errorf("failed to create sagas table: %w", err)
+	}
+
 	// 创建 locations 表
 	if _, err := tx.Exec(`
 	CREATE TABLE IF NOT EXISTS locations (
@@ -64,13 +280,15 @@ func (m *BaseMigration) Up(tx *sql.Tx) error {
 		return fmt.Errorf("failed to create locations table: %w", err)
 	}
 
-	// 创建 rooms 表
+	// 创建 rooms 表 (with status and note from beginning)
 	if _, err := tx.Exec(`
 	CREATE TABLE IF NOT EXISTS rooms (
 		id TEXT PRIMARY KEY,
 		location_id TEXT NOT NULL,
 		room_number TEXT NOT NULL,
+		status TEXT NOT NULL DEFAULT 'available',
 		tags TEXT,
+		note TEXT,
 		created_at DATETIME NOT NULL,
 		updated_at DATETIME NOT NULL,
 		FOREIGN KEY (location_id) REFERENCES locations(id),
@@ -118,7 +336,7 @@ func (m *BaseMigration) Up(tx *sql.Tx) error {
 		return fmt.Errorf("failed to create leases table: %w", err)
 	}
 
-	// 创建 bills 表
+	// 创建 bills 表 (with due_date from beginning)
 	if _, err := tx.Exec(`
 	CREATE TABLE IF NOT EXISTS bills (
 		id TEXT PRIMARY KEY,
@@ -130,6 +348,7 @@ func (m *BaseMigration) Up(tx *sql.Tx) error {
 		water_amount INTEGER NOT NULL DEFAULT 0,
 		electric_amount INTEGER NOT NULL DEFAULT 0,
 		other_amount INTEGER NOT NULL DEFAULT 0,
+		due_date DATETIME,
 		paid_at DATETIME,
 		note TEXT,
 		created_at DATETIME NOT NULL,

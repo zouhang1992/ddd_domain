@@ -2,24 +2,26 @@ package print
 
 import (
 	"fmt"
-	"github.com/google/uuid"
+
 	"github.com/zouhang1992/ddd_domain/internal/application/common"
 	billrepo "github.com/zouhang1992/ddd_domain/internal/domain/bill/repository"
 	leaserepo "github.com/zouhang1992/ddd_domain/internal/domain/lease/repository"
+	printservice "github.com/zouhang1992/ddd_domain/internal/domain/print/service"
 	domerrors "github.com/zouhang1992/ddd_domain/internal/domain/common/errors"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/event"
 )
 
 // CommandHandler 打印命令处理器
 type CommandHandler struct {
-	billRepo  billrepo.BillRepository
-	leaseRepo leaserepo.LeaseRepository
-	eventBus  *event.Bus
+	billRepo     billrepo.BillRepository
+	leaseRepo    leaserepo.LeaseRepository
+	eventBus     *event.Bus
+	printService *printservice.PrintService
 }
 
 // NewCommandHandler 创建打印命令处理器
-func NewCommandHandler(billRepo billrepo.BillRepository, leaseRepo leaserepo.LeaseRepository, eventBus *event.Bus) *CommandHandler {
-	return &CommandHandler{billRepo: billRepo, leaseRepo: leaseRepo, eventBus: eventBus}
+func NewCommandHandler(billRepo billrepo.BillRepository, leaseRepo leaserepo.LeaseRepository, eventBus *event.Bus, printService *printservice.PrintService) *CommandHandler {
+	return &CommandHandler{billRepo: billRepo, leaseRepo: leaseRepo, eventBus: eventBus, printService: printService}
 }
 
 // HandlePrintBill 处理打印账单命令
@@ -33,24 +35,7 @@ func (h *CommandHandler) HandlePrintBill(cmd common.Command) (any, error) {
 		return nil, err
 	}
 
-	bill, err := h.billRepo.FindByID(printCmd.BillID)
-	if err != nil {
-		return nil, err
-	}
-	if bill == nil {
-		return nil, domerrors.ErrNotFound
-	}
-
-	lease, err := h.leaseRepo.FindByID(bill.LeaseID)
-	if err != nil {
-		return nil, err
-	}
-	if lease == nil {
-		return nil, domerrors.ErrNotFound
-	}
-
-	jobID := uuid.NewString()
-	return jobID, nil
+	return h.printService.CreateBillPrintJob(printCmd.BillID)
 }
 
 // HandlePrintLease 处理打印租约命令
@@ -64,16 +49,7 @@ func (h *CommandHandler) HandlePrintLease(cmd common.Command) (any, error) {
 		return nil, err
 	}
 
-	lease, err := h.leaseRepo.FindByID(printCmd.LeaseID)
-	if err != nil {
-		return nil, err
-	}
-	if lease == nil {
-		return nil, domerrors.ErrNotFound
-	}
-
-	jobID := uuid.NewString()
-	return jobID, nil
+	return h.printService.CreateLeasePrintJob(printCmd.LeaseID)
 }
 
 // HandlePrintInvoice 处理打印发票命令
@@ -87,35 +63,19 @@ func (h *CommandHandler) HandlePrintInvoice(cmd common.Command) (any, error) {
 		return nil, err
 	}
 
-	bill, err := h.billRepo.FindByID(printCmd.BillID)
-	if err != nil {
-		return nil, err
-	}
-	if bill == nil {
-		return nil, domerrors.ErrNotFound
-	}
-
-	lease, err := h.leaseRepo.FindByID(bill.LeaseID)
-	if err != nil {
-		return nil, err
-	}
-	if lease == nil {
-		return nil, domerrors.ErrNotFound
-	}
-
-	jobID := uuid.NewString()
-	return jobID, nil
+	return h.printService.CreateInvoicePrintJob(printCmd.BillID)
 }
 
 // QueryHandler 打印查询处理器
 type QueryHandler struct {
-	billRepo  billrepo.BillRepository
-	leaseRepo leaserepo.LeaseRepository
+	billRepo     billrepo.BillRepository
+	leaseRepo    leaserepo.LeaseRepository
+	printService *printservice.PrintService
 }
 
 // NewQueryHandler 创建打印查询处理器
-func NewQueryHandler(billRepo billrepo.BillRepository, leaseRepo leaserepo.LeaseRepository) *QueryHandler {
-	return &QueryHandler{billRepo: billRepo, leaseRepo: leaseRepo}
+func NewQueryHandler(billRepo billrepo.BillRepository, leaseRepo leaserepo.LeaseRepository, printService *printservice.PrintService) *QueryHandler {
+	return &QueryHandler{billRepo: billRepo, leaseRepo: leaseRepo, printService: printService}
 }
 
 // HandleGetPrintJob 处理获取打印作业查询
@@ -156,13 +116,5 @@ func (h *QueryHandler) HandleGetPrintContent(q common.Query) (any, error) {
 		return nil, fmt.Errorf("lease not found")
 	}
 
-	content := []byte(fmt.Sprintf(`
-{\rtf1\ansi\deff0{\fonttbl{\f0 Arial;}}
-\pard\fs24\b 收据\b0\par
-\pard\fs16 账单编号: %s\par
-\pard\fs16 租约编号: %s\par
-\pard\fs16 租客: %s\par
-\pard\fs16 金额: %d 元\par
-}`, bill.ID(), lease.ID(), lease.TenantName, bill.Amount))
-	return content, nil
+	return h.printService.GenerateInvoiceContent(bill, lease), nil
 }

@@ -11,7 +11,7 @@ import (
 type DepositStatus string
 
 const (
-	DepositStatusPaid      DepositStatus = "paid"
+	DepositStatusPaid      DepositStatus = "collected"
 	DepositStatusReturning DepositStatus = "returning"
 	DepositStatusReturned  DepositStatus = "returned"
 )
@@ -19,13 +19,14 @@ const (
 // Deposit 押金领域模型（聚合根）
 type Deposit struct {
 	model.BaseAggregateRoot
-	LeaseID    string
-	Amount     int64
-	Status     DepositStatus
-	ReturnedAt *time.Time
-	Note       string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	LeaseID    string        `json:"lease_id"`
+	Amount     int64         `json:"amount"`
+	Status     DepositStatus `json:"status"`
+	RefundedAt *time.Time    `json:"refunded_at"`
+	DeductedAt *time.Time    `json:"deducted_at"`
+	Note       string        `json:"note"`
+	CreatedAt  time.Time     `json:"created_at"`
+	UpdatedAt  time.Time     `json:"updated_at"`
 }
 
 // 押金事件（本地定义，避免导入循环）
@@ -40,6 +41,10 @@ type depositReturning struct {
 }
 
 type depositReturned struct {
+	events.BaseEvent
+}
+
+type depositDeleted struct {
 	events.BaseEvent
 }
 
@@ -80,11 +85,16 @@ func (d *Deposit) MarkReturning() {
 func (d *Deposit) MarkReturned() {
 	now := time.Now()
 	d.Status = DepositStatusReturned
-	d.ReturnedAt = &now
+	d.RefundedAt = &now
 	d.UpdatedAt = now
 	// 创建并记录事件
 	evt := depositReturned{
 		BaseEvent: events.NewBaseEvent("deposit.returned", d.ID(), d.Version()),
 	}
 	d.RecordEvent(evt)
+}
+
+// Equals 比较押金是否相等
+func (d *Deposit) Equals(other *Deposit) bool {
+	return d.ID() == other.ID()
 }

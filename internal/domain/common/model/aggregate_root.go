@@ -14,36 +14,36 @@ type AggregateRoot interface {
 
 // BaseAggregateRoot 基础聚合根实现
 type BaseAggregateRoot struct {
-	id      string
-	version int
-	events  []events.DomainEvent
+	IDField      string               `json:"id"`
+	VersionField int                  `json:"-"`
+	EventsField  []events.DomainEvent `json:"-"`
 }
 
 func NewBaseAggregateRoot(id string) BaseAggregateRoot {
 	return BaseAggregateRoot{
-		id:      id,
-		version: 0,
-		events:  []events.DomainEvent{},
+		IDField:      id,
+		VersionField: 0,
+		EventsField:  []events.DomainEvent{},
 	}
 }
 
 func (a *BaseAggregateRoot) ID() string {
-	return a.id
+	return a.IDField
 }
 
 func (a *BaseAggregateRoot) Version() int {
-	return a.version
+	return a.VersionField
 }
 
 func (a *BaseAggregateRoot) Events() []events.DomainEvent {
-	return a.events
+	return a.EventsField
 }
 
 func (a *BaseAggregateRoot) ClearEvents() {
-	a.events = []events.DomainEvent{}
+	a.EventsField = []events.DomainEvent{}
 }
 
 func (a *BaseAggregateRoot) RecordEvent(evt events.DomainEvent) {
-	a.version++
-	a.events = append(a.events, evt)
+	a.VersionField++
+	a.EventsField = append(a.EventsField, evt)
 }

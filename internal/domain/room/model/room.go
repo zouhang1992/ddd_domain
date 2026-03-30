@@ -19,13 +19,13 @@ const (
 // Room 房间领域模型（聚合根）
 type Room struct {
 	model.BaseAggregateRoot
-	LocationID string
-	RoomNumber string
-	Status     RoomStatus
-	Tags       []string
-	Note       string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	LocationID string     `json:"location_id"`
+	RoomNumber string     `json:"room_number"`
+	Status     RoomStatus `json:"status"`
+	Tags       []string   `json:"tags"`
+	Note       string     `json:"note"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
 }
 
 // 房间事件（本地定义，避免导入循环）
@@ -48,6 +48,10 @@ type roomRented struct {
 }
 
 type roomAvailable struct {
+	events.BaseEvent
+}
+
+type roomDeleted struct {
 	events.BaseEvent
 }
 
@@ -112,4 +116,9 @@ func (r *Room) MarkAvailable() {
 		BaseEvent: events.NewBaseEvent("room.available", r.ID(), r.Version()),
 	}
 	r.RecordEvent(evt)
+}
+
+// Equals 比较房间是否相等
+func (r *Room) Equals(other *Room) bool {
+	return r.ID() == other.ID()
 }
