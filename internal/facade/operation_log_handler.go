@@ -110,13 +110,27 @@ func (h *OperationLogHandler) ListOperationLogs(w http.ResponseWriter, r *http.R
 	var total int
 	var err error
 
-	// 检查查询参数
+	// 检查查询参数（同时支持驼峰和下划线命名）
 	domainType := query.Get("domain_type")
+	if domainType == "" {
+		domainType = query.Get("domainType")
+	}
 	aggregateID := query.Get("aggregate_id")
+	if aggregateID == "" {
+		aggregateID = query.Get("aggregateId")
+	}
 	startTimeStr := query.Get("start_time")
+	if startTimeStr == "" {
+		startTimeStr = query.Get("startTime")
+	}
 	endTimeStr := query.Get("end_time")
+	if endTimeStr == "" {
+		endTimeStr = query.Get("endTime")
+	}
 
 	switch {
+	case domainType != "" && aggregateID != "":
+		logs, total, err = h.repo.FindByDomainTypeAndAggregateID(domainType, aggregateID, offset, limit)
 	case domainType != "":
 		logs, total, err = h.repo.FindByDomainType(domainType, offset, limit)
 	case aggregateID != "":

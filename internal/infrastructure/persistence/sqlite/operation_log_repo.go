@@ -154,6 +154,45 @@ func (r *OperationLogRepository) FindByDomainType(domainType string, offset, lim
 	return logs, total, nil
 }
 
+// FindByDomainTypeAndAggregateID 根据领域类型和聚合ID分页查找操作日志
+func (r *OperationLogRepository) FindByDomainTypeAndAggregateID(domainType, aggregateID string, offset, limit int) ([]*operationlogmodel.OperationLog, int, error) {
+	// 获取总数
+	var total int
+	row := r.conn.DB().QueryRow(`SELECT COUNT(*) FROM operation_logs WHERE domain_type = ? AND aggregate_id = ?`, domainType, aggregateID)
+	if err := row.Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// 分页查询
+	rows, err := r.conn.DB().Query(`
+		SELECT id, timestamp, event_name, domain_type, aggregate_id,
+			operator_id, action, details, metadata, created_at
+		FROM operation_logs WHERE domain_type = ? AND aggregate_id = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?
+		`, domainType, aggregateID, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var logs []*operationlogmodel.OperationLog
+	for rows.Next() {
+		var temp tempOperationLog
+		err := rows.Scan(
+			&temp.ID, &temp.Timestamp, &temp.EventName, &temp.DomainType, &temp.AggregateID,
+			&temp.OperatorID, &temp.Action, &temp.Details, &temp.Metadata, &temp.CreatedAt)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		log, err := tempToModel(&temp)
+		if err != nil {
+			return nil, 0, err
+		}
+		logs = append(logs, log)
+	}
+	return logs, total, nil
+}
+
 // FindByTimeRange 根据时间范围分页查找操作日志
 func (r *OperationLogRepository) FindByTimeRange(start, end time.Time, offset, limit int) ([]*operationlogmodel.OperationLog, int, error) {
 	// 获取总数

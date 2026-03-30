@@ -12,5 +12,6 @@ type OperationLogRepository interface {
 	FindByID(id string) (*model.OperationLog, error)
 	FindByAggregateID(aggregateID string) ([]*model.OperationLog, error)
 	FindByDomainType(domainType string, offset, limit int) ([]*model.OperationLog, int, error)
+	FindByDomainTypeAndAggregateID(domainType, aggregateID string, offset, limit int) ([]*model.OperationLog, int, error)
 	FindByTimeRange(start, end time.Time, offset, limit int) ([]*model.OperationLog, int, error)
 }
