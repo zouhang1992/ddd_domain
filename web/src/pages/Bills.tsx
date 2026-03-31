@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Table, Button, Modal, Form, Input, message, Popconfirm, Select, DatePicker, InputNumber, Tag, Pagination } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, PrinterOutlined, HistoryOutlined, SearchOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
-import type { Bill, Lease } from '../types/api';
-import { billApi, type BillQueryParams, type BillsQueryResult } from '../api/bill';
+import type { Bill, Lease, Room, Location, Landlord } from '../types/api';
+import { billApi, type BillsQueryResult } from '../api/bill';
 import { leaseApi } from '../api/lease';
+import { roomApi } from '../api/room';
+import { locationApi } from '../api/location';
+import { landlordApi } from '../api/landlord';
 import dayjs from 'dayjs';
 import OperationLogModal from '../components/OperationLogModal';
 
@@ -30,8 +33,12 @@ const statusColorMap: Record<string, string> = {
 };
 
 const Bills: React.FC = () => {
-  const [bills, setBills] = useState<Bill[]>([]);
+  const [allBills, setAllBills] = useState<Bill[]>([]);
+  const [displayBills, setDisplayBills] = useState<Bill[]>([]);
   const [leases, setLeases] = useState<Lease[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [landlords, setLandlords] = useState<Landlord[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -44,20 +51,18 @@ const Bills: React.FC = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [queryForm] = Form.useForm();
-  const [selectedType, setSelectedType] = useState<string>('');
+  const [queryLocationId, setQueryLocationId] = useState<string>();
+  const [queryRoomId, setQueryRoomId] = useState<string>();
+  const [queryType, setQueryType] = useState<string>();
+  const [queryStatus, setQueryStatus] = useState<string>();
 
-  const fetchBills = async (params?: BillQueryParams) => {
+  const fetchBills = async () => {
     setLoading(true);
     try {
-      const queryParams = {
-        ...params,
-        offset: (page - 1) * pageSize,
-        limit: pageSize,
-      };
-      const data: BillsQueryResult = await billApi.list(queryParams);
-      setBills(data.items);
+      const data: BillsQueryResult = await billApi.list({ limit: 1000 });
+      setAllBills(data.items || []);
       setTotal(data.total);
-    } catch (error) {
+    } catch {
       message.error('获取账单列表失败');
     } finally {
       setLoading(false);
@@ -66,28 +71,104 @@ const Bills: React.FC = () => {
 
   const fetchLeases = async () => {
     try {
-      const data = await leaseApi.list();
+      const data = await leaseApi.list({ limit: 1000 });
       setLeases(data.items || []);
-    } catch (error) {
+    } catch {
       message.error('获取租约列表失败');
+    }
+  };
+
+  const fetchRooms = async () => {
+    try {
+      const data = await roomApi.list();
+      setRooms(data.items || []);
+    } catch {
+      message.error('获取房间列表失败');
+    }
+  };
+
+  const fetchLocations = async () => {
+    try {
+      const data = await locationApi.list();
+      setLocations(data.items || []);
+    } catch {
+      message.error('获取位置列表失败');
+    }
+  };
+
+  const fetchLandlords = async () => {
+    try {
+      const data = await landlordApi.list();
+      setLandlords(data.items || []);
+    } catch {
+      message.error('获取房东列表失败');
     }
   };
 
   useEffect(() => {
     fetchBills();
     fetchLeases();
-  }, [page, pageSize]);
+    fetchRooms();
+    fetchLocations();
+    fetchLandlords();
+  }, []);
+
+  // 筛选用于查询的房间
+  const queryRooms = useMemo(() => {
+    if (queryLocationId) {
+      return rooms.filter(room => room.locationId === queryLocationId);
+    }
+    return rooms;
+  }, [rooms, queryLocationId]);
+
+  // 应用筛选和分页
+  useEffect(() => {
+    let filtered = [...allBills];
+
+    // 位置筛选 - 通过房间关联
+    if (queryLocationId) {
+      const roomIds = rooms.filter(r => r.locationId === queryLocationId).map(r => r.id);
+      const leaseIds = leases.filter(l => roomIds.includes(l.roomId)).map(l => l.id);
+      filtered = filtered.filter(b => leaseIds.includes(b.leaseId));
+    }
+
+    // 房间筛选 - 通过租约关联
+    if (queryRoomId) {
+      const leaseIds = leases.filter(l => l.roomId === queryRoomId).map(l => l.id);
+      filtered = filtered.filter(b => leaseIds.includes(b.leaseId));
+    }
+
+    // 类型筛选
+    if (queryType) {
+      filtered = filtered.filter(b => b.type === queryType);
+    }
+
+    // 状态筛选
+    if (queryStatus) {
+      filtered = filtered.filter(b => b.status === queryStatus);
+    }
+
+    // 分页
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    setDisplayBills(filtered.slice(start, end));
+    setTotal(filtered.length);
+  }, [allBills, leases, rooms, page, pageSize, queryLocationId, queryRoomId, queryType, queryStatus]);
 
   const handleQuery = async () => {
     const values = await queryForm.validateFields();
+    setQueryType(values.type);
+    setQueryStatus(values.status);
     setPage(1);
-    fetchBills(values);
   };
 
   const handleReset = () => {
     queryForm.resetFields();
+    setQueryLocationId(undefined);
+    setQueryRoomId(undefined);
+    setQueryType(undefined);
+    setQueryStatus(undefined);
     setPage(1);
-    fetchBills();
   };
 
   const handlePageChange = (pageNum: number, pageSizeNum: number) => {
@@ -97,13 +178,8 @@ const Bills: React.FC = () => {
 
   const handleCreate = () => {
     setEditingBill(null);
-    setSelectedType('');
     form.resetFields();
     setModalVisible(true);
-  };
-
-  const handleTypeChange = (value: string) => {
-    setSelectedType(value);
   };
 
   const handleEdit = (bill: Bill) => {
@@ -111,6 +187,9 @@ const Bills: React.FC = () => {
     form.setFieldsValue({
       ...bill,
       paidAt: bill.paidAt ? dayjs(bill.paidAt) : null,
+      billStart: bill.billStart ? dayjs(bill.billStart) : null,
+      billEnd: bill.billEnd ? dayjs(bill.billEnd) : null,
+      dueDate: bill.dueDate ? dayjs(bill.dueDate) : null,
       refundDepositAmount: bill.refundDepositAmount || 0,
     });
     setModalVisible(true);
@@ -120,7 +199,7 @@ const Bills: React.FC = () => {
     try {
       await billApi.printReceipt(bill.id);
       message.success('打印成功');
-    } catch (error) {
+    } catch {
       message.error('打印失败');
     }
   };
@@ -130,7 +209,7 @@ const Bills: React.FC = () => {
       await billApi.confirmArrival(bill.id);
       message.success('到账确认成功');
       fetchBills();
-    } catch (error) {
+    } catch {
       message.error('到账确认失败');
     }
   };
@@ -140,7 +219,7 @@ const Bills: React.FC = () => {
       await billApi.delete(id);
       message.success('删除成功');
       fetchBills();
-    } catch (error) {
+    } catch {
       message.error('删除失败');
     }
   };
@@ -160,6 +239,9 @@ const Bills: React.FC = () => {
       const values = await form.validateFields();
       const formattedValues = {
         ...values,
+        billStart: values.billStart ? values.billStart.format('YYYY-MM-DD') : '',
+        billEnd: values.billEnd ? values.billEnd.format('YYYY-MM-DD') : '',
+        dueDate: values.dueDate ? values.dueDate.format('YYYY-MM-DD') : '',
         paidAt: values.paidAt ? values.paidAt.format('YYYY-MM-DD') : null,
       };
       if (editingBill) {
@@ -171,7 +253,7 @@ const Bills: React.FC = () => {
       }
       setModalVisible(false);
       fetchBills();
-    } catch (error) {
+    } catch {
       message.error('操作失败');
     }
   };
@@ -181,12 +263,86 @@ const Bills: React.FC = () => {
   };
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
     {
-      title: '租约',
-      dataIndex: 'leaseId',
-      key: 'leaseId',
-      render: (leaseId: string) => leases.find(l => l.id === leaseId)?.id || leaseId,
+      title: '位置',
+      key: 'location',
+      render: (_: any, record: Bill) => {
+        const lease = leases.find(l => l.id === record.leaseId);
+        if (!lease) return '-';
+        const room = rooms.find(r => r.id === lease.roomId);
+        const location = room ? locations.find(l => l.id === room.locationId) : null;
+        return location?.shortName || '-';
+      },
+    },
+    {
+      title: '房间',
+      key: 'room',
+      render: (_: any, record: Bill) => {
+        const lease = leases.find(l => l.id === record.leaseId);
+        if (!lease) return '-';
+        const room = rooms.find(r => r.id === lease.roomId);
+        if (!room) return lease.roomId;
+        const location = locations.find(l => l.id === room.locationId);
+        return (
+          <span>
+            <Tag color="blue" style={{ marginRight: 8 }}>
+              {location?.shortName || '未知位置'}
+            </Tag>
+            {room.roomNumber}
+          </span>
+        );
+      },
+    },
+    {
+      title: '地址',
+      key: 'address',
+      render: (_: any, record: Bill) => {
+        const lease = leases.find(l => l.id === record.leaseId);
+        if (!lease) return '-';
+        const room = rooms.find(r => r.id === lease.roomId);
+        if (!room) return '-';
+        const location = locations.find(l => l.id === room.locationId);
+        return location?.detail || location?.shortName || '-';
+      },
+    },
+    {
+      title: '房东',
+      key: 'landlord',
+      render: (_: any, record: Bill) => {
+        const lease = leases.find(l => l.id === record.leaseId);
+        if (!lease) return '-';
+        return landlords.find(l => l.id === lease.landlordId)?.name || lease.landlordId;
+      },
+    },
+    {
+      title: '租期',
+      key: 'leasePeriod',
+      width: 180,
+      render: (_: any, record: Bill) => {
+        const lease = leases.find(l => l.id === record.leaseId);
+        if (!lease) return '-';
+        return `${lease.startDate} ~ ${lease.endDate}`;
+      },
+    },
+    {
+      title: '计费周期',
+      key: 'billPeriod',
+      width: 180,
+      render: (_: any, record: Bill) => {
+        if (record.billStart && record.billEnd) {
+          return `${record.billStart} ~ ${record.billEnd}`;
+        }
+        return '-';
+      },
+    },
+    {
+      title: '租户',
+      key: 'tenant',
+      width: 100,
+      render: (_: any, record: Bill) => {
+        const lease = leases.find(l => l.id === record.leaseId);
+        return lease?.tenantName || '-';
+      },
     },
     {
       title: '类型',
@@ -214,7 +370,6 @@ const Bills: React.FC = () => {
       width: 350,
       render: (_: any, record: Bill) => {
         if (record.type === 'checkout') {
-          // 退租结算账单 - 显示明细（所有项目都显示，即使是0）
           const refundRent = Math.abs(record.rentAmount || 0);
           const refundDeposit = record.refundDepositAmount || 0;
           const water = record.waterAmount || 0;
@@ -234,13 +389,11 @@ const Bills: React.FC = () => {
             </div>
           );
         }
-        // 租金账单 - 也显示详细明细
         const rent = record.rentAmount || 0;
         const water = record.waterAmount || 0;
         const electric = record.electricAmount || 0;
         const other = record.otherAmount || 0;
 
-        // 检查是否有明细金额
         const hasDetails = rent > 0 || water > 0 || electric > 0 || other > 0;
 
         if (hasDetails) {
@@ -256,7 +409,6 @@ const Bills: React.FC = () => {
             </div>
           );
         }
-        // 没有明细的普通账单，只显示总金额
         return formatAmount(record.amount);
       },
     },
@@ -341,24 +493,63 @@ const Bills: React.FC = () => {
 
       {/* 查询表单 */}
       <Form form={queryForm} layout="inline" style={{ marginBottom: 16 }}>
-        <Form.Item name="type" label="类型">
-          <Select placeholder="请选择类型" style={{ width: 120 }}>
+        <Form.Item label="位置">
+          <Select
+            placeholder="请选择位置"
+            style={{ width: 150 }}
+            allowClear
+            value={queryLocationId}
+            onChange={(value) => { setQueryLocationId(value); setQueryRoomId(undefined); setPage(1); }}
+          >
+            {locations.map(location => (
+              <Option key={location.id} value={location.id}>
+                {location.shortName}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+        <Form.Item label="房间">
+          <Select
+            placeholder="请选择房间"
+            style={{ width: 150 }}
+            allowClear
+            value={queryRoomId}
+            onChange={(value) => { setQueryRoomId(value); setPage(1); }}
+          >
+            {queryRooms.map(room => {
+              const location = locations.find(l => l.id === room.locationId);
+              return (
+                <Option key={room.id} value={room.id}>
+                  [{location?.shortName || '未知位置'}] {room.roomNumber}
+                </Option>
+              );
+            })}
+          </Select>
+        </Form.Item>
+        <Form.Item label="类型">
+          <Select
+            placeholder="请选择类型"
+            style={{ width: 120 }}
+            allowClear
+            value={queryType}
+            onChange={(value) => { setQueryType(value); setPage(1); }}
+          >
             <Option value="rent">租金</Option>
+            <Option value="charge">收账</Option>
             <Option value="checkout">退租结算</Option>
           </Select>
         </Form.Item>
-        <Form.Item name="status" label="状态">
-          <Select placeholder="请选择状态" style={{ width: 120 }}>
+        <Form.Item label="状态">
+          <Select
+            placeholder="请选择状态"
+            style={{ width: 120 }}
+            allowClear
+            value={queryStatus}
+            onChange={(value) => { setQueryStatus(value); setPage(1); }}
+          >
             <Option value="pending">待到账</Option>
             <Option value="paid">已到账</Option>
           </Select>
-        </Form.Item>
-        <Form.Item name="month" label="月份">
-          <DatePicker
-            picker="month"
-            placeholder="请选择月份"
-            style={{ width: 150 }}
-          />
         </Form.Item>
         <Form.Item>
           <Button type="primary" icon={<SearchOutlined />} onClick={handleQuery} loading={loading}>
@@ -374,11 +565,11 @@ const Bills: React.FC = () => {
 
       <Table
         columns={columns}
-        dataSource={bills}
+        dataSource={displayBills}
         rowKey="id"
         loading={loading}
         pagination={false}
-        scroll={{ x: 1800 }}
+        scroll={{ x: 2800 }}
       />
 
       <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
@@ -401,20 +592,83 @@ const Bills: React.FC = () => {
         width={700}
       >
         <Form form={form} layout="vertical">
-          {!editingBill && (
-            <Form.Item
-              name="leaseId"
-              label="租约"
-              rules={[{ required: true, message: '请选择租约' }]}
-            >
-              <Select placeholder="请选择租约">
-                {leases.map(lease => (
-                  <Option key={lease.id} value={lease.id}>
-                    {lease.id}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
+          {!editingBill ? (
+            <>
+              <Form.Item
+                name="leaseId"
+                label="租约"
+                rules={[{ required: true, message: '请选择租约' }]}
+              >
+                <Select placeholder="请选择租约" showSearch optionFilterProp="children">
+                  {leases
+                    .filter(lease => lease.status !== 'expired' && lease.status !== 'checkout')
+                    .map(lease => {
+                      const room = rooms.find(r => r.id === lease.roomId);
+                      const location = room ? locations.find(l => l.id === room.locationId) : null;
+                      return (
+                        <Option key={lease.id} value={lease.id}>
+                          <div>
+                            <div style={{ fontWeight: 500 }}>
+                              {location?.shortName || '未知位置'} - {room?.roomNumber || lease.roomId}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#666' }}>
+                              租户: {lease.tenantName} | {lease.tenantPhone} | 租期: {lease.startDate} ~ {lease.endDate}
+                            </div>
+                          </div>
+                        </Option>
+                      );
+                    })}
+                </Select>
+              </Form.Item>
+              {/* 显示选中租约的位置和房间信息 */}
+              {form.getFieldValue('leaseId') && (
+                <div style={{ marginBottom: 16, padding: 12, background: '#f5f5f5', borderRadius: 6 }}>
+                  {(() => {
+                    const leaseId = form.getFieldValue('leaseId');
+                    const lease = leases.find(l => l.id === leaseId);
+                    if (!lease) return null;
+                    const room = rooms.find(r => r.id === lease.roomId);
+                    const location = room ? locations.find(l => l.id === room.locationId) : null;
+                    return (
+                      <>
+                        <div style={{ marginBottom: 8, fontWeight: 500 }}>租约信息</div>
+                        <div style={{ fontSize: '13px' }}>
+                          <div><strong>位置:</strong> {location?.shortName || '-'}</div>
+                          <div><strong>房间:</strong> {room?.roomNumber || '-'}</div>
+                          <div><strong>地址:</strong> {location?.detail || '-'}</div>
+                          <div><strong>租户:</strong> {lease.tenantName} ({lease.tenantPhone})</div>
+                          <div><strong>租期:</strong> {lease.startDate} ~ {lease.endDate}</div>
+                          <div><strong>状态:</strong> {lease.status}</div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
+            </>
+          ) : (
+            /* 编辑账单时显示租约信息 */
+            <div style={{ marginBottom: 16, padding: 12, background: '#f5f5f5', borderRadius: 6 }}>
+              {(() => {
+                const lease = leases.find(l => l.id === editingBill.leaseId);
+                if (!lease) return null;
+                const room = rooms.find(r => r.id === lease.roomId);
+                const location = room ? locations.find(l => l.id === room.locationId) : null;
+                return (
+                  <>
+                    <div style={{ marginBottom: 8, fontWeight: 500 }}>租约信息</div>
+                    <div style={{ fontSize: '13px' }}>
+                      <div><strong>位置:</strong> {location?.shortName || '-'}</div>
+                      <div><strong>房间:</strong> {room?.roomNumber || '-'}</div>
+                      <div><strong>地址:</strong> {location?.detail || '-'}</div>
+                      <div><strong>租户:</strong> {lease.tenantName} ({lease.tenantPhone})</div>
+                      <div><strong>租期:</strong> {lease.startDate} ~ {lease.endDate}</div>
+                      <div><strong>状态:</strong> {lease.status}</div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
           )}
           {editingBill ? (
             <Form.Item
@@ -433,13 +687,12 @@ const Bills: React.FC = () => {
               rules={[{ required: true, message: '请选择类型' }]}
               initialValue="rent"
             >
-              <Select placeholder="请选择类型" onChange={handleTypeChange}>
+              <Select placeholder="请选择类型">
                 <Option value="rent">租金</Option>
               </Select>
             </Form.Item>
           )}
 
-          {/* 租金账单 - 显示所有金额字段 */}
           {(!editingBill || editingBill?.type === 'rent') && (
             <>
               <Form.Item
@@ -470,7 +723,6 @@ const Bills: React.FC = () => {
             </>
           )}
 
-          {/* 退租结算账单 - 显示所有金额字段 */}
           {editingBill?.type === 'checkout' && (
             <>
               <div style={{ marginBottom: 16, padding: 16, border: '1px solid #d9d9d9', borderRadius: 8 }}>
@@ -512,6 +764,27 @@ const Bills: React.FC = () => {
             </>
           )}
 
+          <Form.Item
+            name="billStart"
+            label="计费开始日期"
+            rules={[{ required: true, message: '请选择计费开始日期' }]}
+          >
+            <DatePicker style={{ width: '100%' }} placeholder="请选择计费开始日期" />
+          </Form.Item>
+          <Form.Item
+            name="billEnd"
+            label="计费结束日期"
+            rules={[{ required: true, message: '请选择计费结束日期' }]}
+          >
+            <DatePicker style={{ width: '100%' }} placeholder="请选择计费结束日期" />
+          </Form.Item>
+          <Form.Item
+            name="dueDate"
+            label="付款截止日期"
+            rules={[{ required: true, message: '请选择付款截止日期' }]}
+          >
+            <DatePicker style={{ width: '100%' }} placeholder="请选择付款截止日期" />
+          </Form.Item>
           <Form.Item
             name="paidAt"
             label="到账时间"
@@ -588,7 +861,6 @@ const Bills: React.FC = () => {
             </h3>
             <div style={{ marginBottom: 20 }}>
               {viewingBill.type === 'checkout' ? (
-                // 退租结算账单显示方式 - 所有项目都显示，即使是0
                 <div>
                   <div style={{ padding: '8px 0', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0' }}>
                     <span style={{ color: '#1890ff' }}>退还租金:</span>
@@ -628,7 +900,6 @@ const Bills: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                // 普通账单显示方式
                 <div>
                   {(viewingBill.rentAmount || 0) > 0 && (
                     <div style={{ padding: '8px 0', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0' }}>
