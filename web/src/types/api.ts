@@ -60,6 +60,9 @@ export interface Bill {
   electricAmount: number;
   otherAmount: number;
   refundDepositAmount: number;
+  billStart: string;
+  billEnd: string;
+  dueDate: string;
   paidAt: string | null;
   note: string;
   createdAt: string;
