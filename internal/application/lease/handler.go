@@ -269,6 +269,10 @@ func (h *CommandHandler) HandleCheckoutWithBills(cmd common.Command) (any, error
 	// Note: refundRentAmount is passed as negative (since it's a refund)
 	// refundDepositAmount is passed as positive to RefundDepositAmount field
 	checkoutBillID := uuid.NewString()
+	now := time.Now()
+	billStart := now
+	billEnd := now
+	dueDate := now.AddDate(0, 0, 7)
 	checkoutBill := billmodel.NewBillWithDetails(
 		checkoutBillID,
 		lease.ID(),
@@ -278,7 +282,9 @@ func (h *CommandHandler) HandleCheckoutWithBills(cmd common.Command) (any, error
 		checkoutCmd.ElectricAmount,     // Positive: tenant owes electric
 		checkoutCmd.OtherAmount,        // Other charges
 		checkoutCmd.RefundDepositAmount,// Positive: deposit refund amount
-		time.Now(),
+		billStart,
+		billEnd,
+		dueDate,
 		checkoutCmd.Note,
 	)
 
