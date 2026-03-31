@@ -17,6 +17,8 @@ type CreateBillCommand struct {
 	ElectricAmount      int64
 	OtherAmount         int64
 	RefundDepositAmount int64
+	BillStart           time.Time
+	BillEnd             time.Time
 	DueDate             time.Time
 	Note                string
 }
@@ -67,6 +69,8 @@ type UpdateBillCommand struct {
 	ElectricAmount      int64
 	OtherAmount         int64
 	RefundDepositAmount int64
+	BillStart           time.Time
+	BillEnd             time.Time
 	DueDate             time.Time
 	Note                string
 }
