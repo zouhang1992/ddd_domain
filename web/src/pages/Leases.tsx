@@ -26,7 +26,8 @@ const statusColorMap: Record<string, string> = {
 };
 
 const Leases: React.FC = () => {
-  const [leases, setLeases] = useState<Lease[]>([]);
+  const [allLeases, setAllLeases] = useState<Lease[]>([]);
+  const [displayLeases, setDisplayLeases] = useState<Lease[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [landlords, setLandlords] = useState<Landlord[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -46,19 +47,19 @@ const Leases: React.FC = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [queryForm] = Form.useForm();
+  const [queryLocationId, setQueryLocationId] = useState<string>();
+  const [queryRoomId, setQueryRoomId] = useState<string>();
+  const [queryTenantName, setQueryTenantName] = useState<string>();
+  const [queryTenantPhone, setQueryTenantPhone] = useState<string>();
+  const [queryStatus, setQueryStatus] = useState<string>();
 
-  const fetchLeases = async (params?: LeaseQueryParams) => {
+  const fetchLeases = async () => {
     setLoading(true);
     try {
-      const queryParams = {
-        ...params,
-        offset: (page - 1) * pageSize,
-        limit: pageSize,
-      };
-      const data: LeasesQueryResult = await leaseApi.list(queryParams);
-      setLeases(data.items);
+      const data: LeasesQueryResult = await leaseApi.list({ limit: 1000 });
+      setAllLeases(data.items || []);
       setTotal(data.total);
-    } catch (error) {
+    } catch {
       message.error('获取租约列表失败');
     } finally {
       setLoading(false);
@@ -69,7 +70,7 @@ const Leases: React.FC = () => {
     try {
       const data = await roomApi.list();
       setRooms(data.items || []);
-    } catch (error) {
+    } catch {
       message.error('获取房间列表失败');
     }
   };
@@ -78,7 +79,7 @@ const Leases: React.FC = () => {
     try {
       const data = await landlordApi.list();
       setLandlords(data.items || []);
-    } catch (error) {
+    } catch {
       message.error('获取房东列表失败');
     }
   };
@@ -87,7 +88,7 @@ const Leases: React.FC = () => {
     try {
       const data = await locationApi.list();
       setLocations(data.items || []);
-    } catch (error) {
+    } catch {
       message.error('获取位置列表失败');
     }
   };
@@ -97,18 +98,65 @@ const Leases: React.FC = () => {
     fetchRooms();
     fetchLandlords();
     fetchLocations();
-  }, [page, pageSize]);
+  }, []);
+
+  // 应用筛选和分页
+  useEffect(() => {
+    let filtered = [...allLeases];
+
+    // 位置筛选
+    if (queryLocationId) {
+      const roomIds = rooms.filter(r => r.locationId === queryLocationId).map(r => r.id);
+      filtered = filtered.filter(l => roomIds.includes(l.roomId));
+    }
+
+    // 房间筛选
+    if (queryRoomId) {
+      filtered = filtered.filter(l => l.roomId === queryRoomId);
+    }
+
+    // 租户姓名筛选
+    if (queryTenantName) {
+      filtered = filtered.filter(l =>
+        l.tenantName.toLowerCase().includes(queryTenantName.toLowerCase())
+      );
+    }
+
+    // 租户电话筛选
+    if (queryTenantPhone) {
+      filtered = filtered.filter(l =>
+        l.tenantPhone.includes(queryTenantPhone)
+      );
+    }
+
+    // 状态筛选
+    if (queryStatus) {
+      filtered = filtered.filter(l => l.status === queryStatus);
+    }
+
+    // 分页
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    setDisplayLeases(filtered.slice(start, end));
+    setTotal(filtered.length);
+  }, [allLeases, rooms, page, pageSize, queryLocationId, queryRoomId, queryTenantName, queryTenantPhone, queryStatus]);
 
   const handleQuery = async () => {
     const values = await queryForm.validateFields();
+    setQueryTenantName(values.tenantName);
+    setQueryTenantPhone(values.tenantPhone);
+    setQueryStatus(values.status);
     setPage(1);
-    fetchLeases(values);
   };
 
   const handleReset = () => {
     queryForm.resetFields();
+    setQueryLocationId(undefined);
+    setQueryRoomId(undefined);
+    setQueryTenantName(undefined);
+    setQueryTenantPhone(undefined);
+    setQueryStatus(undefined);
     setPage(1);
-    fetchLeases();
   };
 
   const handlePageChange = (pageNum: number, pageSizeNum: number) => {
@@ -164,7 +212,7 @@ const Leases: React.FC = () => {
       message.success('退租成功');
       setCheckoutModalVisible(false);
       fetchLeases();
-    } catch (error) {
+    } catch {
       message.error('退租失败');
     }
   };
@@ -174,7 +222,7 @@ const Leases: React.FC = () => {
       await leaseApi.delete(id);
       message.success('删除成功');
       fetchLeases();
-    } catch (error) {
+    } catch {
       message.error('删除失败');
     }
   };
@@ -196,7 +244,7 @@ const Leases: React.FC = () => {
       }
       setModalVisible(false);
       fetchLeases();
-    } catch (error) {
+    } catch {
       message.error('操作失败');
     }
   };
@@ -214,7 +262,7 @@ const Leases: React.FC = () => {
       message.success('续租成功');
       setRenewModalVisible(false);
       fetchLeases();
-    } catch (error) {
+    } catch {
       message.error('续租失败');
     }
   };
@@ -233,17 +281,32 @@ const Leases: React.FC = () => {
     return result.filter(room => room.status === 'available');
   }, [rooms, selectedLocationId]);
 
+  // 筛选用于查询的房间
+  const queryRooms = useMemo(() => {
+    if (queryLocationId) {
+      return rooms.filter(room => room.locationId === queryLocationId);
+    }
+    return rooms;
+  }, [rooms, queryLocationId]);
+
   // 处理位置选择变化
   const handleLocationChange = (value: string) => {
     setSelectedLocationId(value);
     form.setFieldValue('roomId', undefined);
   };
 
+  // 处理查询位置变化
+  const handleQueryLocationChange = (value: string | undefined) => {
+    setQueryLocationId(value);
+    setQueryRoomId(undefined);
+    setPage(1);
+  };
+
   const handlePrintContract = async (lease: Lease) => {
     try {
       await leaseApi.printContract(lease.id);
       message.success('合同下载成功');
-    } catch (error) {
+    } catch {
       message.error('合同下载失败');
     }
   };
@@ -253,7 +316,7 @@ const Leases: React.FC = () => {
       await leaseApi.activate(lease.id);
       message.success('租约生效成功');
       fetchLeases();
-    } catch (error) {
+    } catch {
       message.error('租约生效失败');
     }
   };
@@ -264,7 +327,6 @@ const Leases: React.FC = () => {
   };
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
     {
       title: '位置',
       key: 'location',
@@ -294,9 +356,11 @@ const Leases: React.FC = () => {
     },
     {
       title: '房东',
-      dataIndex: 'landlordId',
-      key: 'landlordId',
-      render: (landlordId: string) => landlords.find(l => l.id === landlordId)?.name || landlordId,
+      key: 'landlord',
+      render: (_: unknown, record: Lease) => {
+        const landlord = landlords.find(l => l.id === record.landlordId);
+        return landlord?.name || '-';
+      },
     },
     { title: '租户姓名', dataIndex: 'tenantName', key: 'tenantName' },
     { title: '租户电话', dataIndex: 'tenantPhone', key: 'tenantPhone' },
@@ -421,14 +485,63 @@ const Leases: React.FC = () => {
 
       {/* 查询表单 */}
       <Form form={queryForm} layout="inline" style={{ marginBottom: 16 }}>
+        <Form.Item label="位置">
+          <Select
+            placeholder="请选择位置"
+            style={{ width: 150 }}
+            allowClear
+            value={queryLocationId}
+            onChange={handleQueryLocationChange}
+          >
+            {locations.map(location => (
+              <Option key={location.id} value={location.id}>
+                {location.shortName}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+        <Form.Item label="房间">
+          <Select
+            placeholder="请选择房间"
+            style={{ width: 150 }}
+            allowClear
+            value={queryRoomId}
+            onChange={(value) => { setQueryRoomId(value); setPage(1); }}
+          >
+            {queryRooms.map(room => {
+              const location = locations.find(l => l.id === room.locationId);
+              return (
+                <Option key={room.id} value={room.id}>
+                  [{location?.shortName || '未知位置'}] {room.roomNumber}
+                </Option>
+              );
+            })}
+          </Select>
+        </Form.Item>
         <Form.Item name="tenantName" label="租户姓名">
-          <Input placeholder="请输入租户姓名" style={{ width: 120 }} />
+          <Input
+            placeholder="请输入租户姓名"
+            style={{ width: 120 }}
+            value={queryTenantName}
+            onChange={(e) => setQueryTenantName(e.target.value)}
+          />
         </Form.Item>
         <Form.Item name="tenantPhone" label="租户电话">
-          <Input placeholder="请输入租户电话" style={{ width: 120 }} />
+          <Input
+            placeholder="请输入租户电话"
+            style={{ width: 120 }}
+            value={queryTenantPhone}
+            onChange={(e) => setQueryTenantPhone(e.target.value)}
+          />
         </Form.Item>
-        <Form.Item name="status" label="状态">
-          <Select placeholder="请选择状态" style={{ width: 120 }}>
+        <Form.Item label="状态">
+          <Select
+            placeholder="请选择状态"
+            style={{ width: 120 }}
+            allowClear
+            value={queryStatus}
+            onChange={(value) => { setQueryStatus(value); setPage(1); }}
+          >
             <Option value="pending">待生效</Option>
             <Option value="active">生效中</Option>
             <Option value="expired">已过期</Option>
@@ -449,11 +562,11 @@ const Leases: React.FC = () => {
 
       <Table
         columns={columns}
-        dataSource={leases}
+        dataSource={displayLeases}
         rowKey="id"
         loading={loading}
         pagination={false}
-        scroll={{ x: 1800 }}
+        scroll={{ x: 2000 }}
       />
 
       <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>

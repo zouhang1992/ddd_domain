@@ -277,11 +277,11 @@ const Bills: React.FC = () => {
     {
       title: '房间',
       key: 'room',
-      render: (_: any, record: Bill) => {
+      render: (_: unknown, record: Bill) => {
         const lease = leases.find(l => l.id === record.leaseId);
         if (!lease) return '-';
         const room = rooms.find(r => r.id === lease.roomId);
-        if (!room) return lease.roomId;
+        if (!room) return '-';
         const location = locations.find(l => l.id === room.locationId);
         return (
           <span>
@@ -296,7 +296,7 @@ const Bills: React.FC = () => {
     {
       title: '地址',
       key: 'address',
-      render: (_: any, record: Bill) => {
+      render: (_: unknown, record: Bill) => {
         const lease = leases.find(l => l.id === record.leaseId);
         if (!lease) return '-';
         const room = rooms.find(r => r.id === lease.roomId);
@@ -308,10 +308,10 @@ const Bills: React.FC = () => {
     {
       title: '房东',
       key: 'landlord',
-      render: (_: any, record: Bill) => {
+      render: (_: unknown, record: Bill) => {
         const lease = leases.find(l => l.id === record.leaseId);
         if (!lease) return '-';
-        return landlords.find(l => l.id === lease.landlordId)?.name || lease.landlordId;
+        return landlords.find(l => l.id === lease.landlordId)?.name || '-';
       },
     },
     {

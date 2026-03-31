@@ -1,25 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Button, message, Tabs, Table, Tag, Spin, Space, Form, Input, Select, DatePicker, Pagination } from 'antd';
-import { DownloadOutlined, HistoryOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
-import type { Lease, Bill } from '../types/api';
-import { printApi, type PrintJobQueryParams, type PrintJobsQueryResult } from '../api/print';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Card, Button, message, Tabs, Table, Tag, Spin, Space, Form, Input, Select, DatePicker, Pagination, Descriptions, Modal } from 'antd';
+import { DownloadOutlined, HistoryOutlined, SearchOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
+import type { Lease, Bill, Room, Location, Landlord } from '../types/api';
+import { printApi, type PrintJobQueryParams, type PrintJobsQueryResult, type PrintJob } from '../api/print';
 import { leaseApi, type LeaseQueryParams, type LeasesQueryResult } from '../api/lease';
 import { billApi, type BillQueryParams, type BillsQueryResult } from '../api/bill';
+import { roomApi } from '../api/room';
+import { locationApi } from '../api/location';
+import { landlordApi } from '../api/landlord';
 import OperationLogModal from '../components/OperationLogModal';
 
 const { Option } = Select;
 
 const Print: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('bill');
-  const [bills, setBills] = useState<Bill[]>([]);
-  const [leases, setLeases] = useState<Lease[]>([]);
-  const [printJobs, setPrintJobs] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [allBills, setAllBills] = useState<Bill[]>([]);
+  const [allLeases, setAllLeases] = useState<Lease[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [landlords, setLandlords] = useState<Landlord[]>([]);
+  const [printJobs, setPrintJobs] = useState<PrintJob[]>([]);
+  const [loading, setLoading] = useState(false);
   const [printing, setPrinting] = useState<string | null>(null);
   const [operationLogVisible, setOperationLogVisible] = useState(false);
   const [currentBill, setCurrentBill] = useState<Bill | null>(null);
   const [currentLease, setCurrentLease] = useState<Lease | null>(null);
-  const [currentPrintJob, setCurrentPrintJob] = useState<any | null>(null);
+  const [currentPrintJob, setCurrentPrintJob] = useState<PrintJob | null>(null);
   const [billTotal, setBillTotal] = useState<number>(0);
   const [leaseTotal, setLeaseTotal] = useState<number>(0);
   const [printJobTotal, setPrintJobTotal] = useState<number>(0);
@@ -30,40 +36,39 @@ const Print: React.FC = () => {
   const [billQueryForm] = Form.useForm();
   const [leaseQueryForm] = Form.useForm();
   const [printJobQueryForm] = Form.useForm();
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
 
-  const fetchBills = async (params?: BillQueryParams) => {
-    setLoading(true);
+  // 账单筛选状态
+  const [billQueryType, setBillQueryType] = useState<string>();
+  const [billQueryStatus, setBillQueryStatus] = useState<string>();
+  const [billQueryLocationId, setBillQueryLocationId] = useState<string>();
+  const [billQueryRoomId, setBillQueryRoomId] = useState<string>();
+
+  // 租约筛选状态
+  const [leaseQueryTenantName, setLeaseQueryTenantName] = useState<string>();
+  const [leaseQueryTenantPhone, setLeaseQueryTenantPhone] = useState<string>();
+  const [leaseQueryStatus, setLeaseQueryStatus] = useState<string>();
+  const [leaseQueryLocationId, setLeaseQueryLocationId] = useState<string>();
+  const [leaseQueryRoomId, setLeaseQueryRoomId] = useState<string>();
+
+  const [displayBills, setDisplayBills] = useState<Bill[]>([]);
+  const [displayLeases, setDisplayLeases] = useState<Lease[]>([]);
+
+  const fetchAllBills = async () => {
     try {
-      const queryParams = {
-        ...params,
-        offset: (billPage - 1) * pageSize,
-        limit: pageSize,
-      };
-      const data: BillsQueryResult = await billApi.list(queryParams);
-      setBills(data.items || []);
-      setBillTotal(data.total);
+      const data: BillsQueryResult = await billApi.list({ limit: 1000 });
+      setAllBills(data.items || []);
     } catch (error) {
       message.error('获取账单列表失败');
-    } finally {
-      setLoading(false);
     }
   };
 
-  const fetchLeases = async (params?: LeaseQueryParams) => {
-    setLoading(true);
+  const fetchAllLeases = async () => {
     try {
-      const queryParams = {
-        ...params,
-        offset: (leasePage - 1) * pageSize,
-        limit: pageSize,
-      };
-      const data: LeasesQueryResult = await leaseApi.list(queryParams);
-      setLeases(data.items || []);
-      setLeaseTotal(data.total);
+      const data: LeasesQueryResult = await leaseApi.list({ limit: 1000 });
+      setAllLeases(data.items || []);
     } catch (error) {
-      message.error('获取租约列表失败');
-    } finally {
-      setLoading(false);
+      console.error('获取所有租约失败', error);
     }
   };
 
@@ -85,28 +90,159 @@ const Print: React.FC = () => {
     }
   };
 
-  const handleBillQuery = async () => {
-    const values = await billQueryForm.validateFields();
+  const fetchRooms = async () => {
+    try {
+      const data = await roomApi.list();
+      setRooms(data.items || []);
+    } catch (error) {
+      message.error('获取房间列表失败');
+    }
+  };
+
+  const fetchLocations = async () => {
+    try {
+      const data = await locationApi.list();
+      setLocations(data.items || []);
+    } catch (error) {
+      message.error('获取位置列表失败');
+    }
+  };
+
+  const fetchLandlords = async () => {
+    try {
+      const data = await landlordApi.list();
+      setLandlords(data.items || []);
+    } catch (error) {
+      message.error('获取房东列表失败');
+    }
+  };
+
+  useEffect(() => {
+    fetchRooms();
+    fetchLocations();
+    fetchLandlords();
+    fetchAllBills();
+    fetchAllLeases();
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'jobs') {
+      fetchPrintJobs();
+    }
+  }, [activeTab, printJobPage, pageSize]);
+
+  // 账单查询用的房间列表
+  const billQueryRooms = useMemo(() => {
+    if (billQueryLocationId) {
+      return rooms.filter(room => room.locationId === billQueryLocationId);
+    }
+    return rooms;
+  }, [rooms, billQueryLocationId]);
+
+  // 租约查询用的房间列表
+  const leaseQueryRooms = useMemo(() => {
+    if (leaseQueryLocationId) {
+      return rooms.filter(room => room.locationId === leaseQueryLocationId);
+    }
+    return rooms;
+  }, [rooms, leaseQueryLocationId]);
+
+  // 应用账单筛选和分页
+  useEffect(() => {
+    let filtered = [...allBills];
+
+    // 位置筛选
+    if (billQueryLocationId) {
+      const roomIds = rooms.filter(r => r.locationId === billQueryLocationId).map(r => r.id);
+      const leaseIds = allLeases.filter(l => roomIds.includes(l.roomId)).map(l => l.id);
+      filtered = filtered.filter(b => leaseIds.includes(b.leaseId));
+    }
+
+    // 房间筛选
+    if (billQueryRoomId) {
+      const leaseIds = allLeases.filter(l => l.roomId === billQueryRoomId).map(l => l.id);
+      filtered = filtered.filter(b => leaseIds.includes(b.leaseId));
+    }
+
+    // 类型筛选
+    if (billQueryType) {
+      filtered = filtered.filter(b => b.type === billQueryType);
+    }
+
+    // 状态筛选
+    if (billQueryStatus) {
+      filtered = filtered.filter(b => b.status === billQueryStatus);
+    }
+
+    // 分页
+    const start = (billPage - 1) * pageSize;
+    const end = start + pageSize;
+    setDisplayBills(filtered.slice(start, end));
+    setBillTotal(filtered.length);
+  }, [allBills, allLeases, rooms, billPage, pageSize, billQueryType, billQueryStatus, billQueryLocationId, billQueryRoomId]);
+
+  // 应用租约筛选和分页
+  useEffect(() => {
+    let filtered = [...allLeases];
+
+    // 租户姓名筛选
+    if (leaseQueryTenantName) {
+      filtered = filtered.filter(l => l.tenantName.includes(leaseQueryTenantName));
+    }
+
+    // 租户电话筛选
+    if (leaseQueryTenantPhone) {
+      filtered = filtered.filter(l => l.tenantPhone.includes(leaseQueryTenantPhone));
+    }
+
+    // 状态筛选
+    if (leaseQueryStatus) {
+      filtered = filtered.filter(l => l.status === leaseQueryStatus);
+    }
+
+    // 位置筛选
+    if (leaseQueryLocationId) {
+      const roomIds = rooms.filter(r => r.locationId === leaseQueryLocationId).map(r => r.id);
+      filtered = filtered.filter(l => roomIds.includes(l.roomId));
+    }
+
+    // 房间筛选
+    if (leaseQueryRoomId) {
+      filtered = filtered.filter(l => l.roomId === leaseQueryRoomId);
+    }
+
+    // 分页
+    const start = (leasePage - 1) * pageSize;
+    const end = start + pageSize;
+    setDisplayLeases(filtered.slice(start, end));
+    setLeaseTotal(filtered.length);
+  }, [allLeases, rooms, leasePage, pageSize, leaseQueryTenantName, leaseQueryTenantPhone, leaseQueryStatus, leaseQueryLocationId, leaseQueryRoomId]);
+
+  const handleBillQuery = () => {
     setBillPage(1);
-    fetchBills(values);
   };
 
   const handleBillReset = () => {
     billQueryForm.resetFields();
+    setBillQueryType(undefined);
+    setBillQueryStatus(undefined);
+    setBillQueryLocationId(undefined);
+    setBillQueryRoomId(undefined);
     setBillPage(1);
-    fetchBills();
   };
 
-  const handleLeaseQuery = async () => {
-    const values = await leaseQueryForm.validateFields();
+  const handleLeaseQuery = () => {
     setLeasePage(1);
-    fetchLeases(values);
   };
 
   const handleLeaseReset = () => {
     leaseQueryForm.resetFields();
+    setLeaseQueryTenantName(undefined);
+    setLeaseQueryTenantPhone(undefined);
+    setLeaseQueryStatus(undefined);
+    setLeaseQueryLocationId(undefined);
+    setLeaseQueryRoomId(undefined);
     setLeasePage(1);
-    fetchLeases();
   };
 
   const handlePrintJobQuery = async () => {
@@ -136,15 +272,10 @@ const Print: React.FC = () => {
     setPageSize(pageSizeNum);
   };
 
-  useEffect(() => {
-    if (activeTab === 'bill') {
-      fetchBills();
-    } else if (activeTab === 'lease') {
-      fetchLeases();
-    } else if (activeTab === 'jobs') {
-      fetchPrintJobs();
-    }
-  }, [activeTab, billPage, leasePage, printJobPage, pageSize]);
+  const handleViewPrintJobDetail = (job: PrintJob) => {
+    setCurrentPrintJob(job);
+    setDetailModalVisible(true);
+  };
 
   const handleDownloadReceipt = async (billId: string) => {
     setPrinting(billId);
@@ -184,7 +315,7 @@ const Print: React.FC = () => {
     setOperationLogVisible(true);
   };
 
-  const handleViewPrintJobOperationLogs = (job: any) => {
+  const handleViewPrintJobOperationLogs = (job: PrintJob) => {
     setCurrentPrintJob(job);
     setCurrentBill(null);
     setCurrentLease(null);
@@ -224,31 +355,68 @@ const Print: React.FC = () => {
     failed: 'error',
   };
 
-  const printJobStatusMap: Record<string, string> = {
-    pending: '待处理',
-    processing: '处理中',
-    completed: '已完成',
-    failed: '失败',
-  };
-
   const printJobTypeColorMap: Record<string, string> = {
     bill: 'blue',
     lease: 'green',
     invoice: 'purple',
   };
 
-  const printJobTypeMap: Record<string, string> = {
-    bill: '账单收据',
-    lease: '租约合同',
-    invoice: '发票',
-  };
-
   const billColumns = [
     {
-      title: '账单ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
+      title: '位置',
+      key: 'location',
+      width: 120,
+      render: (_: any, record: Bill) => {
+        const lease = allLeases.find(l => l.id === record.leaseId);
+        if (!lease) return '-';
+        const room = rooms.find(r => r.id === lease.roomId);
+        const location = room ? locations.find(l => l.id === room.locationId) : null;
+        return location?.shortName || '-';
+      },
+    },
+    {
+      title: '房间',
+      key: 'room',
+      width: 120,
+      render: (_: unknown, record: Bill) => {
+        const lease = allLeases.find(l => l.id === record.leaseId);
+        if (!lease) return '-';
+        const room = rooms.find(r => r.id === lease.roomId);
+        if (!room) return '-';
+        const location = locations.find(l => l.id === room.locationId);
+        return (
+          <span>
+            <Tag color="blue" style={{ marginRight: 4, fontSize: '10px' }}>
+              {location?.shortName || '未知位置'}
+            </Tag>
+            {room.roomNumber}
+          </span>
+        );
+      },
+    },
+    {
+      title: '地址',
+      key: 'address',
+      width: 150,
+      ellipsis: true,
+      render: (_: unknown, record: Bill) => {
+        const lease = allLeases.find(l => l.id === record.leaseId);
+        if (!lease) return '-';
+        const room = rooms.find(r => r.id === lease.roomId);
+        if (!room) return '-';
+        const location = locations.find(l => l.id === room.locationId);
+        return location?.detail || location?.shortName || '-';
+      },
+    },
+    {
+      title: '房东',
+      key: 'landlord',
+      width: 100,
+      render: (_: unknown, record: Bill) => {
+        const lease = allLeases.find(l => l.id === record.leaseId);
+        if (!lease) return '-';
+        return landlords.find(l => l.id === lease.landlordId)?.name || '-';
+      },
     },
     {
       title: '类型',
@@ -285,6 +453,7 @@ const Print: React.FC = () => {
       title: '操作',
       key: 'actions',
       width: 200,
+      fixed: 'right' as const,
       render: (_: any, record: Bill) => (
         <Space size="small">
           <Button
@@ -310,15 +479,58 @@ const Print: React.FC = () => {
 
   const leaseColumns = [
     {
-      title: '租约ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
+      title: '位置',
+      key: 'location',
+      width: 120,
+      render: (_: any, record: Lease) => {
+        const room = rooms.find(r => r.id === record.roomId);
+        const location = room ? locations.find(l => l.id === room.locationId) : null;
+        return location?.shortName || '-';
+      },
+    },
+    {
+      title: '房间',
+      key: 'room',
+      width: 120,
+      render: (_: unknown, record: Lease) => {
+        const room = rooms.find(r => r.id === record.roomId);
+        if (!room) return '-';
+        const location = locations.find(l => l.id === room.locationId);
+        return (
+          <span>
+            <Tag color="blue" style={{ marginRight: 4, fontSize: '10px' }}>
+              {location?.shortName || '未知位置'}
+            </Tag>
+            {room.roomNumber}
+          </span>
+        );
+      },
+    },
+    {
+      title: '地址',
+      key: 'address',
+      width: 150,
+      ellipsis: true,
+      render: (_: unknown, record: Lease) => {
+        const room = rooms.find(r => r.id === record.roomId);
+        if (!room) return '-';
+        const location = locations.find(l => l.id === room.locationId);
+        return location?.detail || location?.shortName || '-';
+      },
+    },
+    {
+      title: '房东',
+      key: 'landlord',
+      width: 100,
+      render: (_: unknown, record: Lease) => {
+        return landlords.find(l => l.id === record.landlordId)?.name || '-';
+      },
     },
     {
       title: '租户姓名',
       dataIndex: 'tenantName',
       key: 'tenantName',
+      width: 100,
     },
     {
       title: '开始日期',
@@ -347,6 +559,7 @@ const Print: React.FC = () => {
       title: '操作',
       key: 'actions',
       width: 200,
+      fixed: 'right' as const,
       render: (_: any, record: Lease) => (
         <Space size="small">
           <Button
@@ -372,45 +585,82 @@ const Print: React.FC = () => {
 
   const printJobColumns = [
     {
-      title: '作业ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-    },
-    {
       title: '类型',
-      dataIndex: 'type',
-      key: 'type',
+      dataIndex: 'type_text',
+      key: 'type_text',
       width: 100,
-      render: (type: string) => (
-        <Tag color={printJobTypeColorMap[type] || 'default'}>
-          {printJobTypeMap[type] || type}
+      render: (text: string, record: PrintJob) => (
+        <Tag color={printJobTypeColorMap[record.type] || 'default'}>
+          {text}
         </Tag>
       ),
     },
     {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
+      title: '租户',
+      dataIndex: 'tenant_name',
+      key: 'tenant_name',
       width: 100,
-      render: (status: string) => (
-        <Tag color={printJobStatusColorMap[status] || 'default'}>
-          {printJobStatusMap[status] || status}
+    },
+    {
+      title: '房间号',
+      dataIndex: 'room_number',
+      key: 'room_number',
+      width: 100,
+      render: (text: string) => text || '-',
+    },
+    {
+      title: '地址',
+      dataIndex: 'address',
+      key: 'address',
+      width: 150,
+      ellipsis: true,
+      render: (text: string) => text || '-',
+    },
+    {
+      title: '房东',
+      dataIndex: 'landlord_name',
+      key: 'landlord_name',
+      width: 100,
+      render: (text: string) => text || '-',
+    },
+    {
+      title: '金额',
+      dataIndex: 'amount_yuan',
+      key: 'amount_yuan',
+      width: 100,
+      render: (amount: string) => amount ? `¥${amount}` : '-',
+    },
+    {
+      title: '状态',
+      dataIndex: 'status_text',
+      key: 'status_text',
+      width: 100,
+      render: (text: string, record: PrintJob) => (
+        <Tag color={printJobStatusColorMap[record.status] || 'default'}>
+          {text}
         </Tag>
       ),
     },
     {
       title: '创建时间',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
+      dataIndex: 'created_at',
+      key: 'created_at',
       width: 160,
     },
     {
       title: '操作',
       key: 'actions',
-      width: 150,
-      render: (_: any, record: any) => (
+      width: 200,
+      fixed: 'right' as const,
+      render: (_: any, record: PrintJob) => (
         <Space size="small">
+          <Button
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => handleViewPrintJobDetail(record)}
+          >
+            详情
+          </Button>
           <Button
             icon={<HistoryOutlined />}
             size="small"
@@ -431,14 +681,67 @@ const Print: React.FC = () => {
         <Card title="账单收据打印" style={{ marginTop: 16 }}>
           {/* 查询表单 */}
           <Form form={billQueryForm} layout="inline" style={{ marginBottom: 16 }}>
-            <Form.Item name="type" label="类型">
-              <Select placeholder="请选择类型" style={{ width: 120 }}>
+            <Form.Item label="位置">
+              <Select
+                placeholder="请选择位置"
+                style={{ width: 150 }}
+                allowClear
+                value={billQueryLocationId}
+                onChange={(value) => {
+                  setBillQueryLocationId(value);
+                  setBillQueryRoomId(undefined);
+                  setBillPage(1);
+                }}
+              >
+                {locations.map(location => (
+                  <Option key={location.id} value={location.id}>
+                    {location.shortName}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item label="房间">
+              <Select
+                placeholder="请选择房间"
+                style={{ width: 150 }}
+                allowClear
+                value={billQueryRoomId}
+                onChange={(value) => {
+                  setBillQueryRoomId(value);
+                  setBillPage(1);
+                }}
+              >
+                {billQueryRooms.map(room => {
+                  const location = locations.find(l => l.id === room.locationId);
+                  return (
+                    <Option key={room.id} value={room.id}>
+                      {location?.shortName} - {room.roomNumber}
+                    </Option>
+                  );
+                })}
+              </Select>
+            </Form.Item>
+            <Form.Item label="类型">
+              <Select
+                placeholder="请选择类型"
+                style={{ width: 120 }}
+                allowClear
+                value={billQueryType}
+                onChange={(value) => { setBillQueryType(value); setBillPage(1); }}
+              >
+                <Option value="rent">租金</Option>
                 <Option value="charge">收账</Option>
                 <Option value="checkout">退租结算</Option>
               </Select>
             </Form.Item>
-            <Form.Item name="status" label="状态">
-              <Select placeholder="请选择状态" style={{ width: 120 }}>
+            <Form.Item label="状态">
+              <Select
+                placeholder="请选择状态"
+                style={{ width: 120 }}
+                allowClear
+                value={billQueryStatus}
+                onChange={(value) => { setBillQueryStatus(value); setBillPage(1); }}
+              >
                 <Option value="pending">待支付</Option>
                 <Option value="paid">已支付</Option>
               </Select>
@@ -456,11 +759,11 @@ const Print: React.FC = () => {
           </Form>
           <Spin spinning={loading} tip="加载中...">
             <Table
-              dataSource={bills}
+              dataSource={displayBills}
               columns={billColumns}
               rowKey="id"
               pagination={false}
-              scroll={{ x: 600 }}
+              scroll={{ x: 1600 }}
             />
           </Spin>
           <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
@@ -484,14 +787,70 @@ const Print: React.FC = () => {
         <Card title="租约合同打印" style={{ marginTop: 16 }}>
           {/* 查询表单 */}
           <Form form={leaseQueryForm} layout="inline" style={{ marginBottom: 16 }}>
-            <Form.Item name="tenantName" label="租户姓名">
-              <Input placeholder="请输入租户姓名" style={{ width: 120 }} />
+            <Form.Item label="位置">
+              <Select
+                placeholder="请选择位置"
+                style={{ width: 150 }}
+                allowClear
+                value={leaseQueryLocationId}
+                onChange={(value) => {
+                  setLeaseQueryLocationId(value);
+                  setLeaseQueryRoomId(undefined);
+                  setLeasePage(1);
+                }}
+              >
+                {locations.map(location => (
+                  <Option key={location.id} value={location.id}>
+                    {location.shortName}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
-            <Form.Item name="tenantPhone" label="租户电话">
-              <Input placeholder="请输入租户电话" style={{ width: 120 }} />
+            <Form.Item label="房间">
+              <Select
+                placeholder="请选择房间"
+                style={{ width: 150 }}
+                allowClear
+                value={leaseQueryRoomId}
+                onChange={(value) => {
+                  setLeaseQueryRoomId(value);
+                  setLeasePage(1);
+                }}
+              >
+                {leaseQueryRooms.map(room => {
+                  const location = locations.find(l => l.id === room.locationId);
+                  return (
+                    <Option key={room.id} value={room.id}>
+                      {location?.shortName} - {room.roomNumber}
+                    </Option>
+                  );
+                })}
+              </Select>
             </Form.Item>
-            <Form.Item name="status" label="状态">
-              <Select placeholder="请选择状态" style={{ width: 120 }}>
+            <Form.Item label="租户姓名">
+              <Input
+                placeholder="请输入租户姓名"
+                style={{ width: 120 }}
+                value={leaseQueryTenantName}
+                onChange={(e) => setLeaseQueryTenantName(e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item label="租户电话">
+              <Input
+                placeholder="请输入租户电话"
+                style={{ width: 120 }}
+                value={leaseQueryTenantPhone}
+                onChange={(e) => setLeaseQueryTenantPhone(e.target.value)}
+              />
+            </Form.Item>
+            <Form.Item label="状态">
+              <Select
+                placeholder="请选择状态"
+                style={{ width: 120 }}
+                allowClear
+                value={leaseQueryStatus}
+                onChange={(value) => { setLeaseQueryStatus(value); setLeasePage(1); }}
+              >
                 <Option value="pending">待生效</Option>
                 <Option value="active">生效中</Option>
                 <Option value="expired">已过期</Option>
@@ -511,11 +870,11 @@ const Print: React.FC = () => {
           </Form>
           <Spin spinning={loading} tip="加载中...">
             <Table
-              dataSource={leases}
+              dataSource={displayLeases}
               columns={leaseColumns}
               rowKey="id"
               pagination={false}
-              scroll={{ x: 600 }}
+              scroll={{ x: 1600 }}
             />
           </Spin>
           <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
@@ -540,7 +899,7 @@ const Print: React.FC = () => {
           {/* 查询表单 */}
           <Form form={printJobQueryForm} layout="inline" style={{ marginBottom: 16 }}>
             <Form.Item name="status" label="状态">
-              <Select placeholder="请选择状态" style={{ width: 120 }}>
+              <Select placeholder="请选择状态" style={{ width: 120 }} allowClear>
                 <Option value="pending">待处理</Option>
                 <Option value="processing">处理中</Option>
                 <Option value="completed">已完成</Option>
@@ -548,7 +907,7 @@ const Print: React.FC = () => {
               </Select>
             </Form.Item>
             <Form.Item name="type" label="类型">
-              <Select placeholder="请选择类型" style={{ width: 120 }}>
+              <Select placeholder="请选择类型" style={{ width: 120 }} allowClear>
                 <Option value="bill">账单收据</Option>
                 <Option value="lease">租约合同</Option>
                 <Option value="invoice">发票</Option>
@@ -577,7 +936,7 @@ const Print: React.FC = () => {
               columns={printJobColumns}
               rowKey="id"
               pagination={false}
-              scroll={{ x: 600 }}
+              scroll={{ x: 1400 }}
             />
           </Spin>
           <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
@@ -602,6 +961,74 @@ const Print: React.FC = () => {
         <h1>打印服务</h1>
       </div>
       <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
+
+      {/* 打印作业详情弹窗 */}
+      <Modal
+        title="打印作业详情"
+        open={detailModalVisible}
+        onCancel={() => setDetailModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setDetailModalVisible(false)}>
+            关闭
+          </Button>,
+        ]}
+        width={600}
+      >
+        {currentPrintJob && (
+          <Descriptions bordered column={1}>
+            <Descriptions.Item label="作业ID">
+              {currentPrintJob.id}
+            </Descriptions.Item>
+            <Descriptions.Item label="类型">
+              <Tag color={printJobTypeColorMap[currentPrintJob.type] || 'default'}>
+                {currentPrintJob.type_text}
+              </Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="状态">
+              <Tag color={printJobStatusColorMap[currentPrintJob.status] || 'default'}>
+                {currentPrintJob.status_text}
+              </Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="租户姓名">
+              {currentPrintJob.tenant_name}
+            </Descriptions.Item>
+            <Descriptions.Item label="租户电话">
+              {currentPrintJob.tenant_phone || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="房间号">
+              {currentPrintJob.room_number || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="地址">
+              {currentPrintJob.address || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="房东姓名">
+              {currentPrintJob.landlord_name || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="关联ID">
+              {currentPrintJob.reference_id}
+            </Descriptions.Item>
+            <Descriptions.Item label="金额">
+              {currentPrintJob.amount_yuan ? `¥${currentPrintJob.amount_yuan}` : '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="创建时间">
+              {currentPrintJob.created_at}
+            </Descriptions.Item>
+            <Descriptions.Item label="更新时间">
+              {currentPrintJob.updated_at}
+            </Descriptions.Item>
+            {currentPrintJob.completed_at && (
+              <Descriptions.Item label="完成时间">
+                {currentPrintJob.completed_at}
+              </Descriptions.Item>
+            )}
+            {currentPrintJob.error_msg && (
+              <Descriptions.Item label="错误信息">
+                <span style={{ color: '#d32f2f' }}>{currentPrintJob.error_msg}</span>
+              </Descriptions.Item>
+            )}
+          </Descriptions>
+        )}
+      </Modal>
 
       <OperationLogModal
         visible={operationLogVisible}
