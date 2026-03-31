@@ -22,15 +22,45 @@ type Connection struct {
 func NewConnection(cfg Config, logger *zap.Logger) (*Connection, error) {
 	logger.Info("Opening database connection", zap.String("dsn", cfg.DSN))
 
-	db, err := sql.Open("sqlite", cfg.DSN)
+	// Add SQLite 配置详解：
+	// _journal=WAL: 使用 Write-Ahead Logging 模式，提高并发性能
+	// _busy_timeout=5000: 设置 5 秒的锁等待超时
+	// _txlock=immediate: 立即获取写锁，减少锁竞争
+	dsnWithParams := cfg.DSN + "?_journal=WAL&_busy_timeout=5000&_txlock=immediate"
+
+	db, err := sql.Open("sqlite", dsnWithParams)
 	if err != nil {
 		logger.Error("Failed to open database", zap.Error(err))
 		return nil, err
 	}
 
+	// 设置连接池参数以避免连接泄漏
+	db.SetMaxOpenConns(1) // SQLite 只需要一个写连接
+	db.SetMaxIdleConns(1)
+	db.SetConnMaxLifetime(0) // 连接不过期
+
 	if err := db.Ping(); err != nil {
 		logger.Error("Failed to ping database", zap.Error(err))
 		return nil, err
+	}
+
+	// 启用 WAL 模式并设置同步模式
+	_, err = db.Exec("PRAGMA journal_mode=WAL;")
+	if err != nil {
+		logger.Warn("Failed to set WAL mode", zap.Error(err))
+		// 继续执行，WAL 不是必需的
+	}
+
+	// 设置同步模式为 NORMAL，在数据安全和性能之间取得平衡
+	_, err = db.Exec("PRAGMA synchronous=NORMAL;")
+	if err != nil {
+		logger.Warn("Failed to set synchronous mode", zap.Error(err))
+	}
+
+	// 设置缓存大小
+	_, err = db.Exec("PRAGMA cache_size=-64000;") // ~64MB cache
+	if err != nil {
+		logger.Warn("Failed to set cache size", zap.Error(err))
 	}
 
 	logger.Info("Database connection established successfully")
