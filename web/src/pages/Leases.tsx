@@ -118,14 +118,14 @@ const Leases: React.FC = () => {
     // 租户姓名筛选
     if (queryTenantName) {
       filtered = filtered.filter(l =>
-        l.tenantName.toLowerCase().includes(queryTenantName.toLowerCase())
+        l.tenantName?.toLowerCase().includes(queryTenantName.toLowerCase())
       );
     }
 
     // 租户电话筛选
     if (queryTenantPhone) {
       filtered = filtered.filter(l =>
-        l.tenantPhone.includes(queryTenantPhone)
+        l.tenantPhone?.includes(queryTenantPhone)
       );
     }
 

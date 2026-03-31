@@ -6,6 +6,7 @@ import { leaseApi } from '../api/lease';
 import { roomApi } from '../api/room';
 import { locationApi } from '../api/location';
 import type { Deposit, Lease, Room, Location } from '../types/api';
+import dayjs from 'dayjs';
 import OperationLogModal from '../components/OperationLogModal';
 
 const { Option } = Select;
@@ -226,9 +227,13 @@ const Deposits: React.FC = () => {
       render: formatAmount,
     },
     { title: '退还时间', dataIndex: 'refundedAt', key: 'refundedAt', width: 160 },
-    { title: '扣款时间', dataIndex: 'deductedAt', key: 'deductedAt', width: 160 },
-    { title: '备注', dataIndex: 'note', key: 'note', ellipsis: true },
-    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 160 },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: 160,
+      render: (createdAt: string) => createdAt ? dayjs(createdAt).format('YYYY-MM-DD HH:mm:ss') : '-',
+    },
     {
       title: '操作',
       key: 'actions',

@@ -36,8 +36,8 @@ export interface Lease {
   id: string;
   roomId: string;
   landlordId: string;
-  tenantName: string;
-  tenantPhone: string;
+  tenantName?: string;
+  tenantPhone?: string;
   startDate: string;
   endDate: string;
   rentAmount: number;

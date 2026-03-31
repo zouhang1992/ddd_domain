@@ -637,7 +637,7 @@ const Bills: React.FC = () => {
                               {location?.shortName || '未知位置'} - {room?.roomNumber || lease.roomId}
                             </div>
                             <div style={{ fontSize: '12px', color: '#666' }}>
-                              租户: {lease.tenantName} | {lease.tenantPhone} | 租期: {lease.startDate} ~ {lease.endDate}
+                              租户: {lease?.tenantName} | {lease?.tenantPhone} | 租期: {lease.startDate} ~ {lease.endDate}
                             </div>
                           </div>
                         </Option>
@@ -661,7 +661,7 @@ const Bills: React.FC = () => {
                           <div><strong>位置:</strong> {location?.shortName || '-'}</div>
                           <div><strong>房间:</strong> {room?.roomNumber || '-'}</div>
                           <div><strong>地址:</strong> {location?.detail || '-'}</div>
-                          <div><strong>租户:</strong> {lease.tenantName} ({lease.tenantPhone})</div>
+                          <div><strong>租户:</strong> {lease?.tenantName} ({lease?.tenantPhone})</div>
                           <div><strong>租期:</strong> {lease.startDate} ~ {lease.endDate}</div>
                           <div><strong>状态:</strong> {lease.status}</div>
                         </div>
@@ -686,7 +686,7 @@ const Bills: React.FC = () => {
                       <div><strong>位置:</strong> {location?.shortName || '-'}</div>
                       <div><strong>房间:</strong> {room?.roomNumber || '-'}</div>
                       <div><strong>地址:</strong> {location?.detail || '-'}</div>
-                      <div><strong>租户:</strong> {lease.tenantName} ({lease.tenantPhone})</div>
+                      <div><strong>租户:</strong> {lease?.tenantName} ({lease?.tenantPhone})</div>
                       <div><strong>租期:</strong> {lease.startDate} ~ {lease.endDate}</div>
                       <div><strong>状态:</strong> {lease.status}</div>
                     </div>

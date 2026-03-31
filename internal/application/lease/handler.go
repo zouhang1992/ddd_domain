@@ -101,6 +101,15 @@ func (h *CommandHandler) HandleUpdateLease(cmd common.Command) (any, error) {
 		return nil, domerrors.ErrNotFound
 	}
 
+	// 更新租约字段
+	lease.TenantName = updateCmd.TenantName
+	lease.TenantPhone = updateCmd.TenantPhone
+	lease.StartDate = updateCmd.StartDate
+	lease.EndDate = updateCmd.EndDate
+	lease.RentAmount = updateCmd.RentAmount
+	lease.Note = updateCmd.Note
+	lease.UpdatedAt = time.Now()
+
 	if err := h.repo.Save(lease); err != nil {
 		return nil, err
 	}
