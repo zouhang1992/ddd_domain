@@ -20,6 +20,9 @@ var migrations = []Migration{
 	&AddStatusAndNoteToRoomsMigration{},
 	&AddDueDateToBillsMigration{},
 	&AddRefundDepositAmountToBillsMigration{},
+	&AddPrintJobsTableMigration{},
+	&AddPrintJobDetailsMigration{},
+	&AddBillPeriodToBillsMigration{},
 }
 
 // AddDepositAmountToLeasesMigration 为 leases 表添加 deposit_amount 字段
@@ -287,6 +290,195 @@ func (m *AddRefundDepositAmountToBillsMigration) Down(tx *sql.Tx) error {
 	return nil
 }
 
+// AddPrintJobsTableMigration 创建 print_jobs 表
+type AddPrintJobsTableMigration struct{}
+
+func (m *AddPrintJobsTableMigration) Version() string {
+	return "202603311400" // 格式：YYYYMMDDHHMM
+}
+
+func (m *AddPrintJobsTableMigration) Up(tx *sql.Tx) error {
+	// 创建 print_jobs 表
+	if _, err := tx.Exec(`
+	CREATE TABLE IF NOT EXISTS print_jobs (
+		id TEXT PRIMARY KEY,
+		type TEXT NOT NULL,
+		status TEXT NOT NULL DEFAULT 'pending',
+		reference_id TEXT NOT NULL,
+		tenant_name TEXT,
+		tenant_phone TEXT,
+		room_id TEXT,
+		room_number TEXT,
+		address TEXT,
+		landlord_name TEXT,
+		amount INTEGER NOT NULL DEFAULT 0,
+		error_msg TEXT,
+		created_at DATETIME NOT NULL,
+		updated_at DATETIME NOT NULL,
+		completed_at DATETIME
+	)
+	`); err != nil {
+		return fmt.Errorf("failed to create print_jobs table: %w", err)
+	}
+
+	// 创建索引
+	if _, err := tx.Exec(`CREATE INDEX IF NOT EXISTS idx_print_jobs_status ON print_jobs(status)`); err != nil {
+		return fmt.Errorf("failed to create idx_print_jobs_status index: %w", err)
+	}
+
+	if _, err := tx.Exec(`CREATE INDEX IF NOT EXISTS idx_print_jobs_type ON print_jobs(type)`); err != nil {
+		return fmt.Errorf("failed to create idx_print_jobs_type index: %w", err)
+	}
+
+	if _, err := tx.Exec(`CREATE INDEX IF NOT EXISTS idx_print_jobs_created_at ON print_jobs(created_at)`); err != nil {
+		return fmt.Errorf("failed to create idx_print_jobs_created_at index: %w", err)
+	}
+
+	if _, err := tx.Exec(`CREATE INDEX IF NOT EXISTS idx_print_jobs_reference_id ON print_jobs(reference_id)`); err != nil {
+		return fmt.Errorf("failed to create idx_print_jobs_reference_id index: %w", err)
+	}
+
+	return nil
+}
+
+func (m *AddPrintJobsTableMigration) Down(tx *sql.Tx) error {
+	// 删除索引
+	if _, err := tx.Exec("DROP INDEX IF EXISTS idx_print_jobs_status"); err != nil {
+		return err
+	}
+	if _, err := tx.Exec("DROP INDEX IF EXISTS idx_print_jobs_type"); err != nil {
+		return err
+	}
+	if _, err := tx.Exec("DROP INDEX IF EXISTS idx_print_jobs_created_at"); err != nil {
+		return err
+	}
+	if _, err := tx.Exec("DROP INDEX IF EXISTS idx_print_jobs_reference_id"); err != nil {
+		return err
+	}
+
+	// 删除表
+	if _, err := tx.Exec("DROP TABLE IF EXISTS print_jobs"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AddPrintJobDetailsMigration 为 print_jobs 表添加详细信息字段
+type AddPrintJobDetailsMigration struct{}
+
+func (m *AddPrintJobDetailsMigration) Version() string {
+	return "202603311500" // 格式：YYYYMMDDHHMM
+}
+
+func (m *AddPrintJobDetailsMigration) Up(tx *sql.Tx) error {
+	// 检查列是否已存在
+	rows, err := tx.Query("PRAGMA table_info(print_jobs)")
+	if err != nil {
+		return fmt.Errorf("failed to check table info: %w", err)
+	}
+	defer rows.Close()
+
+	columns := make(map[string]bool)
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notnull, pk int
+		var dflt_value sql.NullString
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt_value, &pk); err != nil {
+			return fmt.Errorf("failed to scan table info: %w", err)
+		}
+		columns[name] = true
+	}
+
+	// 添加缺失的列
+	if !columns["tenant_phone"] {
+		if _, err := tx.Exec("ALTER TABLE print_jobs ADD COLUMN tenant_phone TEXT"); err != nil {
+			return fmt.Errorf("failed to add tenant_phone column: %w", err)
+		}
+	}
+	if !columns["room_id"] {
+		if _, err := tx.Exec("ALTER TABLE print_jobs ADD COLUMN room_id TEXT"); err != nil {
+			return fmt.Errorf("failed to add room_id column: %w", err)
+		}
+	}
+	if !columns["room_number"] {
+		if _, err := tx.Exec("ALTER TABLE print_jobs ADD COLUMN room_number TEXT"); err != nil {
+			return fmt.Errorf("failed to add room_number column: %w", err)
+		}
+	}
+	if !columns["address"] {
+		if _, err := tx.Exec("ALTER TABLE print_jobs ADD COLUMN address TEXT"); err != nil {
+			return fmt.Errorf("failed to add address column: %w", err)
+		}
+	}
+	if !columns["landlord_name"] {
+		if _, err := tx.Exec("ALTER TABLE print_jobs ADD COLUMN landlord_name TEXT"); err != nil {
+			return fmt.Errorf("failed to add landlord_name column: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (m *AddPrintJobDetailsMigration) Down(tx *sql.Tx) error {
+	// SQLite 不支持直接删除列，我们不处理回滚
+	return nil
+}
+
+// AddBillPeriodToBillsMigration 为 bills 表添加 bill_start 和 bill_end 字段
+type AddBillPeriodToBillsMigration struct{}
+
+func (m *AddBillPeriodToBillsMigration) Version() string {
+	return "202603311600" // 格式：YYYYMMDDHHMM
+}
+
+func (m *AddBillPeriodToBillsMigration) Up(tx *sql.Tx) error {
+	// 检查列是否已存在
+	rows, err := tx.Query("PRAGMA table_info(bills)")
+	if err != nil {
+		return fmt.Errorf("failed to check table info: %w", err)
+	}
+	defer rows.Close()
+
+	billStartExists := false
+	billEndExists := false
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notnull, pk int
+		var dflt_value sql.NullString
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt_value, &pk); err != nil {
+			return fmt.Errorf("failed to scan table info: %w", err)
+		}
+		if name == "bill_start" {
+			billStartExists = true
+		}
+		if name == "bill_end" {
+			billEndExists = true
+		}
+	}
+
+	if !billStartExists {
+		if _, err := tx.Exec("ALTER TABLE bills ADD COLUMN bill_start DATETIME"); err != nil {
+			return fmt.Errorf("failed to add bill_start column: %w", err)
+		}
+	}
+
+	if !billEndExists {
+		if _, err := tx.Exec("ALTER TABLE bills ADD COLUMN bill_end DATETIME"); err != nil {
+			return fmt.Errorf("failed to add bill_end column: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (m *AddBillPeriodToBillsMigration) Down(tx *sql.Tx) error {
+	// SQLite 不支持直接删除列，我们不处理回滚
+	return nil
+}
+
 // BaseMigration 基础数据模型迁移（创建所有表）
 type BaseMigration struct{}
 
@@ -380,7 +572,7 @@ func (m *BaseMigration) Up(tx *sql.Tx) error {
 		return fmt.Errorf("failed to create leases table: %w", err)
 	}
 
-	// 创建 bills 表 (with due_date and refund_deposit_amount from beginning)
+	// 创建 bills 表 (with due_date, refund_deposit_amount, bill_start, bill_end from beginning)
 	if _, err := tx.Exec(`
 	CREATE TABLE IF NOT EXISTS bills (
 		id TEXT PRIMARY KEY,
@@ -393,6 +585,8 @@ func (m *BaseMigration) Up(tx *sql.Tx) error {
 		electric_amount INTEGER NOT NULL DEFAULT 0,
 		other_amount INTEGER NOT NULL DEFAULT 0,
 		refund_deposit_amount INTEGER NOT NULL DEFAULT 0,
+		bill_start DATETIME,
+		bill_end DATETIME,
 		due_date DATETIME,
 		paid_at DATETIME,
 		note TEXT,
