@@ -64,7 +64,12 @@ const AppLayout: React.FC = () => {
     navigate('/login');
   };
 
-  const selectedKey = menuItems.find((item) => location.pathname.startsWith(item.path))?.key || 'dashboard';
+  const selectedKey = menuItems.find((item) => {
+    if (item.path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(item.path);
+  })?.key || 'dashboard';
 
   const toggleMobileMenu = () => {
     setMobileCollapsed(!mobileCollapsed);
