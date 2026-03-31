@@ -49,12 +49,26 @@ func (h *CQRSBillHandler) Create(w http.ResponseWriter, r *http.Request) {
 		ElectricAmount      int64      `json:"electric_amount"`
 		OtherAmount         int64      `json:"other_amount"`
 		RefundDepositAmount int64      `json:"refund_deposit_amount"`
+		BillStart           string     `json:"bill_start"`
+		BillEnd             string     `json:"bill_end"`
 		DueDate             string     `json:"due_date"`
 		Note                string     `json:"note"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	// Parse bill start date
+	billStart, err := time.Parse("2006-01-02", req.BillStart)
+	if err != nil {
+		billStart = time.Now()
+	}
+
+	// Parse bill end date
+	billEnd, err := time.Parse("2006-01-02", req.BillEnd)
+	if err != nil {
+		billEnd = time.Now().AddDate(0, 1, 0)
 	}
 
 	// Parse due date
@@ -72,6 +86,8 @@ func (h *CQRSBillHandler) Create(w http.ResponseWriter, r *http.Request) {
 		ElectricAmount:      req.ElectricAmount,
 		OtherAmount:         req.OtherAmount,
 		RefundDepositAmount: req.RefundDepositAmount,
+		BillStart:           billStart,
+		BillEnd:             billEnd,
 		DueDate:             dueDate,
 		Note:                req.Note,
 	}
@@ -141,12 +157,26 @@ func (h *CQRSBillHandler) Update(w http.ResponseWriter, r *http.Request) {
 		ElectricAmount      int64      `json:"electric_amount"`
 		OtherAmount         int64      `json:"other_amount"`
 		RefundDepositAmount int64      `json:"refund_deposit_amount"`
+		BillStart           string     `json:"bill_start"`
+		BillEnd             string     `json:"bill_end"`
 		DueDate             string     `json:"due_date"`
 		Note                string     `json:"note"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	// Parse bill start date
+	billStart, err := time.Parse("2006-01-02", req.BillStart)
+	if err != nil {
+		billStart = time.Now()
+	}
+
+	// Parse bill end date
+	billEnd, err := time.Parse("2006-01-02", req.BillEnd)
+	if err != nil {
+		billEnd = time.Now().AddDate(0, 1, 0)
 	}
 
 	// Parse due date
@@ -163,6 +193,8 @@ func (h *CQRSBillHandler) Update(w http.ResponseWriter, r *http.Request) {
 		ElectricAmount:      req.ElectricAmount,
 		OtherAmount:         req.OtherAmount,
 		RefundDepositAmount: req.RefundDepositAmount,
+		BillStart:           billStart,
+		BillEnd:             billEnd,
 		DueDate:             dueDate,
 		Note:                req.Note,
 	}
@@ -212,8 +244,8 @@ func (h *CQRSBillHandler) PrintReceipt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/rtf")
-	w.Header().Set("Content-Disposition", "attachment; filename=\"receipt.rtf\"")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"receipt.html\"")
 	w.Write(content)
 }
 
