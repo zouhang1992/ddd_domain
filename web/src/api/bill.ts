@@ -42,7 +42,9 @@ export const billApi = {
     electricAmount: number;
     otherAmount: number;
     refundDepositAmount?: number;
-    paidAt: string | null;
+    billStart: string;
+    billEnd: string;
+    dueDate: string;
     note: string;
   }) => {
     const response = await apiClient.post<Bill>('/bills', data);
@@ -56,7 +58,9 @@ export const billApi = {
     electricAmount: number;
     otherAmount: number;
     refundDepositAmount?: number;
-    paidAt: string | null;
+    billStart: string;
+    billEnd: string;
+    dueDate: string;
     note: string;
   }) => {
     const response = await apiClient.put<Bill>(`/bills/${id}`, data);
