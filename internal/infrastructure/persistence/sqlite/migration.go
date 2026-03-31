@@ -19,6 +19,7 @@ var migrations = []Migration{
 	&AddOperationLogsTableMigration{},
 	&AddStatusAndNoteToRoomsMigration{},
 	&AddDueDateToBillsMigration{},
+	&AddRefundDepositAmountToBillsMigration{},
 }
 
 // AddDepositAmountToLeasesMigration 为 leases 表添加 deposit_amount 字段
@@ -243,6 +244,49 @@ func (m *AddDueDateToBillsMigration) Down(tx *sql.Tx) error {
 	return nil
 }
 
+// AddRefundDepositAmountToBillsMigration 为 bills 表添加 refund_deposit_amount 字段
+type AddRefundDepositAmountToBillsMigration struct{}
+
+func (m *AddRefundDepositAmountToBillsMigration) Version() string {
+	return "202603301200" // 格式：YYYYMMDDHHMM
+}
+
+func (m *AddRefundDepositAmountToBillsMigration) Up(tx *sql.Tx) error {
+	// 检查列是否已存在
+	rows, err := tx.Query("PRAGMA table_info(bills)")
+	if err != nil {
+		return fmt.Errorf("failed to check table info: %w", err)
+	}
+	defer rows.Close()
+
+	colExists := false
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notnull, pk int
+		var dflt_value sql.NullString
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt_value, &pk); err != nil {
+			return fmt.Errorf("failed to scan table info: %w", err)
+		}
+		if name == "refund_deposit_amount" {
+			colExists = true
+			break
+		}
+	}
+
+	if !colExists {
+		if _, err := tx.Exec("ALTER TABLE bills ADD COLUMN refund_deposit_amount INTEGER NOT NULL DEFAULT 0"); err != nil {
+			return fmt.Errorf("failed to add refund_deposit_amount column: %w", err)
+		}
+	}
+	return nil
+}
+
+func (m *AddRefundDepositAmountToBillsMigration) Down(tx *sql.Tx) error {
+	// SQLite 不支持直接删除列，我们不处理回滚
+	return nil
+}
+
 // BaseMigration 基础数据模型迁移（创建所有表）
 type BaseMigration struct{}
 
@@ -336,7 +380,7 @@ func (m *BaseMigration) Up(tx *sql.Tx) error {
 		return fmt.Errorf("failed to create leases table: %w", err)
 	}
 
-	// 创建 bills 表 (with due_date from beginning)
+	// 创建 bills 表 (with due_date and refund_deposit_amount from beginning)
 	if _, err := tx.Exec(`
 	CREATE TABLE IF NOT EXISTS bills (
 		id TEXT PRIMARY KEY,
@@ -348,6 +392,7 @@ func (m *BaseMigration) Up(tx *sql.Tx) error {
 		water_amount INTEGER NOT NULL DEFAULT 0,
 		electric_amount INTEGER NOT NULL DEFAULT 0,
 		other_amount INTEGER NOT NULL DEFAULT 0,
+		refund_deposit_amount INTEGER NOT NULL DEFAULT 0,
 		due_date DATETIME,
 		paid_at DATETIME,
 		note TEXT,

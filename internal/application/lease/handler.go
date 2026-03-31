@@ -266,23 +266,21 @@ func (h *CommandHandler) HandleCheckoutWithBills(cmd common.Command) (any, error
 	// 2. Create checkout bill (refund amounts are negative, charges are positive)
 	// Refunds are negative because they're money going out to the tenant
 	// Charges are positive because they're money coming in from the tenant
-	totalAmount := -checkoutCmd.RefundRentAmount - checkoutCmd.RefundDepositAmount + checkoutCmd.WaterAmount + checkoutCmd.ElectricAmount + checkoutCmd.OtherAmount
-
+	// Note: refundRentAmount is passed as negative (since it's a refund)
+	// refundDepositAmount is passed as positive to RefundDepositAmount field
 	checkoutBillID := uuid.NewString()
 	checkoutBill := billmodel.NewBillWithDetails(
 		checkoutBillID,
 		lease.ID(),
 		billmodel.BillTypeCheckout,
-		checkoutCmd.WaterAmount,    // Positive: tenant owes water
-		checkoutCmd.ElectricAmount, // Positive: tenant owes electric
-		0,                           // Other utility charges go here
-		checkoutCmd.OtherAmount,    // Other charges
+		-checkoutCmd.RefundRentAmount, // Negative: refund to tenant
+		checkoutCmd.WaterAmount,        // Positive: tenant owes water
+		checkoutCmd.ElectricAmount,     // Positive: tenant owes electric
+		checkoutCmd.OtherAmount,        // Other charges
+		checkoutCmd.RefundDepositAmount,// Positive: deposit refund amount
 		time.Now(),
 		checkoutCmd.Note,
 	)
-	// Set refund amounts as negative rent refund
-	checkoutBill.RentAmount = -checkoutCmd.RefundRentAmount // Negative: refund to tenant
-	checkoutBill.Amount = totalAmount
 
 	if err := h.billRepo.Save(checkoutBill); err != nil {
 		return nil, err

@@ -32,19 +32,20 @@ const (
 // Bill 账单领域模型（聚合根）
 type Bill struct {
 	model.BaseAggregateRoot
-	LeaseID   string     `json:"lease_id"`
-	Type      BillType   `json:"type"`
-	Status    BillStatus `json:"status"`
-	Amount    int64      `json:"amount"`
-	RentAmount    int64  `json:"rent_amount"`
-	WaterAmount   int64  `json:"water_amount"`
-	ElectricAmount int64 `json:"electric_amount"`
-	OtherAmount   int64  `json:"other_amount"`
-	PaidAt    *time.Time `json:"paid_at"`
-	DueDate   time.Time  `json:"due_date"`
-	Note      string     `json:"note"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
+	LeaseID           string     `json:"lease_id"`
+	Type              BillType   `json:"type"`
+	Status            BillStatus `json:"status"`
+	Amount            int64      `json:"amount"`
+	RentAmount        int64      `json:"rent_amount"`
+	WaterAmount       int64      `json:"water_amount"`
+	ElectricAmount    int64      `json:"electric_amount"`
+	OtherAmount       int64      `json:"other_amount"`
+	RefundDepositAmount int64    `json:"refund_deposit_amount"` // 退还押金金额（分，正数表示退还）
+	PaidAt            *time.Time `json:"paid_at"`
+	DueDate           time.Time  `json:"due_date"`
+	Note              string     `json:"note"`
+	CreatedAt         time.Time  `json:"created_at"`
+	UpdatedAt         time.Time  `json:"updated_at"`
 }
 
 // 账单事件（本地定义，避免导入循环）
@@ -97,26 +98,28 @@ func NewBill(id, leaseID string, billType BillType, amount int64,
 
 // NewBillWithDetails 创建带明细的新账单
 func NewBillWithDetails(id, leaseID string, billType BillType,
-	rentAmount, waterAmount, electricAmount, otherAmount int64,
+	rentAmount, waterAmount, electricAmount, otherAmount, refundDepositAmount int64,
 	dueDate time.Time, note string) *Bill {
 	now := time.Now()
-	// Calculate total amount
-	totalAmount := rentAmount + waterAmount + electricAmount + otherAmount
+	// Calculate total amount: rentAmount(负数表示退还) + 费用(正数) - 退还押金(正数表示退还)
+	// 注意：refundDepositAmount是正数表示退还，所以计算总额时要减去它（因为这是要给租户的钱）
+	totalAmount := rentAmount + waterAmount + electricAmount + otherAmount - refundDepositAmount
 
 	bill := &Bill{
-		BaseAggregateRoot: model.NewBaseAggregateRoot(id),
-		LeaseID:           leaseID,
-		Type:              billType,
-		Status:            BillStatusPending,
-		Amount:            totalAmount,
-		RentAmount:        rentAmount,
-		WaterAmount:       waterAmount,
-		ElectricAmount:    electricAmount,
-		OtherAmount:       otherAmount,
-		DueDate:           dueDate,
-		Note:              note,
-		CreatedAt:         now,
-		UpdatedAt:         now,
+		BaseAggregateRoot:   model.NewBaseAggregateRoot(id),
+		LeaseID:             leaseID,
+		Type:                billType,
+		Status:              BillStatusPending,
+		Amount:              totalAmount,
+		RentAmount:          rentAmount,
+		WaterAmount:         waterAmount,
+		ElectricAmount:      electricAmount,
+		OtherAmount:         otherAmount,
+		RefundDepositAmount: refundDepositAmount,
+		DueDate:             dueDate,
+		Note:                note,
+		CreatedAt:           now,
+		UpdatedAt:           now,
 	}
 	// 创建并记录事件
 	evt := billCreated{
@@ -162,12 +165,13 @@ func (b *Bill) Update(amount int64, dueDate time.Time, note string) {
 }
 
 // UpdateWithDetails 更新账单信息（包含明细）
-func (b *Bill) UpdateWithDetails(rentAmount, waterAmount, electricAmount, otherAmount int64, dueDate time.Time, note string) {
+func (b *Bill) UpdateWithDetails(rentAmount, waterAmount, electricAmount, otherAmount, refundDepositAmount int64, dueDate time.Time, note string) {
 	b.RentAmount = rentAmount
 	b.WaterAmount = waterAmount
 	b.ElectricAmount = electricAmount
 	b.OtherAmount = otherAmount
-	b.Amount = rentAmount + waterAmount + electricAmount + otherAmount
+	b.RefundDepositAmount = refundDepositAmount
+	b.Amount = rentAmount + waterAmount + electricAmount + otherAmount - refundDepositAmount
 	b.DueDate = dueDate
 	b.Note = note
 	b.UpdatedAt = time.Now()

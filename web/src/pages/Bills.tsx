@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, message, Popconfirm, Select, DatePicker, InputNumber, Tag, Pagination } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, PrinterOutlined, HistoryOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, PrinterOutlined, HistoryOutlined, SearchOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
 import type { Bill, Lease } from '../types/api';
 import { billApi, type BillQueryParams, type BillsQueryResult } from '../api/bill';
 import { leaseApi } from '../api/lease';
@@ -34,7 +34,9 @@ const Bills: React.FC = () => {
   const [leases, setLeases] = useState<Lease[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
+  const [viewingBill, setViewingBill] = useState<Bill | null>(null);
   const [form] = Form.useForm();
   const [operationLogVisible, setOperationLogVisible] = useState(false);
   const [currentBill, setCurrentBill] = useState<Bill | null>(null);
@@ -109,6 +111,7 @@ const Bills: React.FC = () => {
     form.setFieldsValue({
       ...bill,
       paidAt: bill.paidAt ? dayjs(bill.paidAt) : null,
+      refundDepositAmount: bill.refundDepositAmount || 0,
     });
     setModalVisible(true);
   };
@@ -140,6 +143,11 @@ const Bills: React.FC = () => {
     } catch (error) {
       message.error('删除失败');
     }
+  };
+
+  const handleViewDetail = (bill: Bill) => {
+    setViewingBill(bill);
+    setDetailModalVisible(true);
   };
 
   const handleViewOperationLogs = (bill: Bill) => {
@@ -201,13 +209,55 @@ const Bills: React.FC = () => {
       ),
     },
     {
-      title: '金额',
-      dataIndex: 'rentAmount',
-      key: 'rentAmount',
-      render: (amount: number, record: Bill) => {
-        const total = (record.rentAmount || 0) + (record.waterAmount || 0) +
-                      (record.electricAmount || 0) + (record.otherAmount || 0);
-        return formatAmount(total);
+      title: '金额明细',
+      key: 'amountDetail',
+      width: 350,
+      render: (_: any, record: Bill) => {
+        if (record.type === 'checkout') {
+          // 退租结算账单 - 显示明细（所有项目都显示，即使是0）
+          const refundRent = Math.abs(record.rentAmount || 0);
+          const refundDeposit = record.refundDepositAmount || 0;
+          const water = record.waterAmount || 0;
+          const electric = record.electricAmount || 0;
+          const other = record.otherAmount || 0;
+
+          return (
+            <div style={{ fontSize: '12px' }}>
+              <div style={{ color: '#1890ff' }}>退还租金: {formatAmount(refundRent)}</div>
+              <div style={{ color: '#1890ff' }}>退还押金: {formatAmount(refundDeposit)}</div>
+              <div style={{ color: '#faad14' }}>水费: {formatAmount(water)}</div>
+              <div style={{ color: '#faad14' }}>电费: {formatAmount(electric)}</div>
+              <div style={{ color: '#faad14' }}>其他: {formatAmount(other)}</div>
+              <div style={{ fontWeight: 'bold', marginTop: '4px' }}>
+                合计: {formatAmount(record.amount)}
+              </div>
+            </div>
+          );
+        }
+        // 租金账单 - 也显示详细明细
+        const rent = record.rentAmount || 0;
+        const water = record.waterAmount || 0;
+        const electric = record.electricAmount || 0;
+        const other = record.otherAmount || 0;
+
+        // 检查是否有明细金额
+        const hasDetails = rent > 0 || water > 0 || electric > 0 || other > 0;
+
+        if (hasDetails) {
+          return (
+            <div style={{ fontSize: '12px' }}>
+              {rent > 0 && <div style={{ color: '#1890ff' }}>租金: {formatAmount(rent)}</div>}
+              {water > 0 && <div style={{ color: '#faad14' }}>水费: {formatAmount(water)}</div>}
+              {electric > 0 && <div style={{ color: '#faad14' }}>电费: {formatAmount(electric)}</div>}
+              {other > 0 && <div style={{ color: '#faad14' }}>其他: {formatAmount(other)}</div>}
+              <div style={{ fontWeight: 'bold', marginTop: '4px' }}>
+                合计: {formatAmount(record.amount)}
+              </div>
+            </div>
+          );
+        }
+        // 没有明细的普通账单，只显示总金额
+        return formatAmount(record.amount);
       },
     },
     { title: '到账时间', dataIndex: 'paidAt', key: 'paidAt' },
@@ -217,6 +267,14 @@ const Bills: React.FC = () => {
       key: 'actions',
       render: (_: any, record: Bill) => (
         <div>
+          <Button
+            icon={<EyeOutlined />}
+            onClick={() => handleViewDetail(record)}
+            style={{ marginRight: 8 }}
+            size="small"
+          >
+            详情
+          </Button>
           <Button
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
@@ -415,30 +473,42 @@ const Bills: React.FC = () => {
           {/* 退租结算账单 - 显示所有金额字段 */}
           {editingBill?.type === 'checkout' && (
             <>
-              <Form.Item
-                name="rentAmount"
-                label="租金（分，负数表示退还）"
-              >
-                <InputNumber style={{ width: '100%' }} placeholder="请输入租金（分）" />
-              </Form.Item>
-              <Form.Item
-                name="waterAmount"
-                label="水费（分）"
-              >
-                <InputNumber style={{ width: '100%' }} placeholder="请输入水费（分）" />
-              </Form.Item>
-              <Form.Item
-                name="electricAmount"
-                label="电费（分）"
-              >
-                <InputNumber style={{ width: '100%' }} placeholder="请输入电费（分）" />
-              </Form.Item>
-              <Form.Item
-                name="otherAmount"
-                label="其他金额（分）"
-              >
-                <InputNumber style={{ width: '100%' }} placeholder="请输入其他金额（分）" />
-              </Form.Item>
+              <div style={{ marginBottom: 16, padding: 16, border: '1px solid #d9d9d9', borderRadius: 8 }}>
+                <h4 style={{ margin: '0 0 16px 0', color: '#1890ff' }}>退还金额</h4>
+                <Form.Item
+                  name="rentAmount"
+                  label="退还租金（分，负数表示退还）"
+                >
+                  <InputNumber style={{ width: '100%' }} placeholder="请输入退还租金（分，负数表示退还）" />
+                </Form.Item>
+                <Form.Item
+                  name="refundDepositAmount"
+                  label="退还押金（分）"
+                >
+                  <InputNumber style={{ width: '100%' }} placeholder="请输入退还押金（分）" min={0} />
+                </Form.Item>
+              </div>
+              <div style={{ marginBottom: 16, padding: 16, border: '1px solid #d9d9d9', borderRadius: 8 }}>
+                <h4 style={{ margin: '0 0 16px 0', color: '#52c41a' }}>收取费用</h4>
+                <Form.Item
+                  name="waterAmount"
+                  label="水费（分）"
+                >
+                  <InputNumber style={{ width: '100%' }} placeholder="请输入水费（分）" min={0} />
+                </Form.Item>
+                <Form.Item
+                  name="electricAmount"
+                  label="电费（分）"
+                >
+                  <InputNumber style={{ width: '100%' }} placeholder="请输入电费（分）" min={0} />
+                </Form.Item>
+                <Form.Item
+                  name="otherAmount"
+                  label="其他费用（分）"
+                >
+                  <InputNumber style={{ width: '100%' }} placeholder="请输入其他费用（分）" min={0} />
+                </Form.Item>
+              </div>
             </>
           )}
 
@@ -455,6 +525,165 @@ const Bills: React.FC = () => {
             <Input.TextArea placeholder="请输入备注" rows={3} />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* 详情模态框 */}
+      <Modal
+        title="账单详情"
+        open={detailModalVisible}
+        onCancel={() => setDetailModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setDetailModalVisible(false)}>
+            关闭
+          </Button>,
+        ]}
+        width={600}
+      >
+        {viewingBill && (
+          <div>
+            <h3 style={{ marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #f0f0f0' }}>
+              基本信息
+            </h3>
+            <table style={{ width: '100%', marginBottom: 20 }}>
+              <tbody>
+                <tr>
+                  <td style={{ width: 120, padding: '8px 0', fontWeight: 'bold' }}>ID:</td>
+                  <td style={{ padding: '8px 0' }}>{viewingBill.id}</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '8px 0', fontWeight: 'bold' }}>类型:</td>
+                  <td style={{ padding: '8px 0' }}>
+                    <Tag color={typeColorMap[viewingBill.type] || 'default'}>
+                      {typeMap[viewingBill.type] || viewingBill.type}
+                    </Tag>
+                  </td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '8px 0', fontWeight: 'bold' }}>状态:</td>
+                  <td style={{ padding: '8px 0' }}>
+                    <Tag color={statusColorMap[viewingBill.status] || 'default'}>
+                      {statusMap[viewingBill.status] || viewingBill.status}
+                    </Tag>
+                  </td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '8px 0', fontWeight: 'bold' }}>租约ID:</td>
+                  <td style={{ padding: '8px 0' }}>{viewingBill.leaseId}</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '8px 0', fontWeight: 'bold' }}>创建时间:</td>
+                  <td style={{ padding: '8px 0' }}>{viewingBill.createdAt}</td>
+                </tr>
+                {viewingBill.paidAt && (
+                  <tr>
+                    <td style={{ padding: '8px 0', fontWeight: 'bold' }}>到账时间:</td>
+                    <td style={{ padding: '8px 0' }}>{viewingBill.paidAt}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+
+            <h3 style={{ marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #f0f0f0' }}>
+              金额明细
+            </h3>
+            <div style={{ marginBottom: 20 }}>
+              {viewingBill.type === 'checkout' ? (
+                // 退租结算账单显示方式 - 所有项目都显示，即使是0
+                <div>
+                  <div style={{ padding: '8px 0', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0' }}>
+                    <span style={{ color: '#1890ff' }}>退还租金:</span>
+                    <span style={{ color: '#1890ff', fontWeight: 'bold' }}>
+                      {formatAmount(Math.abs(viewingBill.rentAmount || 0))}
+                    </span>
+                  </div>
+                  <div style={{ padding: '8px 0', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0' }}>
+                    <span style={{ color: '#1890ff' }}>退还押金:</span>
+                    <span style={{ color: '#1890ff', fontWeight: 'bold' }}>
+                      {formatAmount(viewingBill.refundDepositAmount || 0)}
+                    </span>
+                  </div>
+                  <div style={{ padding: '8px 0', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0' }}>
+                    <span style={{ color: '#faad14' }}>水费:</span>
+                    <span style={{ color: '#faad14', fontWeight: 'bold' }}>
+                      {formatAmount(viewingBill.waterAmount || 0)}
+                    </span>
+                  </div>
+                  <div style={{ padding: '8px 0', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0' }}>
+                    <span style={{ color: '#faad14' }}>电费:</span>
+                    <span style={{ color: '#faad14', fontWeight: 'bold' }}>
+                      {formatAmount(viewingBill.electricAmount || 0)}
+                    </span>
+                  </div>
+                  <div style={{ padding: '8px 0', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0' }}>
+                    <span style={{ color: '#faad14' }}>其他费用:</span>
+                    <span style={{ color: '#faad14', fontWeight: 'bold' }}>
+                      {formatAmount(viewingBill.otherAmount || 0)}
+                    </span>
+                  </div>
+                  <div style={{ padding: '12px 0', display: 'flex', justifyContent: 'space-between', background: '#f5f5f5', marginTop: 8, paddingLeft: 8, paddingRight: 8, borderRadius: 4 }}>
+                    <span style={{ fontWeight: 'bold', fontSize: '16px' }}>合计:</span>
+                    <span style={{ fontWeight: 'bold', fontSize: '16px' }}>
+                      {formatAmount(viewingBill.amount)}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                // 普通账单显示方式
+                <div>
+                  {(viewingBill.rentAmount || 0) > 0 && (
+                    <div style={{ padding: '8px 0', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0' }}>
+                      <span>租金:</span>
+                      <span style={{ fontWeight: 'bold' }}>
+                        {formatAmount(viewingBill.rentAmount || 0)}
+                      </span>
+                    </div>
+                  )}
+                  {(viewingBill.waterAmount || 0) > 0 && (
+                    <div style={{ padding: '8px 0', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0' }}>
+                      <span>水费:</span>
+                      <span style={{ fontWeight: 'bold' }}>
+                        {formatAmount(viewingBill.waterAmount || 0)}
+                      </span>
+                    </div>
+                  )}
+                  {(viewingBill.electricAmount || 0) > 0 && (
+                    <div style={{ padding: '8px 0', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0' }}>
+                      <span>电费:</span>
+                      <span style={{ fontWeight: 'bold' }}>
+                        {formatAmount(viewingBill.electricAmount || 0)}
+                      </span>
+                    </div>
+                  )}
+                  {(viewingBill.otherAmount || 0) > 0 && (
+                    <div style={{ padding: '8px 0', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0' }}>
+                      <span>其他:</span>
+                      <span style={{ fontWeight: 'bold' }}>
+                        {formatAmount(viewingBill.otherAmount || 0)}
+                      </span>
+                    </div>
+                  )}
+                  <div style={{ padding: '12px 0', display: 'flex', justifyContent: 'space-between', background: '#f5f5f5', marginTop: 8, paddingLeft: 8, paddingRight: 8, borderRadius: 4 }}>
+                    <span style={{ fontWeight: 'bold', fontSize: '16px' }}>合计:</span>
+                    <span style={{ fontWeight: 'bold', fontSize: '16px' }}>
+                      {formatAmount(viewingBill.amount)}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {viewingBill.note && (
+              <>
+                <h3 style={{ marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #f0f0f0' }}>
+                  备注
+                </h3>
+                <p style={{ margin: 0, padding: '8px 0', background: '#f5f5f5', paddingLeft: 12, paddingRight: 12, borderRadius: 4 }}>
+                  {viewingBill.note}
+                </p>
+              </>
+            )}
+          </div>
+        )}
       </Modal>
 
       <OperationLogModal

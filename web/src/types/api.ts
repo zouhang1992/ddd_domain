@@ -59,6 +59,7 @@ export interface Bill {
   waterAmount: number;
   electricAmount: number;
   otherAmount: number;
+  refundDepositAmount: number;
   paidAt: string | null;
   note: string;
   createdAt: string;

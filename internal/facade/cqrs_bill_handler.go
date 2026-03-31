@@ -41,15 +41,16 @@ func (h *CQRSBillHandler) RegisterRoutes(mux *http.ServeMux) {
 // Create 创建账单
 func (h *CQRSBillHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		LeaseID        string     `json:"lease_id"`
-		Type           string     `json:"type"`
-		Amount         int64      `json:"amount"`
-		RentAmount     int64      `json:"rent_amount"`
-		WaterAmount    int64      `json:"water_amount"`
-		ElectricAmount int64      `json:"electric_amount"`
-		OtherAmount    int64      `json:"other_amount"`
-		DueDate        string     `json:"due_date"`
-		Note           string     `json:"note"`
+		LeaseID             string     `json:"lease_id"`
+		Type                string     `json:"type"`
+		Amount              int64      `json:"amount"`
+		RentAmount          int64      `json:"rent_amount"`
+		WaterAmount         int64      `json:"water_amount"`
+		ElectricAmount      int64      `json:"electric_amount"`
+		OtherAmount         int64      `json:"other_amount"`
+		RefundDepositAmount int64      `json:"refund_deposit_amount"`
+		DueDate             string     `json:"due_date"`
+		Note                string     `json:"note"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -63,15 +64,16 @@ func (h *CQRSBillHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := bill.CreateBillCommand{
-		LeaseID:        req.LeaseID,
-		Type:           billmodel.BillType(req.Type),
-		Amount:         req.Amount,
-		RentAmount:     req.RentAmount,
-		WaterAmount:    req.WaterAmount,
-		ElectricAmount: req.ElectricAmount,
-		OtherAmount:    req.OtherAmount,
-		DueDate:        dueDate,
-		Note:           req.Note,
+		LeaseID:             req.LeaseID,
+		Type:                billmodel.BillType(req.Type),
+		Amount:              req.Amount,
+		RentAmount:          req.RentAmount,
+		WaterAmount:         req.WaterAmount,
+		ElectricAmount:      req.ElectricAmount,
+		OtherAmount:         req.OtherAmount,
+		RefundDepositAmount: req.RefundDepositAmount,
+		DueDate:             dueDate,
+		Note:                req.Note,
 	}
 
 	result, err := h.commandBus.Dispatch(cmd)
@@ -133,13 +135,14 @@ func (h *CQRSBillHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *CQRSBillHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	var req struct {
-		Amount         int64      `json:"amount"`
-		RentAmount     int64      `json:"rent_amount"`
-		WaterAmount    int64      `json:"water_amount"`
-		ElectricAmount int64      `json:"electric_amount"`
-		OtherAmount    int64      `json:"other_amount"`
-		DueDate        string     `json:"due_date"`
-		Note           string     `json:"note"`
+		Amount              int64      `json:"amount"`
+		RentAmount          int64      `json:"rent_amount"`
+		WaterAmount         int64      `json:"water_amount"`
+		ElectricAmount      int64      `json:"electric_amount"`
+		OtherAmount         int64      `json:"other_amount"`
+		RefundDepositAmount int64      `json:"refund_deposit_amount"`
+		DueDate             string     `json:"due_date"`
+		Note                string     `json:"note"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -153,14 +156,15 @@ func (h *CQRSBillHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := bill.UpdateBillCommand{
-		ID:             id,
-		Amount:         req.Amount,
-		RentAmount:     req.RentAmount,
-		WaterAmount:    req.WaterAmount,
-		ElectricAmount: req.ElectricAmount,
-		OtherAmount:    req.OtherAmount,
-		DueDate:        dueDate,
-		Note:           req.Note,
+		ID:                  id,
+		Amount:              req.Amount,
+		RentAmount:          req.RentAmount,
+		WaterAmount:         req.WaterAmount,
+		ElectricAmount:      req.ElectricAmount,
+		OtherAmount:         req.OtherAmount,
+		RefundDepositAmount: req.RefundDepositAmount,
+		DueDate:             dueDate,
+		Note:                req.Note,
 	}
 
 	result, err := h.commandBus.Dispatch(cmd)

@@ -9,15 +9,16 @@ import (
 
 // CreateBillCommand 创建账单命令
 type CreateBillCommand struct {
-	LeaseID        string
-	Type           billmodel.BillType
-	Amount         int64
-	RentAmount     int64
-	WaterAmount    int64
-	ElectricAmount int64
-	OtherAmount    int64
-	DueDate        time.Time
-	Note           string
+	LeaseID             string
+	Type                billmodel.BillType
+	Amount              int64
+	RentAmount          int64
+	WaterAmount         int64
+	ElectricAmount      int64
+	OtherAmount         int64
+	RefundDepositAmount int64
+	DueDate             time.Time
+	Note                string
 }
 
 // CommandName 实现 Command 接口
@@ -59,14 +60,15 @@ func (c CreateBillCommand) Validate() error {
 
 // UpdateBillCommand 更新账单命令
 type UpdateBillCommand struct {
-	ID             string
-	Amount         int64
-	RentAmount     int64
-	WaterAmount    int64
-	ElectricAmount int64
-	OtherAmount    int64
-	DueDate        time.Time
-	Note           string
+	ID                  string
+	Amount              int64
+	RentAmount          int64
+	WaterAmount         int64
+	ElectricAmount      int64
+	OtherAmount         int64
+	RefundDepositAmount int64
+	DueDate             time.Time
+	Note                string
 }
 
 // CommandName 实现 Command 接口

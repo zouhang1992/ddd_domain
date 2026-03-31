@@ -25,6 +25,17 @@ func NewBus(logger *zap.Logger) *Bus {
 func (b *Bus) Subscribe(eventName string, handler EventHandler) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
+	// 检查是否已经订阅过相同的处理器（避免重复订阅）
+	handlers := b.subscribers[eventName]
+	for _, h := range handlers {
+		if h == handler {
+			b.log.Debug("Event handler already subscribed, skipping",
+				zap.String("event", eventName))
+			return
+		}
+	}
+
 	b.subscribers[eventName] = append(b.subscribers[eventName], handler)
 	b.log.Info("Event subscriber added", zap.String("event", eventName))
 }

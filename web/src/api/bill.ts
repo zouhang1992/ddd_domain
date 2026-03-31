@@ -41,6 +41,7 @@ export const billApi = {
     waterAmount: number;
     electricAmount: number;
     otherAmount: number;
+    refundDepositAmount?: number;
     paidAt: string | null;
     note: string;
   }) => {
@@ -54,6 +55,7 @@ export const billApi = {
     waterAmount: number;
     electricAmount: number;
     otherAmount: number;
+    refundDepositAmount?: number;
     paidAt: string | null;
     note: string;
   }) => {

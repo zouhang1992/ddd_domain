@@ -36,7 +36,7 @@ func (h *CommandHandler) HandleCreateBill(cmd common.Command) (any, error) {
 	var bill *billmodel.Bill
 
 	// If detailed amounts are provided, use the new constructor
-	if createCmd.RentAmount > 0 || createCmd.WaterAmount > 0 || createCmd.ElectricAmount > 0 || createCmd.OtherAmount > 0 {
+	if createCmd.RentAmount > 0 || createCmd.WaterAmount > 0 || createCmd.ElectricAmount > 0 || createCmd.OtherAmount > 0 || createCmd.RefundDepositAmount > 0 {
 		bill = billmodel.NewBillWithDetails(
 			id,
 			createCmd.LeaseID,
@@ -45,6 +45,7 @@ func (h *CommandHandler) HandleCreateBill(cmd common.Command) (any, error) {
 			createCmd.WaterAmount,
 			createCmd.ElectricAmount,
 			createCmd.OtherAmount,
+			createCmd.RefundDepositAmount,
 			createCmd.DueDate,
 			createCmd.Note,
 		)
@@ -88,12 +89,13 @@ func (h *CommandHandler) HandleUpdateBill(cmd common.Command) (any, error) {
 	}
 
 	// If detailed amounts are provided, use the new update method
-	if updateCmd.RentAmount > 0 || updateCmd.WaterAmount > 0 || updateCmd.ElectricAmount > 0 || updateCmd.OtherAmount > 0 {
+	if updateCmd.RentAmount > 0 || updateCmd.WaterAmount > 0 || updateCmd.ElectricAmount > 0 || updateCmd.OtherAmount > 0 || updateCmd.RefundDepositAmount > 0 {
 		bill.UpdateWithDetails(
 			updateCmd.RentAmount,
 			updateCmd.WaterAmount,
 			updateCmd.ElectricAmount,
 			updateCmd.OtherAmount,
+			updateCmd.RefundDepositAmount,
 			updateCmd.DueDate,
 			updateCmd.Note,
 		)

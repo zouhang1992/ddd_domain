@@ -41,6 +41,25 @@ func (r *OperationLogRepository) Save(log *operationlogmodel.OperationLog) error
 		log.ID = uuid.NewString()
 	}
 
+	// 检查是否已存在相同的日志（去重）
+	// 通过 event_name, aggregate_id, timestamp 判断是否是同一条日志
+	var exists bool
+	err := r.conn.DB().QueryRow(`
+		SELECT EXISTS(
+			SELECT 1 FROM operation_logs
+			WHERE event_name = ?
+			AND aggregate_id = ?
+			AND timestamp = ?
+		)`,
+		log.EventName, log.AggregateID, log.Timestamp).Scan(&exists)
+	if err != nil {
+		return err
+	}
+	if exists {
+		// 已存在相同日志，跳过保存
+		return nil
+	}
+
 	detailsJSON, err := json.Marshal(log.Details)
 	if err != nil {
 		detailsJSON = []byte("{}")
