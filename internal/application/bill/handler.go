@@ -46,12 +46,14 @@ func (h *CommandHandler) HandleCreateBill(cmd common.Command) (any, error) {
 			createCmd.ElectricAmount,
 			createCmd.OtherAmount,
 			createCmd.RefundDepositAmount,
+			createCmd.BillStart,
+			createCmd.BillEnd,
 			createCmd.DueDate,
 			createCmd.Note,
 		)
 	} else {
 		// Fall back to traditional single amount
-		bill = billmodel.NewBill(id, createCmd.LeaseID, createCmd.Type, createCmd.Amount, createCmd.DueDate, createCmd.Note)
+		bill = billmodel.NewBill(id, createCmd.LeaseID, createCmd.Type, createCmd.Amount, createCmd.BillStart, createCmd.BillEnd, createCmd.DueDate, createCmd.Note)
 	}
 
 	if err := h.repo.Save(bill); err != nil {
@@ -96,12 +98,14 @@ func (h *CommandHandler) HandleUpdateBill(cmd common.Command) (any, error) {
 			updateCmd.ElectricAmount,
 			updateCmd.OtherAmount,
 			updateCmd.RefundDepositAmount,
+			updateCmd.BillStart,
+			updateCmd.BillEnd,
 			updateCmd.DueDate,
 			updateCmd.Note,
 		)
 	} else {
 		// Fall back to traditional single amount update
-		bill.Update(updateCmd.Amount, updateCmd.DueDate, updateCmd.Note)
+		bill.Update(updateCmd.Amount, updateCmd.BillStart, updateCmd.BillEnd, updateCmd.DueDate, updateCmd.Note)
 	}
 
 	if err := h.repo.Save(bill); err != nil {
