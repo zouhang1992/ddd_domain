@@ -6,6 +6,8 @@ import (
 	"github.com/zouhang1992/ddd_domain/internal/application/common"
 	billrepo "github.com/zouhang1992/ddd_domain/internal/domain/bill/repository"
 	leaserepo "github.com/zouhang1992/ddd_domain/internal/domain/lease/repository"
+	printmodel "github.com/zouhang1992/ddd_domain/internal/domain/print/model"
+	printrepo "github.com/zouhang1992/ddd_domain/internal/domain/print/repository"
 	printservice "github.com/zouhang1992/ddd_domain/internal/domain/print/service"
 	domerrors "github.com/zouhang1992/ddd_domain/internal/domain/common/errors"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/event"
@@ -71,25 +73,75 @@ type QueryHandler struct {
 	billRepo     billrepo.BillRepository
 	leaseRepo    leaserepo.LeaseRepository
 	printService *printservice.PrintService
+	printJobRepo printrepo.PrintJobRepository
 }
 
 // NewQueryHandler 创建打印查询处理器
-func NewQueryHandler(billRepo billrepo.BillRepository, leaseRepo leaserepo.LeaseRepository, printService *printservice.PrintService) *QueryHandler {
-	return &QueryHandler{billRepo: billRepo, leaseRepo: leaseRepo, printService: printService}
+func NewQueryHandler(billRepo billrepo.BillRepository, leaseRepo leaserepo.LeaseRepository, printService *printservice.PrintService, printJobRepo printrepo.PrintJobRepository) *QueryHandler {
+	return &QueryHandler{billRepo: billRepo, leaseRepo: leaseRepo, printService: printService, printJobRepo: printJobRepo}
 }
 
 // HandleGetPrintJob 处理获取打印作业查询
 func (h *QueryHandler) HandleGetPrintJob(q common.Query) (any, error) {
-	return nil, nil
+	getQuery, ok := q.(GetPrintJobQuery)
+	if !ok {
+		return nil, fmt.Errorf("invalid query type")
+	}
+
+	job, err := h.printJobRepo.FindByID(getQuery.JobID)
+	if err != nil {
+		return nil, err
+	}
+	if job == nil {
+		return nil, fmt.Errorf("print job not found")
+	}
+
+	return toPrintJobResult(job), nil
 }
 
 // HandleListPrintJobs 处理列出打印作业查询
 func (h *QueryHandler) HandleListPrintJobs(q common.Query) (any, error) {
+	listQuery, ok := q.(ListPrintJobsQuery)
+	if !ok {
+		return nil, fmt.Errorf("invalid query type")
+	}
+
+	var status printmodel.PrintJobStatus
+	if listQuery.Status != "" {
+		status = printmodel.PrintJobStatus(listQuery.Status)
+	}
+
+	var jobType printmodel.PrintJobType
+	if listQuery.Type != "" {
+		jobType = printmodel.PrintJobType(listQuery.Type)
+	}
+
+	offset := listQuery.Offset
+	limit := listQuery.Limit
+	if limit <= 0 {
+		limit = 10
+	}
+
+	jobs, total, err := h.printJobRepo.FindByFilters(status, jobType, listQuery.StartDate, listQuery.EndDate, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]*PrintJobResult, len(jobs))
+	for i, job := range jobs {
+		results[i] = toPrintJobResult(job)
+	}
+
+	page := 1
+	if limit > 0 {
+		page = (offset / limit) + 1
+	}
+
 	return &PrintJobsQueryResult{
-		Items: []interface{}{},
-		Total: 0,
-		Page:  1,
-		Limit: 10,
+		Items: results,
+		Total: total,
+		Page:  page,
+		Limit: limit,
 	}, nil
 }
 
@@ -117,4 +169,33 @@ func (h *QueryHandler) HandleGetPrintContent(q common.Query) (any, error) {
 	}
 
 	return h.printService.GenerateInvoiceContent(bill, lease), nil
+}
+
+// toPrintJobResult 转换领域模型为查询结果
+func toPrintJobResult(job *printmodel.PrintJob) *PrintJobResult {
+	amountYuan := ""
+	if job.Amount > 0 {
+		amountYuan = fmt.Sprintf("%.2f", float64(job.Amount)/100)
+	}
+
+	return &PrintJobResult{
+		ID:           job.ID(),
+		Type:         job.Type,
+		Status:       job.Status,
+		ReferenceID:  job.ReferenceID,
+		TenantName:   job.TenantName,
+		TenantPhone:  job.TenantPhone,
+		RoomID:       job.RoomID,
+		RoomNumber:   job.RoomNumber,
+		Address:      job.Address,
+		LandlordName: job.LandlordName,
+		Amount:       job.Amount,
+		ErrorMsg:     job.ErrorMsg,
+		CreatedAt:    job.CreatedAt,
+		UpdatedAt:    job.UpdatedAt,
+		CompletedAt:  job.CompletedAt,
+		TypeText:     job.GetTypeText(),
+		StatusText:   job.GetStatusText(),
+		AmountYuan:   amountYuan,
+	}
 }

@@ -364,8 +364,18 @@ const Leases: React.FC = () => {
     },
     { title: '租户姓名', dataIndex: 'tenantName', key: 'tenantName' },
     { title: '租户电话', dataIndex: 'tenantPhone', key: 'tenantPhone' },
-    { title: '开始日期', dataIndex: 'startDate', key: 'startDate' },
-    { title: '结束日期', dataIndex: 'endDate', key: 'endDate' },
+    {
+      title: '开始日期',
+      dataIndex: 'startDate',
+      key: 'startDate',
+      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
+    },
+    {
+      title: '结束日期',
+      dataIndex: 'endDate',
+      key: 'endDate',
+      render: (date: string) => dayjs(date).format('YYYY-MM-DD'),
+    },
     {
       title: '租金',
       dataIndex: 'rentAmount',
@@ -397,6 +407,12 @@ const Leases: React.FC = () => {
           {statusMap[status] || status}
         </Tag>
       ),
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (createdAt: string) => createdAt ? dayjs(createdAt).format('YYYY-MM-DD HH:mm:ss') : '-',
     },
     {
       title: '操作',

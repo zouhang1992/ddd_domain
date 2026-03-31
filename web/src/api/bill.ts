@@ -75,17 +75,25 @@ export const billApi = {
     const response = await apiClient.get(`/bills/${id}/receipt`, {
       responseType: 'blob',
     });
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/html' }));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `receipt_${id}.rtf`);
+    link.setAttribute('download', `receipt_${id}.html`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
 
   confirmArrival: async (id: string, paidAt?: string) => {
     const response = await apiClient.post(`/bills/${id}/confirm-arrival`, paidAt ? { paidAt } : {});
+    return response.data;
+  },
+
+  getNextBillPeriod: async (leaseId: string) => {
+    const response = await apiClient.get<{ billStart: string }>(
+      `/leases/${leaseId}/next-bill-period`
+    );
     return response.data;
   },
 };

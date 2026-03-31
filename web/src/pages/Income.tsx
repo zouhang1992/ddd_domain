@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, DatePicker, Statistic, Table, Button, Spin, Alert, message, Row, Col, Tag } from 'antd';
+import { Card, DatePicker, Statistic, Table, Button, Spin, Alert, message, Row, Col, Tag, Select } from 'antd';
 import { DollarOutlined, DownloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { incomeApi } from '../api/income';
+import { locationApi } from '../api/location';
+import type { Location } from '../types/api';
 
 const { MonthPicker } = DatePicker;
+const { Option } = Select;
 
 interface IncomeItem {
   key: string;
@@ -32,12 +35,14 @@ const Income: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [incomeData, setIncomeData] = useState<any>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [locations, setLocations] = useState<Location[]>([]);
 
-  const fetchIncome = async (month?: string) => {
+  const fetchIncome = async (month?: string, locationId?: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await incomeApi.getReport(month);
+      const data = await incomeApi.getReport(month, locationId || undefined);
       setIncomeData(data);
       message.success('获取收入数据成功');
     } catch (err) {
@@ -48,19 +53,34 @@ const Income: React.FC = () => {
     }
   };
 
+  const fetchLocations = async () => {
+    try {
+      const data = await locationApi.list();
+      setLocations(data.items || []);
+    } catch (err) {
+      console.error('Failed to fetch locations:', err);
+    }
+  };
+
   useEffect(() => {
     fetchIncome();
+    fetchLocations();
   }, []);
 
   const handleMonthChange = (date: any) => {
     if (date) {
       const monthStr = date.format('YYYY-MM');
       setSelectedMonth(monthStr);
-      fetchIncome(monthStr);
+      fetchIncome(monthStr, selectedLocation || undefined);
     } else {
       setSelectedMonth(null);
-      fetchIncome();
+      fetchIncome(undefined, selectedLocation || undefined);
     }
+  };
+
+  const handleLocationChange = (locationId: string | null) => {
+    setSelectedLocation(locationId);
+    fetchIncome(selectedMonth || undefined, locationId || undefined);
   };
 
   const handleExport = () => {
@@ -173,10 +193,6 @@ const Income: React.FC = () => {
     },
   ];
 
-  const monthTitle = selectedMonth
-    ? `${selectedMonth} 收入汇总`
-    : '本月收入汇总';
-
   // 安全显示统计值
   const safeStatValue = (value: any): number => {
     const num = Number(value);
@@ -191,6 +207,18 @@ const Income: React.FC = () => {
       <div style={{ marginBottom: 16, display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>收入查询</h1>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+          <Select
+            placeholder="选择位置"
+            onChange={handleLocationChange}
+            allowClear={true}
+            style={{ width: 200 }}
+          >
+            {(locations || []).map(location => (
+              <Option key={location.id} value={location.id}>
+                {location.shortName}
+              </Option>
+            ))}
+          </Select>
           <MonthPicker
             placeholder="选择月份"
             onChange={handleMonthChange}
@@ -200,7 +228,7 @@ const Income: React.FC = () => {
           <Button
             type="primary"
             icon={<SearchOutlined />}
-            onClick={() => fetchIncome(selectedMonth || undefined)}
+            onClick={() => fetchIncome(selectedMonth || undefined, selectedLocation || undefined)}
             loading={loading}
           >
             查询

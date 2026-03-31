@@ -71,3 +71,18 @@ type IncomeReportQueryResult struct {
 	OtherTotal    int64
 	Total         int64
 }
+
+// GetNextBillPeriodQuery 获取租约下一个账单周期查询
+type GetNextBillPeriodQuery struct {
+	LeaseID string
+}
+
+// QueryName 实现 Query 接口
+func (q GetNextBillPeriodQuery) QueryName() string {
+	return "get_next_bill_period"
+}
+
+// NextBillPeriodQueryResult 下一个账单周期查询结果
+type NextBillPeriodQueryResult struct {
+	BillStart string `json:"bill_start"`
+}

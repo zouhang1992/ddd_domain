@@ -321,7 +321,7 @@ const Bills: React.FC = () => {
       render: (_: any, record: Bill) => {
         const lease = leases.find(l => l.id === record.leaseId);
         if (!lease) return '-';
-        return `${lease.startDate} ~ ${lease.endDate}`;
+        return `${dayjs(lease.startDate).format('YYYY-MM-DD')} ~ ${dayjs(lease.endDate).format('YYYY-MM-DD')}`;
       },
     },
     {
@@ -330,7 +330,7 @@ const Bills: React.FC = () => {
       width: 180,
       render: (_: any, record: Bill) => {
         if (record.billStart && record.billEnd) {
-          return `${record.billStart} ~ ${record.billEnd}`;
+          return `${dayjs(record.billStart).format('YYYY-MM-DD')} ~ ${dayjs(record.billEnd).format('YYYY-MM-DD')}`;
         }
         return '-';
       },
@@ -412,8 +412,18 @@ const Bills: React.FC = () => {
         return formatAmount(record.amount);
       },
     },
-    { title: '到账时间', dataIndex: 'paidAt', key: 'paidAt' },
-    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt' },
+    {
+      title: '到账时间',
+      dataIndex: 'paidAt',
+      key: 'paidAt',
+      render: (paidAt: string) => paidAt ? dayjs(paidAt).format('YYYY-MM-DD HH:mm:ss') : '-',
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (createdAt: string) => createdAt ? dayjs(createdAt).format('YYYY-MM-DD HH:mm:ss') : '-',
+    },
     {
       title: '操作',
       key: 'actions',
@@ -599,7 +609,22 @@ const Bills: React.FC = () => {
                 label="租约"
                 rules={[{ required: true, message: '请选择租约' }]}
               >
-                <Select placeholder="请选择租约" showSearch optionFilterProp="children">
+                <Select
+                  placeholder="请选择租约"
+                  showSearch
+                  optionFilterProp="children"
+                  onChange={async (leaseId) => {
+                    if (leaseId) {
+                      try {
+                        const data = await billApi.getNextBillPeriod(leaseId);
+                        form.setFieldValue('billStart', dayjs(data.billStart));
+                        form.setFieldValue('billEnd', null);
+                      } catch {
+                        message.error('获取默认计费开始时间失败');
+                      }
+                    }
+                  }}
+                >
                   {leases
                     .filter(lease => lease.status !== 'expired' && lease.status !== 'checkout')
                     .map(lease => {
@@ -845,12 +870,12 @@ const Bills: React.FC = () => {
                 </tr>
                 <tr>
                   <td style={{ padding: '8px 0', fontWeight: 'bold' }}>创建时间:</td>
-                  <td style={{ padding: '8px 0' }}>{viewingBill.createdAt}</td>
+                  <td style={{ padding: '8px 0' }}>{dayjs(viewingBill.createdAt).format('YYYY-MM-DD HH:mm:ss')}</td>
                 </tr>
                 {viewingBill.paidAt && (
                   <tr>
                     <td style={{ padding: '8px 0', fontWeight: 'bold' }}>到账时间:</td>
-                    <td style={{ padding: '8px 0' }}>{viewingBill.paidAt}</td>
+                    <td style={{ padding: '8px 0' }}>{dayjs(viewingBill.paidAt).format('YYYY-MM-DD HH:mm:ss')}</td>
                   </tr>
                 )}
               </tbody>

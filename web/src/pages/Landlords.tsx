@@ -3,6 +3,7 @@ import { Table, Button, Modal, Form, Input, message, Popconfirm, Pagination } fr
 import { PlusOutlined, EditOutlined, DeleteOutlined, HistoryOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { landlordApi, type LandlordQueryParams, type LandlordsQueryResult } from '../api/landlord';
 import type { Landlord } from '../types/api';
+import dayjs from 'dayjs';
 import OperationLogModal from '../components/OperationLogModal';
 
 const Landlords: React.FC = () => {
@@ -102,11 +103,15 @@ const Landlords: React.FC = () => {
   };
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
     { title: '姓名', dataIndex: 'name', key: 'name' },
     { title: '电话', dataIndex: 'phone', key: 'phone' },
     { title: '备注', dataIndex: 'note', key: 'note' },
-    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt' },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (createdAt: string) => createdAt ? dayjs(createdAt).format('YYYY-MM-DD HH:mm:ss') : '-',
+    },
     {
       title: '操作',
       key: 'actions',

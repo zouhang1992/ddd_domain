@@ -4,6 +4,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, HistoryOutlined, SearchOutl
 import { roomApi, type RoomQueryParams, type RoomsQueryResult } from '../api/room';
 import { locationApi } from '../api/location';
 import type { Room, Location } from '../types/api';
+import dayjs from 'dayjs';
 import OperationLogModal from '../components/OperationLogModal';
 
 const { Option } = Select;
@@ -135,7 +136,6 @@ const Rooms: React.FC = () => {
   };
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
     {
       title: '位置',
       key: 'location',
@@ -152,7 +152,12 @@ const Rooms: React.FC = () => {
       render: (status: string) => getRoomStatusDisplay(status),
     },
     { title: '标签', dataIndex: 'tags', key: 'tags', render: (tags: string[]) => tags.join(', ') },
-    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt' },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (createdAt: string) => createdAt ? dayjs(createdAt).format('YYYY-MM-DD HH:mm:ss') : '-',
+    },
     {
       title: '操作',
       key: 'actions',

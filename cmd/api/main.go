@@ -137,6 +137,7 @@ func registerQueryHandlers(
 	queryBus.Register("get_bill", busquery.HandlerFunc(billQueryHandler.HandleGetBill))
 	queryBus.Register("list_bills", busquery.HandlerFunc(billQueryHandler.HandleListBills))
 	queryBus.Register("income_report", busquery.HandlerFunc(billQueryHandler.HandleIncomeReport))
+	queryBus.Register("get_next_bill_period", busquery.HandlerFunc(billQueryHandler.HandleGetNextBillPeriod))
 	queryBus.Register("get_deposit", busquery.HandlerFunc(depositQueryHandler.HandleGetDeposit))
 	queryBus.Register("list_deposits", busquery.HandlerFunc(depositQueryHandler.HandleListDeposits))
 	queryBus.Register("get_location", busquery.HandlerFunc(locationQueryHandler.HandleGetLocation))

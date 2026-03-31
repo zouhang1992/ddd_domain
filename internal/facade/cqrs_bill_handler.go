@@ -36,6 +36,7 @@ func (h *CQRSBillHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("DELETE /bills/{id}", h.Delete)
 	mux.HandleFunc("GET /bills/{id}/receipt", h.PrintReceipt)
 	mux.HandleFunc("POST /bills/{id}/confirm-arrival", h.ConfirmArrival)
+	mux.HandleFunc("GET /leases/{leaseId}/next-bill-period", h.GetNextBillPeriod)
 }
 
 // Create 创建账单
@@ -284,4 +285,23 @@ func (h *CQRSBillHandler) ConfirmArrival(w http.ResponseWriter, r *http.Request)
 	bill := result.(any)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(bill)
+}
+
+// GetNextBillPeriod 获取租约的下一个账单周期
+func (h *CQRSBillHandler) GetNextBillPeriod(w http.ResponseWriter, r *http.Request) {
+	leaseId := r.PathValue("leaseId")
+	q := bill.GetNextBillPeriodQuery{LeaseID: leaseId}
+
+	result, err := h.queryBus.Dispatch(q)
+	if err != nil {
+		if err.Error() == "lease not found" {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(result)
 }

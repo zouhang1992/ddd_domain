@@ -22,15 +22,15 @@ func NewLeaseRepository(conn *Connection) leaserepo.LeaseRepository {
 type tempLease struct {
 	ID            string
 	RoomID        string
-	LandlordID    string
+	LandlordID    sql.NullString
 	TenantName    string
-	TenantPhone   string
+	TenantPhone   sql.NullString
 	StartDate     time.Time
 	EndDate       time.Time
 	RentAmount    int64
 	DepositAmount int64
 	Status        string
-	Note          string
+	Note          sql.NullString
 	LastChargeAt  *time.Time
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
@@ -78,12 +78,26 @@ func (r *LeaseRepository) FindByID(id string) (*leasemodel.Lease, error) {
 	}
 
 	// Now construct the lease using NewLease
-	lease := leasemodel.NewLease(temp.ID, temp.RoomID, temp.LandlordID, temp.TenantName, temp.TenantPhone,
-		temp.StartDate, temp.EndDate, temp.RentAmount, temp.DepositAmount, temp.Note)
+	landlordID := ""
+	if temp.LandlordID.Valid {
+		landlordID = temp.LandlordID.String
+	}
+	tenantPhone := ""
+	if temp.TenantPhone.Valid {
+		tenantPhone = temp.TenantPhone.String
+	}
+	note := ""
+	if temp.Note.Valid {
+		note = temp.Note.String
+	}
+	lease := leasemodel.NewLease(temp.ID, temp.RoomID, landlordID, temp.TenantName, tenantPhone,
+		temp.StartDate, temp.EndDate, temp.RentAmount, temp.DepositAmount, note)
 	lease.Status = leasemodel.LeaseStatus(temp.Status)
 	lease.LastChargeAt = temp.LastChargeAt
 	lease.CreatedAt = temp.CreatedAt
 	lease.UpdatedAt = temp.UpdatedAt
+	// Clear events that were automatically added by NewLease
+	lease.ClearEvents()
 
 	return lease, nil
 }
@@ -112,12 +126,25 @@ func (r *LeaseRepository) FindAll() ([]*leasemodel.Lease, error) {
 			return nil, err
 		}
 
-		lease := leasemodel.NewLease(temp.ID, temp.RoomID, temp.LandlordID, temp.TenantName, temp.TenantPhone,
-			temp.StartDate, temp.EndDate, temp.RentAmount, temp.DepositAmount, temp.Note)
+		landlordID := ""
+		if temp.LandlordID.Valid {
+			landlordID = temp.LandlordID.String
+		}
+		tenantPhone := ""
+		if temp.TenantPhone.Valid {
+			tenantPhone = temp.TenantPhone.String
+		}
+		note := ""
+		if temp.Note.Valid {
+			note = temp.Note.String
+		}
+		lease := leasemodel.NewLease(temp.ID, temp.RoomID, landlordID, temp.TenantName, tenantPhone,
+			temp.StartDate, temp.EndDate, temp.RentAmount, temp.DepositAmount, note)
 		lease.Status = leasemodel.LeaseStatus(temp.Status)
 		lease.LastChargeAt = temp.LastChargeAt
 		lease.CreatedAt = temp.CreatedAt
 		lease.UpdatedAt = temp.UpdatedAt
+		lease.ClearEvents()
 
 		leases = append(leases, lease)
 	}
@@ -170,12 +197,25 @@ func (r *LeaseRepository) FindActiveLeasesExpiringBefore(expireTime time.Time) (
 			return nil, err
 		}
 
-		lease := leasemodel.NewLease(temp.ID, temp.RoomID, temp.LandlordID, temp.TenantName, temp.TenantPhone,
-			temp.StartDate, temp.EndDate, temp.RentAmount, temp.DepositAmount, temp.Note)
+		landlordID := ""
+		if temp.LandlordID.Valid {
+			landlordID = temp.LandlordID.String
+		}
+		tenantPhone := ""
+		if temp.TenantPhone.Valid {
+			tenantPhone = temp.TenantPhone.String
+		}
+		note := ""
+		if temp.Note.Valid {
+			note = temp.Note.String
+		}
+		lease := leasemodel.NewLease(temp.ID, temp.RoomID, landlordID, temp.TenantName, tenantPhone,
+			temp.StartDate, temp.EndDate, temp.RentAmount, temp.DepositAmount, note)
 		lease.Status = leasemodel.LeaseStatus(temp.Status)
 		lease.LastChargeAt = temp.LastChargeAt
 		lease.CreatedAt = temp.CreatedAt
 		lease.UpdatedAt = temp.UpdatedAt
+		lease.ClearEvents()
 
 		leases = append(leases, lease)
 	}

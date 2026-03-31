@@ -93,14 +93,14 @@ export const leaseApi = {
     const response = await apiClient.get(`/leases/${id}/contract`, {
       responseType: 'blob',
     });
-    // 创建下载链接
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/html' }));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `租约合同_${id}.pdf`);
+    link.setAttribute('download', `contract_${id}.html`);
     document.body.appendChild(link);
     link.click();
-    link.remove();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
 
   activate: async (id: string) => {

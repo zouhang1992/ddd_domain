@@ -78,6 +78,7 @@ func (r *DepositRepository) FindByID(id string) (*depositmodel.Deposit, error) {
 	deposit.DeductedAt = temp.DeductedAt
 	deposit.CreatedAt = temp.CreatedAt
 	deposit.UpdatedAt = temp.UpdatedAt
+	deposit.ClearEvents()
 
 	return deposit, nil
 }

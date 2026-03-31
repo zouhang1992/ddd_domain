@@ -1,6 +1,8 @@
 package bill
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/zouhang1992/ddd_domain/internal/application/common"
 	billmodel "github.com/zouhang1992/ddd_domain/internal/domain/bill/model"
@@ -274,4 +276,45 @@ func (h *QueryHandler) HandleIncomeReport(q common.Query) (any, error) {
 	}
 
 	return &result, nil
+}
+
+// HandleGetNextBillPeriod 处理获取下一个账单周期查询
+func (h *QueryHandler) HandleGetNextBillPeriod(q common.Query) (any, error) {
+	getQuery, ok := q.(GetNextBillPeriodQuery)
+	if !ok {
+		return nil, domerrors.ErrInvalidCommand
+	}
+
+	// 获取租约的所有账单
+	bills, err := h.billRepo.FindByLeaseID(getQuery.LeaseID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 如果有账单，找到最大的 billEnd + 1天
+	if len(bills) > 0 {
+		var maxBillEnd time.Time
+		for _, bill := range bills {
+			if bill.BillEnd.After(maxBillEnd) {
+				maxBillEnd = bill.BillEnd
+			}
+		}
+		nextBillStart := maxBillEnd.AddDate(0, 0, 1)
+		return &NextBillPeriodQueryResult{
+			BillStart: nextBillStart.Format("2006-01-02"),
+		}, nil
+	}
+
+	// 如果没有账单，获取租约信息，返回租约的 startDate
+	lease, err := h.leaseRepo.FindByID(getQuery.LeaseID)
+	if err != nil {
+		return nil, err
+	}
+	if lease == nil {
+		return nil, domerrors.ErrNotFound
+	}
+
+	return &NextBillPeriodQueryResult{
+		BillStart: lease.StartDate.Format("2006-01-02"),
+	}, nil
 }

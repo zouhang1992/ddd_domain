@@ -17,4 +17,5 @@ var Module = fx.Options(
 	fx.Provide(NewLocationRepository),
 	fx.Provide(NewRoomRepository),
 	fx.Provide(NewOperationLogRepository),
+	fx.Provide(NewPrintJobRepository),
 )

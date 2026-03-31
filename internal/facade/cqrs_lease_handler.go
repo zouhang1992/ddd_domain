@@ -2,6 +2,7 @@ package facade
 
 import (
 	"encoding/json"
+	"github.com/zouhang1992/ddd_domain/internal/application/common/service"
 	"github.com/zouhang1992/ddd_domain/internal/application/lease"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
@@ -12,15 +13,17 @@ import (
 
 // CQRSLeaseHandler 基于 CQRS 的租约 HTTP 处理器
 type CQRSLeaseHandler struct {
-	commandBus *buscommand.Bus
-	queryBus   *busquery.Bus
+	commandBus   *buscommand.Bus
+	queryBus     *busquery.Bus
+	printService *service.PrintService
 }
 
 // NewCQRSLeaseHandler 创建基于 CQRS 的租约处理器
-func NewCQRSLeaseHandler(commandBus *buscommand.Bus, queryBus *busquery.Bus) *CQRSLeaseHandler {
+func NewCQRSLeaseHandler(commandBus *buscommand.Bus, queryBus *busquery.Bus, printService *service.PrintService) *CQRSLeaseHandler {
 	return &CQRSLeaseHandler{
-		commandBus: commandBus,
-		queryBus:   queryBus,
+		commandBus:   commandBus,
+		queryBus:     queryBus,
+		printService: printService,
 	}
 }
 
@@ -35,6 +38,7 @@ func (h *CQRSLeaseHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /leases/{id}/checkout", h.Checkout)
 	mux.HandleFunc("POST /leases/{id}/checkout-with-bills", h.CheckoutWithBills)
 	mux.HandleFunc("PUT /leases/{id}/activate", h.Activate)
+	mux.HandleFunc("GET /leases/{id}/contract", h.PrintContract)
 }
 
 // Create 创建租约
@@ -349,4 +353,22 @@ func (h *CQRSLeaseHandler) CheckoutWithBills(w http.ResponseWriter, r *http.Requ
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(result)
+}
+
+// PrintContract 打印合同
+func (h *CQRSLeaseHandler) PrintContract(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	content, err := h.printService.PrintContract(id)
+	if err != nil {
+		if err.Error() == "lease not found" {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"contract.html\"")
+	w.Write(content)
 }

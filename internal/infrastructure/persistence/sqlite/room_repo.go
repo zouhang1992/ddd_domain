@@ -78,6 +78,7 @@ func (r *RoomRepository) FindByID(id string) (*roommodel.Room, error) {
 	room.Status = status
 	room.CreatedAt = temp.CreatedAt
 	room.UpdatedAt = temp.UpdatedAt
+	room.ClearEvents()
 
 	return room, nil
 }

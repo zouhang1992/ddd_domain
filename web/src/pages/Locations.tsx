@@ -3,6 +3,7 @@ import { Table, Button, Modal, Form, Input, message, Popconfirm, Pagination } fr
 import { PlusOutlined, EditOutlined, DeleteOutlined, HistoryOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { locationApi, type LocationQueryParams, type LocationsQueryResult } from '../api/location';
 import type { Location } from '../types/api';
+import dayjs from 'dayjs';
 import OperationLogModal from '../components/OperationLogModal';
 
 const Locations: React.FC = () => {
@@ -102,10 +103,14 @@ const Locations: React.FC = () => {
   };
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
     { title: '简称', dataIndex: 'shortName', key: 'shortName' },
     { title: '详情', dataIndex: 'detail', key: 'detail' },
-    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt' },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (createdAt: string) => createdAt ? dayjs(createdAt).format('YYYY-MM-DD HH:mm:ss') : '-',
+    },
     {
       title: '操作',
       key: 'actions',

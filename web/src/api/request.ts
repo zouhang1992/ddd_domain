@@ -73,8 +73,8 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
   (response) => {
-    // 响应时将蛇形命名转换为驼峰命名
-    if (response.data) {
+    // 响应时将蛇形命名转换为驼峰命名，但 blob 类型除外
+    if (response.data && response.config.responseType !== 'blob') {
       response.data = convertKeysToCamelCase(response.data);
     }
     return response;

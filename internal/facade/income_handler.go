@@ -8,17 +8,21 @@ import (
 
 	billrepo "github.com/zouhang1992/ddd_domain/internal/domain/bill/repository"
 	depositrepo "github.com/zouhang1992/ddd_domain/internal/domain/deposit/repository"
+	leaserepo "github.com/zouhang1992/ddd_domain/internal/domain/lease/repository"
+	roomrepo "github.com/zouhang1992/ddd_domain/internal/domain/room/repository"
 )
 
 // IncomeHandler 收入汇总 HTTP 处理器
 type IncomeHandler struct {
 	billRepo    billrepo.BillRepository
 	depositRepo depositrepo.DepositRepository
+	leaseRepo   leaserepo.LeaseRepository
+	roomRepo    roomrepo.RoomRepository
 }
 
 // NewIncomeHandler 创建收入汇总处理器
-func NewIncomeHandler(billRepo billrepo.BillRepository, depositRepo depositrepo.DepositRepository) *IncomeHandler {
-	return &IncomeHandler{billRepo: billRepo, depositRepo: depositRepo}
+func NewIncomeHandler(billRepo billrepo.BillRepository, depositRepo depositrepo.DepositRepository, leaseRepo leaserepo.LeaseRepository, roomRepo roomrepo.RoomRepository) *IncomeHandler {
+	return &IncomeHandler{billRepo: billRepo, depositRepo: depositRepo, leaseRepo: leaseRepo, roomRepo: roomRepo}
 }
 
 // RegisterRoutes 注册路由
@@ -74,6 +78,7 @@ func isSameMonth(t time.Time, year int, month time.Month) bool {
 func (h *IncomeHandler) GetIncome(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	monthStr := query.Get("month")
+	locationID := query.Get("location_id")
 
 	var year int
 	var mon time.Month
@@ -105,12 +110,46 @@ func (h *IncomeHandler) GetIncome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 构建 leaseID -> locationID 的映射（即使没有位置筛选也需要，用于押金筛选）
+	leaseToLocation := make(map[string]string)
+	leases, err := h.leaseRepo.FindAll()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	rooms, err := h.roomRepo.FindAll()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// 构建 roomID -> locationID 映射
+	roomToLocation := make(map[string]string)
+	for _, room := range rooms {
+		roomToLocation[room.ID()] = room.LocationID
+	}
+
+	// 构建 leaseID -> locationID 映射
+	for _, lease := range leases {
+		if locID, ok := roomToLocation[lease.RoomID]; ok {
+			leaseToLocation[lease.ID()] = locID
+		}
+	}
+
 	var report IncomeReport
 	report.Year = year
 	report.Month = int(mon)
 
 	// 计算账单收入和支出（只统计已支付且在指定月份的账单）
 	for _, bill := range bills {
+		// 位置筛选
+		if locationID != "" {
+			billLocationID := leaseToLocation[bill.LeaseID]
+			if billLocationID != locationID {
+				continue
+			}
+		}
+
 		if bill.PaidAt != nil && isSameMonth(*bill.PaidAt, year, mon) {
 			if bill.Type == "checkout" {
 				// 退租结算账单：分别处理租金的收入和支出
@@ -137,6 +176,14 @@ func (h *IncomeHandler) GetIncome(w http.ResponseWriter, r *http.Request) {
 
 	// 计算押金收入和支出
 	for _, deposit := range deposits {
+		// 位置筛选
+		if locationID != "" {
+			depositLocationID := leaseToLocation[deposit.LeaseID]
+			if depositLocationID != locationID {
+				continue
+			}
+		}
+
 		// 押金收入：created_at 在指定月份
 		if isSameMonth(deposit.CreatedAt, year, mon) {
 			report.DepositIncome += deposit.Amount

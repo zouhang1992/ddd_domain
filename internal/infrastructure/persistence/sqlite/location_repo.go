@@ -55,6 +55,7 @@ func (r *LocationRepository) FindByID(id string) (*locationmodel.Location, error
 	location := locationmodel.NewLocation(temp.ID, temp.ShortName, temp.Detail)
 	location.CreatedAt = temp.CreatedAt
 	location.UpdatedAt = temp.UpdatedAt
+	location.ClearEvents()
 
 	return location, nil
 }

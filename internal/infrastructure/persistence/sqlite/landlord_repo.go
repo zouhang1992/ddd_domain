@@ -56,6 +56,7 @@ func (r *LandlordRepository) FindByID(id string) (*landlordmodel.Landlord, error
 	landlord := landlordmodel.NewLandlord(temp.ID, temp.Name, temp.Phone, temp.Note)
 	landlord.CreatedAt = temp.CreatedAt
 	landlord.UpdatedAt = temp.UpdatedAt
+	landlord.ClearEvents()
 
 	return landlord, nil
 }

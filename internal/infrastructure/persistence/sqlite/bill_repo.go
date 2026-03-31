@@ -28,7 +28,7 @@ func (r *BillRepository) Save(bill *billmodel.Bill) error {
 	_, err := r.conn.DB().Exec(`
 		INSERT OR REPLACE INTO bills (
 			id, lease_id, type, status, amount, rent_amount, water_amount, electric_amount, other_amount, refund_deposit_amount, bill_start, bill_end, due_date, paid_at, note, created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`,
 		bill.IDField, bill.LeaseID, string(bill.Type), string(bill.Status), bill.Amount, bill.RentAmount, bill.WaterAmount, bill.ElectricAmount, bill.OtherAmount, bill.RefundDepositAmount, bill.BillStart, bill.BillEnd, bill.DueDate,
 		paidAt, bill.Note, bill.CreatedAt, bill.UpdatedAt)
@@ -98,6 +98,7 @@ func (r *BillRepository) FindByID(id string) (*billmodel.Bill, error) {
 	bill.PaidAt = temp.PaidAt
 	bill.CreatedAt = temp.CreatedAt
 	bill.UpdatedAt = temp.UpdatedAt
+	bill.ClearEvents()
 
 	return bill, nil
 }
