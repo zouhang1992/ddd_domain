@@ -492,3 +492,563 @@ net/http.(*conn).serve
 2026-04-01T23:08:42.450+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "txrTVctQF_Orn_JOfqJk2mAmf3kWbrOD1qCiCwI1qhg", "return_url": "/"}
 2026-04-01T23:08:44.458+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "u9IWnJj6v-RHbqeYJ1ijYeFsNjlbZmeqLCqYK7JWlDs", "return_url": "/deposits"}
 2026-04-01T23:08:53.731+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/deposits"}
+2026-04-01T23:16:11.508+0800	[34mINFO[0m	logging/logging.go:77	Logging system initialized	{"environment": "development", "level": "info"}
+2026-04-01T23:16:11.509+0800	[34mINFO[0m	sqlite/connection.go:23	Opening database connection	{"dsn": "data/ddd.db"}
+2026-04-01T23:16:11.516+0800	[34mINFO[0m	sqlite/connection.go:66	Database connection established successfully
+2026-04-01T23:16:11.516+0800	[34mINFO[0m	sqlite/connection.go:76	Database schema initialized successfully
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.activated"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.checkout"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.expired"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	api/main.go:65	Lease room event handler registered	{"events": "lease.activated, lease.checkout, lease.expired"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.created"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.updated"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.deleted"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.rented"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.available"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.created"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.activated"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.checkout"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.expired"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.renewed"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.deleted"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.created"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.updated"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.deleted"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.created"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.updated"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.paid"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.deleted"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.created"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.updated"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.deleted"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.created"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.returning"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.returned"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.deleted"}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	api/main.go:88	Operation log event handler registered	{"events": ["room.created", "room.updated", "room.deleted", "room.rented", "room.available", "lease.created", "lease.activated", "lease.checkout", "lease.expired", "lease.renewed", "lease.deleted", "landlord.created", "landlord.updated", "landlord.deleted", "bill.created", "bill.updated", "bill.paid", "bill.deleted", "location.created", "location.updated", "location.deleted", "deposit.created", "deposit.returning", "deposit.returned", "deposit.deleted"]}
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	lease/scheduler.go:33	Starting lease expiration scheduler
+2026-04-01T23:16:11.517+0800	[34mINFO[0m	lease/scheduler.go:77	Running lease expiration check
+2026-04-01T23:16:11.518+0800	[34mINFO[0m	lease/scheduler.go:85	Lease expiration check completed	{"processed_count": 0}
+2026-04-01T23:16:11.518+0800	[34mINFO[0m	lease/scheduler.go:54	Lease expiration scheduler started, will run hourly
+2026-04-01T23:16:11.518+0800	[34mINFO[0m	facade/oidc_handler.go:41	OIDC Handler initialized	{"dev_mode": false, "issuer_url": "http://localhost:8081/realms/master", "client_id": "ddd-app", "redirect_url": "http://localhost:8080/oauth2/callback"}
+2026-04-01T23:16:11.518+0800	[34mINFO[0m	api/main.go:218	Starting server	{"addr": ":8080"}
+2026-04-01T23:16:25.361+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "509O2hKMKCwb4JlFrKp61leX-zx0DaIt0DdE51TDD5k", "return_url": "/locations"}
+2026-04-01T23:16:25.380+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:25.429+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "DHRnaE9zV5Mdn-SD4CZef-q00ngluPExADC8QlWwf4M", "return_url": "/locations"}
+2026-04-01T23:16:25.449+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:25.484+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "Q4_AjVqSau6wPA_nwpYKl3NwcSUHJaigB0rR3YAwWUs", "return_url": "/locations"}
+2026-04-01T23:16:25.501+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:25.536+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "mTd_OnlgMNmyVauAtRpeUwDqBKn72YqwC2bxVrMVA7Y", "return_url": "/locations"}
+2026-04-01T23:16:25.549+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:25.584+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "ahDZAYNxyT7mS3UR969df4nga0ZaDvN7Hc6MCc7lEro", "return_url": "/locations"}
+2026-04-01T23:16:25.600+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:25.651+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "vnsPEturSIeOOk7gDrSA4Zg_ewV38SbaCY8SLAZIkkc", "return_url": "/locations"}
+2026-04-01T23:16:25.667+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:25.704+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "ZTW_giELYRQi_g_TOAEkiZcZ75uldfqVl1guankynt4", "return_url": "/locations"}
+2026-04-01T23:16:25.721+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:25.755+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "2CoXPeBkM2TZRyJOPYs5gaNNY5dqcSefY4qJKK5c1R4", "return_url": "/locations"}
+2026-04-01T23:16:25.772+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:25.805+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "I8TGPKxFYsXyc125kFptTd0UT_CTl-59YGyaC3Wpuyo", "return_url": "/locations"}
+2026-04-01T23:16:25.822+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:25.857+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "4-t8FdeDIWxr2BTA9W3GC7gr9xWccXe5b5un6oX6-x4", "return_url": "/locations"}
+2026-04-01T23:16:25.875+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:25.909+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "2AcPvklZID3B1WyVJofkijBYizfQahlKuABB7DAWCXg", "return_url": "/locations"}
+2026-04-01T23:16:25.923+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:25.956+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "jlmGcjpjO3vGAI-HhuxK5Lz-WOUzCjLxtmmT0Kpx-TA", "return_url": "/locations"}
+2026-04-01T23:16:25.965+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.000+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "YeTM6462VGtXZe4OPSi2XADR3OqrExIRjlj4oLCt58E", "return_url": "/locations"}
+2026-04-01T23:16:26.007+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.044+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "fIIladddC9dypRmNZ1hnS24_zCfgcmyDfLyrwr7REUk", "return_url": "/locations"}
+2026-04-01T23:16:26.051+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.084+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "KLr6-gbnwZRVvEQShYpSbVPLEL7CJDyJ8vx6rOHWlf8", "return_url": "/locations"}
+2026-04-01T23:16:26.091+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.127+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "yjuaYA7ds2zF9ijvp0nwmrWI2ptRLYO2GFMQly3R5zo", "return_url": "/locations"}
+2026-04-01T23:16:26.136+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.170+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "3f4xjTjAJmcnGbkw4IgXVojvNMso4DcRd0Oy--v59og", "return_url": "/locations"}
+2026-04-01T23:16:26.178+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.213+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "jOFHGeAP1svAqwI4gsp7npERB8P-A42oSM6lUNeZhSk", "return_url": "/locations"}
+2026-04-01T23:16:26.222+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.256+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "Hk81zTYl3Z0AJ4I7chdQ5eRj_W_Hon-eDADovxwgYkI", "return_url": "/locations"}
+2026-04-01T23:16:26.266+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.300+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "6-QQf7c1w_WI1fzS3rHmwr3rZSYUABkZw0E8MReXFEA", "return_url": "/locations"}
+2026-04-01T23:16:26.313+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.348+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "t9SJ35aJZSDSy-4Obp9v7PxDcuyUy3xw8k4AMr3Dg2I", "return_url": "/locations"}
+2026-04-01T23:16:26.361+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.396+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "8RH-4sUxI_nEzHoYbft4ezId66YJZfVdrRg1_TUMiRw", "return_url": "/locations"}
+2026-04-01T23:16:26.413+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.447+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "CMcTGRuRnikJuV9JSdlBZOrxTtHd3MgnboOri1ctcO4", "return_url": "/locations"}
+2026-04-01T23:16:26.467+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.503+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "TfLMHr8i7DIQcAGoJ5sPEJw6e5Rjn_mUM41egQuRwaM", "return_url": "/locations"}
+2026-04-01T23:16:26.521+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.555+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "XsT04aioY7d_jaXbM0ouMx9MCG7cuebFnW5VCSEx_Qc", "return_url": "/locations"}
+2026-04-01T23:16:26.571+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.607+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "G13YfkiGWoBOOcLlS20JBB_x93l5XdFZcixFnsw8c40", "return_url": "/locations"}
+2026-04-01T23:16:26.623+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.660+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "RHdjXr-Cu2Gcwbj1-7kwGf8bs7ZuKAEKmJRfwJqCBAc", "return_url": "/locations"}
+2026-04-01T23:16:26.678+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.711+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "jwGGdVdg2Cbki4ZPCVYQ_EfAHqlcG0T8ZnuP8Ew5p4g", "return_url": "/locations"}
+2026-04-01T23:16:26.727+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.762+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "UxnnmXVGQopbJTQ9LusQW2-M5PqkYcD-IbWj3UwUTSk", "return_url": "/locations"}
+2026-04-01T23:16:26.777+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.812+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "u_tRb_ZQSkWJljGVnyBxk-MZHj_jf15DIoqNvMmWu0E", "return_url": "/locations"}
+2026-04-01T23:16:26.820+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.855+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "3aq4e6J44S06QTt7z_CuJPwXfsWAKRauhyfR-hBu5ns", "return_url": "/locations"}
+2026-04-01T23:16:26.863+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.902+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "Se99y9qfedQG38nMT5bw1GCxvJ2b_531VGouMc8G4zg", "return_url": "/locations"}
+2026-04-01T23:16:26.912+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.950+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "wXxDbimRZOJ1GXM3ZiLvPFVfQcxFpqlTalqfEbwobks", "return_url": "/locations"}
+2026-04-01T23:16:26.956+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:26.992+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "ebJwdW5SYZxsPjroA686kgSvl-wzbYEWgBDU0V8GgxA", "return_url": "/locations"}
+2026-04-01T23:16:26.998+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.034+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "m7xPnyz0AsZoAGdtMUY8MoccxBuWYnDTcIN8J8h6z0k", "return_url": "/locations"}
+2026-04-01T23:16:27.040+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.076+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "vkYnZTu4eiatY-gEvwDImcZta99ktgJKrMCXSrjR7p4", "return_url": "/locations"}
+2026-04-01T23:16:27.083+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.123+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "MtUrWzMOarAQZV5K9NXcE8u4RvKVdFUGbNDAQiVN2WQ", "return_url": "/locations"}
+2026-04-01T23:16:27.131+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.165+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "FxYe6sP7DL_3zif2KHKeT43ENy7GrJ1Bu6cEOPEPrlw", "return_url": "/locations"}
+2026-04-01T23:16:27.172+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.205+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "BEWTEkAhLbLPR6UFecgCw3-jyILcvEx_QZbQEaYD-GU", "return_url": "/locations"}
+2026-04-01T23:16:27.220+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.255+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "XM5aG10uJQLAkd_YJbEBx3xZdFat2JgyI3zwINI9TEI", "return_url": "/locations"}
+2026-04-01T23:16:27.265+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.300+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "D6UffxZAJB9C8DVM42UInyvdJLtmVvtFIg3ltfPw4Bo", "return_url": "/locations"}
+2026-04-01T23:16:27.316+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.353+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "Xpk33uNmU2m7OcLZqKX-XV-JtmCeJVWkj0yJ0sfP8rw", "return_url": "/locations"}
+2026-04-01T23:16:27.371+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.406+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "JKOZpFCxo2vaO677Fs4pBwtImcwTusnjef0iYFZu3c4", "return_url": "/locations"}
+2026-04-01T23:16:27.424+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.461+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "K2ATFfE-Q1Q8O4djI74_ZLqaBuEnPJeWsuPfOFGyLVg", "return_url": "/locations"}
+2026-04-01T23:16:27.479+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.513+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "Bv_Rra89JZSrlLWj_uecuAUgy6bIbnCXx9d2JmkuR40", "return_url": "/locations"}
+2026-04-01T23:16:27.531+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.565+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "bCSm8Ihi87DODzjP8jP0s4XYxzMf6N-VH9QVqqgFb-k", "return_url": "/locations"}
+2026-04-01T23:16:27.583+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.623+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "6hMRsEGHgKEXbL4FDHg3fi9qWx1qzKObA5MhMLk4a8Y", "return_url": "/locations"}
+2026-04-01T23:16:27.637+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.671+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "MLiylNEi0yNx7_uwe42LrmWkyWmurm9QfXDdJ3nnlzs", "return_url": "/locations"}
+2026-04-01T23:16:27.689+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.725+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "D51_x3B3x2CJmM8DRq078WFswCuLtbTYsq3hMD1Zmn4", "return_url": "/locations"}
+2026-04-01T23:16:27.744+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.779+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "n5bc5lLJvCoXgTNUpBdSwfZDvlyiK8lgAtgHIzhZoyU", "return_url": "/locations"}
+2026-04-01T23:16:27.788+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.824+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "qhoyVKw5L1xECE3kjyBQqPg-PxO41paJoiWL2Oq9Qu0", "return_url": "/locations"}
+2026-04-01T23:16:27.833+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.872+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "iYYfZFbV_slseSaw2eTvwQvbOKoGVktDxKNcsAdhr4E", "return_url": "/locations"}
+2026-04-01T23:16:27.881+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.918+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "L400WWztLOeEFkEwvOmo9CATZA-48zRyrYFt951ltok", "return_url": "/locations"}
+2026-04-01T23:16:27.927+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:27.962+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "pKHBUVrr6e4CJFxDUDwoVeYMO_sRfoQxGWzej5mUiF8", "return_url": "/locations"}
+2026-04-01T23:16:27.970+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.008+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "BQSSBei6phUY0m61qoseifJTDfUDpAx1aErbEd6b0hQ", "return_url": "/locations"}
+2026-04-01T23:16:28.016+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.052+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "nNmZaH7vS58LU1bWNxI6PqrRVA0G88lD5_1LuC0XlEc", "return_url": "/locations"}
+2026-04-01T23:16:28.059+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.133+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "Yf_mByoZLaF4z-dH4gxMpMDPjpIABa_H8n4XVgfLu88", "return_url": "/locations"}
+2026-04-01T23:16:28.144+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.181+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "nYGzRwOxPmwjIxEDC6WTXdt02lGqEecGdgqpFgfbnhc", "return_url": "/locations"}
+2026-04-01T23:16:28.197+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.229+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "n67EwP3h7iUQPvkwit_CA9kvJggIHdnMYqHWymXeh4c", "return_url": "/locations"}
+2026-04-01T23:16:28.242+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.276+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "GIwaDi5BRjmXV7QIb9bOwUAQ8r0o6eCHpHeKDOC9zcs", "return_url": "/locations"}
+2026-04-01T23:16:28.290+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.329+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "qc7d-I71N8oFu99M7o8OGk5vXjkJCm_ks9b_wkB6A1M", "return_url": "/locations"}
+2026-04-01T23:16:28.342+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.386+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "ric93FvK-FdWfAJr7Ns5UTyh_H41IuhVAqaz1rTZDKc", "return_url": "/locations"}
+2026-04-01T23:16:28.405+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.438+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "yyL_uUZhqZE4NLwkK8SzInYWUZtx2t5SmoOBVY5MpKY", "return_url": "/locations"}
+2026-04-01T23:16:28.449+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.487+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "uWjR2zeSnO5nCCFOUl98UJ1OACH6p7PTPGdYaicVkoI", "return_url": "/locations"}
+2026-04-01T23:16:28.494+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.528+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "UioblqyvpIzbbMs5aLS20JNloqTw-ji75qeZ166Yu7I", "return_url": "/locations"}
+2026-04-01T23:16:28.536+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.576+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "x2xy2oTBCZKF8TvMSXdLPX-s84SqZKajTAGdryFTv6Y", "return_url": "/locations"}
+2026-04-01T23:16:28.583+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.621+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "Qvb999VEGjl4BkAaS55qJxA2-LTkCg9fzSgpH9Sy_hU", "return_url": "/locations"}
+2026-04-01T23:16:28.628+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.664+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "ijvUTzU3HyZ0eFI4DhlzJgF1eN8BycloDsKpDX1BI70", "return_url": "/locations"}
+2026-04-01T23:16:28.672+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.705+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "6lcszPG5Ml6UfhLC4rDvHQszab9RIcNcZwA_uVsXgTU", "return_url": "/locations"}
+2026-04-01T23:16:28.714+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.748+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "i4BuDD2kojKYrkgj9cL-VJAZZuu6nRYzZf5Ux8X8Gak", "return_url": "/locations"}
+2026-04-01T23:16:28.757+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.795+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "cWo8R69S-aITCceihlr11MSOoVX-8xdKhDp7AAD_vrY", "return_url": "/locations"}
+2026-04-01T23:16:28.807+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.842+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "5iaq4PqbPVSSEgCUb-QyZcGIwnOFIJ8p_kP6R5qGG04", "return_url": "/locations"}
+2026-04-01T23:16:28.859+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.893+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "s6w5lQ4n-iveyYivehhuaLro3B7lryKKW03UjvC8QzE", "return_url": "/locations"}
+2026-04-01T23:16:28.911+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:28.945+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "XBTdztHiWyvqzZlA2ehBiZ9suW41_HDLUbeKaJLVE3A", "return_url": "/locations"}
+2026-04-01T23:16:28.964+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.001+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "yAWTy2KnRBrTzGBrl2Voxi9bSrzpQ91bjN7BrfU04iA", "return_url": "/locations"}
+2026-04-01T23:16:29.019+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.057+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "_p3DoHWXCYeyiijXWGGCla3v6SQ7uRrybAq_js1pb-0", "return_url": "/locations"}
+2026-04-01T23:16:29.072+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.109+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "_5r4VRDQsg9lczi3_lLXl-41ivPIRbAGP_mu489oYBs", "return_url": "/locations"}
+2026-04-01T23:16:29.126+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.160+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "QCt7L-vNVq_VqchELaavcTW742Pd9pbjMHR8bXynP8c", "return_url": "/locations"}
+2026-04-01T23:16:29.176+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.209+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "VhVaiHGlZVexYhJ1kYFE60NT3og5c-9Qd8kQCVfiwAI", "return_url": "/locations"}
+2026-04-01T23:16:29.224+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.257+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "eefz9wfQFLOa4qhQEpob7L84aJLnJkFPKX0JrsopBFo", "return_url": "/locations"}
+2026-04-01T23:16:29.273+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.310+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "54IiBwVx-vqiRf1CK0UTejGrA7DIP4D8qVBQcqtM3C0", "return_url": "/locations"}
+2026-04-01T23:16:29.324+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.357+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "B4Foc5xP_sjzynxXFt0ZtM5ZXnhWduB_chvX08MoyrU", "return_url": "/locations"}
+2026-04-01T23:16:29.374+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.409+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "-AiQhgOYLafVhbz28RAzLtpkNIcnX0u1dl_-W-G3Js8", "return_url": "/locations"}
+2026-04-01T23:16:29.427+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.462+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "6zPrd7_lw6FiTlJs6JAUbHMABKgylIdM4TDWPOsBHZ8", "return_url": "/locations"}
+2026-04-01T23:16:29.477+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.512+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "Jf3pZYHOXGoLvga38bWZ5QRM5hLt_Ucf7Ab0X3k3hA0", "return_url": "/locations"}
+2026-04-01T23:16:29.522+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.561+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "UzFNoDWvKgy7_RzIzTB90N4WFgf8fNUGviUm6L4WKiw", "return_url": "/locations"}
+2026-04-01T23:16:29.571+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.606+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "Ojdjphv1wg-V-RIdkl712OT0n1tlGRr1O3UAYPbvpK4", "return_url": "/locations"}
+2026-04-01T23:16:29.621+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.655+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "JSTpDTLOXmh82JfHAyjkJzo5AEq3DwqHA7P6CDn2aCM", "return_url": "/locations"}
+2026-04-01T23:16:29.675+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.710+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "UvGI3mjggPDeXZU2t6K41Kjac8iFndDhvnGvARdn4R4", "return_url": "/locations"}
+2026-04-01T23:16:29.728+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.761+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "utWpw4A7YiX5mLyh7K5WLFyhF7VUMvSUEr_yt_h-Yqg", "return_url": "/locations"}
+2026-04-01T23:16:29.779+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.817+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "nUC3xDiszjPbd4JdlAzZ03hBfE-jvT4WbSAilYreoYQ", "return_url": "/locations"}
+2026-04-01T23:16:29.832+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.865+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "6MLGerP59EBf7-6IuoRMu6TaMXEujjsV5K32ZoRYMoU", "return_url": "/locations"}
+2026-04-01T23:16:29.883+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.923+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "MqRKWWkpxwX1cpS_Vak_tt0xfvn4G_1OJy-ifLq2OM4", "return_url": "/locations"}
+2026-04-01T23:16:29.939+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:29.976+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "tL_33UeCaCVPhSJ_scRu22Z8vT20Ow2M2NhEB3ZCF0c", "return_url": "/locations"}
+2026-04-01T23:16:29.994+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.027+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "9NMqeJelWN5EYbqbf4u4m5pNXNSwRnabYu-WqH6t2F0", "return_url": "/locations"}
+2026-04-01T23:16:30.046+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.085+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "4wd8uawrR-wgKiPU4oKTDGi75EIc6HFJegT-ugo2-90", "return_url": "/locations"}
+2026-04-01T23:16:30.100+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.135+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "GY56F0ds_JKlzLHtmn9z1gXjbubZK3F-RXc5AJtgjAE", "return_url": "/locations"}
+2026-04-01T23:16:30.144+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.179+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "wqjogvruPPtiWhH33ZueY_RsyMPHFOccz5-jCVcc3jc", "return_url": "/locations"}
+2026-04-01T23:16:30.193+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.229+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "HwrDVL5IraR2j6LJKI-8C4fmHa7MEib1RhiHMwdS42g", "return_url": "/locations"}
+2026-04-01T23:16:30.237+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.272+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "mFuWJWcmihSel8z2RCMoh6H1po_IMM68WXsfgxol3uk", "return_url": "/locations"}
+2026-04-01T23:16:30.280+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.318+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "jLkuEoie51Q00TQJ78p3-_DJpWbWdTUoZgK8a4XcB4g", "return_url": "/locations"}
+2026-04-01T23:16:30.325+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.362+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "9LjbjUS7x2vDX2iuqS7VFFxvDfC10sYcDZEiOieDl2w", "return_url": "/locations"}
+2026-04-01T23:16:30.369+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.404+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "YKYGUgaivMHteaoHL7uwh801DOLEZtx6EDa_zn4gm2o", "return_url": "/locations"}
+2026-04-01T23:16:30.412+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.449+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "1y9mRg4aCg96H7-F-EoaKLmnSGMLitEKm5TyIqtBQeY", "return_url": "/locations"}
+2026-04-01T23:16:30.456+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.489+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "KeP3ysO98nE6UjMbuxOnGM3tLl4dh4ChKMP_FW1a97Q", "return_url": "/locations"}
+2026-04-01T23:16:30.497+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.536+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "wsRMD02KOYWzG532ya6prtAPHh68o3706EuBq2b0qBc", "return_url": "/locations"}
+2026-04-01T23:16:30.544+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.579+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "SJWLffUAlr8G4R4MGi5mteZTFC_pvUdyxW47VhVdkn0", "return_url": "/locations"}
+2026-04-01T23:16:30.586+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.622+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "1RDQK2v22aEC-9d_UmdJN3lsipO-zrB6-4ozC6c1dM4", "return_url": "/locations"}
+2026-04-01T23:16:30.631+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.665+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "YbzlXAqhKe7PjsHqlO6K-fj_1SU2fIsloiiAYj4relw", "return_url": "/locations"}
+2026-04-01T23:16:30.680+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.714+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "ke0o_N_Sbn-poKQ9i2ozFUlJIW7-RsH4VgSs4a0nwag", "return_url": "/locations"}
+2026-04-01T23:16:30.731+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.771+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "wtD5Axd1aPSPkcacDRlKn-ZQ29JCBHnYIsh0rhu2avY", "return_url": "/locations"}
+2026-04-01T23:16:30.779+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.817+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "V63i5r-kJ1nAWyFqJg7W1l0oIJUA-R3XKLyppjg1WUQ", "return_url": "/locations"}
+2026-04-01T23:16:30.825+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.863+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "LjMOxA_1dj-hsSFwnCxHVspeq4Xre45puxMUb56nWnM", "return_url": "/locations"}
+2026-04-01T23:16:30.871+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.907+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "ihKd7qWUCLFmTTYKm6RzpJdZFlhrNLfpX0-0FEiQdfc", "return_url": "/locations"}
+2026-04-01T23:16:30.916+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.951+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "XkIU7SdS3Zbr1gqAOe8f1VHlGIQ_WeGMZgL1bdZquMQ", "return_url": "/locations"}
+2026-04-01T23:16:30.959+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:30.998+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "RCrWAQW6kGPXs8V6TTTItcgAhCfPDZKRCWCbJJVL28s", "return_url": "/locations"}
+2026-04-01T23:16:31.007+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:31.045+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "DbgJhBvUamR0JaXJKH21N8NiULympwzkK9eibLzymhs", "return_url": "/locations"}
+2026-04-01T23:16:31.057+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:31.092+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "MTRiBIw9Yy0alsw0OSEopZ7ZfiiqSfuDjCivH7lFiLM", "return_url": "/locations"}
+2026-04-01T23:16:31.107+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:16:31.143+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "5evwHa4aieRwqx863lA7mqTiIagVaDt1TE1cnPMcs1E", "return_url": "/locations"}
+2026-04-01T23:16:37.218+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "Wvpyp-IDvOBS-tRHR0fed2ppp8OJyBR1QOR1_r4rS4A", "return_url": "/"}
+2026-04-01T23:16:37.233+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:37.302+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "s4q917V3e9hT6Widx9FiQ6y-CDAGfVThIPZL0yGhr9I", "return_url": "/"}
+2026-04-01T23:16:37.316+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:37.368+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "jtrZdYGbyx81_u-kpUnVr9bMaoVYUwOugArAuL_fh1o", "return_url": "/"}
+2026-04-01T23:16:37.382+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:37.436+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "gbZL759F4R-60wZtoc8jaNgxzq6Bj1JW2y7PIT9soxA", "return_url": "/"}
+2026-04-01T23:16:37.451+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:37.497+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "qUnmiz27YEiOms57CijVaLo2-hV6rmBUc9v6EP4n7kA", "return_url": "/"}
+2026-04-01T23:16:37.515+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:37.560+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "PprlJNL7Gmvii08vCToynQIjtCoLE_zWA_O_x3FstYc", "return_url": "/"}
+2026-04-01T23:16:37.575+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:37.627+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "0-ayYrYF-5eoj20wgAJadD1hwNtIlu9tgxhzVvkbeWo", "return_url": "/"}
+2026-04-01T23:16:37.641+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:37.684+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "YPol86L2_5lBxKR1q8uMhfR58uwoh7nsRlQWf1zVqRY", "return_url": "/"}
+2026-04-01T23:16:37.698+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:37.739+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "JkFL0IF4EhjMjf3tL0Bibw4x4040MCWiQikfQ7dulx4", "return_url": "/"}
+2026-04-01T23:16:37.754+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:37.803+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "EurI-OEcZK3MA1F_JA-ohiA0T5C_162fLGO354Ofym0", "return_url": "/"}
+2026-04-01T23:16:37.812+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:37.860+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "DHIfY56S8DYe0xL43VwZzAT78PZLk1vJBwPPvZZnxfw", "return_url": "/"}
+2026-04-01T23:16:37.874+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:37.923+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "R3rvL7ALBI9p-Nl08K0TyrJTazCv8cM24P3L6OaeMf4", "return_url": "/"}
+2026-04-01T23:16:37.940+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:37.985+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "HcGDDcM3MdDE_qGfHAKcd3Uc01uIfoK7c8i135MqzTg", "return_url": "/"}
+2026-04-01T23:16:38.002+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:38.050+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "fNOXVWr72pdSYLfCpyorBVqC_1nbkouaWIj-htMH6pU", "return_url": "/"}
+2026-04-01T23:16:38.072+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:38.119+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "Q-rdXAvE4JdzjcMhjIA2bxzaoKLFDedd47dpvi-_7qo", "return_url": "/"}
+2026-04-01T23:16:38.137+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:38.185+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "zoCscYHWx_YEsZ9eerOUs8uPmFTY89zgQtEKf1zADhk", "return_url": "/"}
+2026-04-01T23:16:38.200+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:38.243+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "IBci3lfoNGNBE_X166HQ9zOim8wOuIUQrplfLL46NOg", "return_url": "/"}
+2026-04-01T23:16:38.254+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:38.302+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "wohZrDJnCvGHKiLdMkAqlznyhAUIJl0gRDeKpLIzIQA", "return_url": "/"}
+2026-04-01T23:16:38.330+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:38.390+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "n2FQbT9cMUXMg-zaL6eSien3rKCp1KejpdrXFb0T1hQ", "return_url": "/"}
+2026-04-01T23:16:38.409+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:38.466+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "LIF5FkupKpJP4wlEzdqmR2B7iVC9zOihQDQNgsVIVt0", "return_url": "/"}
+2026-04-01T23:16:38.482+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:16:38.532+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "VEh9AmqJjXYqkK4YXLk6dmUzburshS8mEPhd1ordCE8", "return_url": "/"}
+2026-04-01T23:17:16.852+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "HkiVZWWyAAEMR8HMvX3grVv1xN1gXiP6daOEBihLxgo", "return_url": "/bills"}
+2026-04-01T23:17:20.848+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "brEe36xqLjGkKDrqyVMseBB8nKIvPORjlaZBEDxv4bk", "return_url": "/"}
+2026-04-01T23:18:19.909+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:19.910+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:19.911+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:18:19.912+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:19.912+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:18:19.913+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:19.913+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:18:19.913+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:18:19.913+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:18:19.914+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:18:19.916+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:19.916+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:18:19.917+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:19.917+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:19.917+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:18:19.917+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:19.919+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:18:19.919+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:18:19.919+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:18:19.919+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:18:23.761+0800	[34mINFO[0m	facade/oidc_handler.go:297	Session found for logout	{"session_id": "51bf1bc2-f962-4b0f-8e81-dc41882e7fe7", "user_id": "test-user-id", "has_id_token": true}
+2026-04-01T23:18:23.761+0800	[34mINFO[0m	facade/oidc_handler.go:305	Session deleted	{"session_id": "51bf1bc2-f962-4b0f-8e81-dc41882e7fe7"}
+2026-04-01T23:18:23.761+0800	[34mINFO[0m	facade/oidc_handler.go:324	Preparing end session URL	{"dev_mode": false, "has_id_token": true}
+2026-04-01T23:18:23.761+0800	[34mINFO[0m	facade/oidc_handler.go:331	Got end session URL, redirecting	{"url": "http://localhost:8081/realms/master/protocol/openid-connect/logout?id_token_hint=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJmZVliWWV3ZUhEbC1EZ2lhZkFibkZGczhSWlg3bXMzRHRIQmE1RHhqVnhZIn0.eyJleHAiOjE3NzUwMzk0NzIsImlhdCI6MTc3NTAzOTQxMiwiYXV0aF90aW1lIjoxNzc1MDM4NzY4LCJqdGkiOiJkMmI1MzkyMS05YmE0LTQ0NGMtOWU4ZC1lYjE2YmY4YWRhOWUiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEvcmVhbG1zL21hc3RlciIsImF1ZCI6ImRkZC1hcHAiLCJzdWIiOiIxMjViYzA0OC1hY2E0LTRmMzAtYjkxZi03YjA5ODAwMTQwMTYiLCJ0eXAiOiJJRCIsImF6cCI6ImRkZC1hcHAiLCJzZXNzaW9uX3N0YXRlIjoiN2Y0ODBlZGUtN2YwYy00NzQ0LWFhOWUtZGNhYmExMjQ4Zjc4IiwiYXRfaGFzaCI6InZKOXpBNWRLUTZxNUxNc3VJdEh4THciLCJhY3IiOiIwIiwic2lkIjoiN2Y0ODBlZGUtN2YwYy00NzQ0LWFhOWUtZGNhYmExMjQ4Zjc4IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiLoiKog6YK5IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiem91aGFuZyIsImdpdmVuX25hbWUiOiLoiKoiLCJmYW1pbHlfbmFtZSI6IumCuSIsImVtYWlsIjoiem91aGFuZzIwMDdAMTYzLmNvbSJ9.W17kv-7OuML86Xm5WaR7DJJIBpX5utZa2w7EkkDmOLjIx1kIhRq4O5BEMgNUyZCceMtfE4Vbpn5mpYO-M1abfX_AjQFGv-5Nku4Qvtoa25Gxf6RgiRkSOCf0MMgvhZrDSfS153l93ZBK3Xkf48N5uAvq-S86B6wBmEvVvI-_wPsy4cLYVZfCMXuZb_Jp5FAjK_1363-epKYOM0yR7FZECW5Y7XJXydaxvTtOqF9tLPvO_c0FqO4EITwOrWEf71_bVG0KE_RCKH9Ec0cZgzFGae8Nm59skfAsrCq0H_qPAN5RIHAXcOXKTcemdxN2p1Mu96UMY_kwhlwg-dzzbmWksQ&post_logout_redirect_uri=http://localhost:5173"}
+2026-04-01T23:18:23.968+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "0HXQilavpQJuXSUSbIKCh56YlZ99V1o8GVFlt3eYfgk", "return_url": "/"}
+2026-04-01T23:18:31.950+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:18:32.123+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:32.123+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:18:32.124+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:32.124+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:32.125+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:18:32.125+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:32.125+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:18:32.125+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:18:32.125+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:18:32.125+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:18:32.130+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:32.130+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:32.130+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:32.130+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:18:32.130+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:32.131+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:18:32.131+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:18:32.131+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:18:32.131+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:18:32.131+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:18:33.765+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:33.766+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:33.768+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:33.769+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:35.302+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:35.302+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:35.302+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:35.302+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:35.306+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:35.306+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:35.306+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:35.306+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:37.017+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:18:37.018+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:18:37.021+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:18:37.021+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:18:38.236+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:38.236+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:38.236+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:38.236+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:38.239+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:38.239+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:38.239+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:38.239+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:39.141+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:39.142+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:39.145+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:39.145+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:39.748+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:39.748+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:39.749+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:18:39.749+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:39.749+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:18:39.749+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:39.750+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:18:39.751+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:18:39.754+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:39.755+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:18:39.755+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:39.755+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:39.755+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:18:39.755+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:39.755+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:18:39.755+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:18:40.332+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:18:40.332+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:18:40.333+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:40.333+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:40.333+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:40.334+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:18:40.334+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:40.334+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:18:40.334+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:18:40.334+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:18:40.339+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:18:40.339+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:40.339+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:18:40.339+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:40.340+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:40.340+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:18:40.340+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:40.340+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:18:40.341+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:18:40.342+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:18:40.996+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:18:40.997+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:40.997+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:40.997+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:40.997+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:18:40.997+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:41.005+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_deposits"}
+2026-04-01T23:18:41.005+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:41.005+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:41.005+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:18:41.007+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_deposits"}
+2026-04-01T23:18:41.007+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:41.008+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:18:41.009+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:41.013+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_deposits"}
+2026-04-01T23:18:41.014+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_deposits"}
+2026-04-01T23:18:41.919+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:41.919+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:41.924+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:41.924+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:43.282+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:43.282+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:43.283+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:43.284+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:43.284+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:18:43.284+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:18:43.284+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:18:43.285+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:18:43.285+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:18:43.285+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:18:43.288+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:18:43.289+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:18:43.289+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:18:43.289+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:18:43.290+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:18:43.290+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:18:43.290+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:18:43.291+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:18:43.291+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:18:43.291+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:26:21.203+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:26:21.203+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:26:21.203+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:26:21.203+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:26:21.203+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:26:21.204+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:26:21.204+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:26:21.204+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:26:21.204+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:26:21.204+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:26:21.220+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:26:21.220+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:26:21.220+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:26:21.220+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:26:21.220+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:26:21.220+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:26:21.220+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:26:21.221+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:26:21.221+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:26:21.221+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:29:18.279+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "XdIdsI7FX_lATUtMY2slF3n6SGOvMHuUbs4--27YNJU", "return_url": "/bills"}
+2026-04-01T23:29:18.298+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/bills"}
+2026-04-01T23:29:18.302+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:29:18.302+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:29:53.924+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:29:53.924+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:30:00.991+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:30:00.991+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:30:04.605+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "MYX3uzNOSUygDSuIKa660570sa0EjOOlC-1V5biqKWU", "return_url": "/"}
+2026-04-01T23:30:04.620+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:30:04.885+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "7DU2-lAa0mJ37LeueSkDyPPd7K2jJxLNJcvzwd74wdA", "return_url": "/"}
+2026-04-01T23:30:04.903+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:30:05.150+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "gZM2BhmmMO9EXMh_ogv_QIa_c9Soj-BUw9OtPKDyvd0", "return_url": "/"}
+2026-04-01T23:30:05.168+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:30:05.424+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "Ewl1lT2FOHLtFaod3h2fQDrLTUelG_uIBe669Qw0qQU", "return_url": "/"}
+2026-04-01T23:30:05.434+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:30:05.686+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "Agv6RKjqBvwjTJR7jvfqFHLxufJcpr6TVHYqOKJeOBM", "return_url": "/"}
+2026-04-01T23:30:05.701+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:30:05.956+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "orz3xHcvpqXETQIEKha1Q46RvhEteuNwrcGMzT2kfw8", "return_url": "/"}
+2026-04-01T23:30:05.972+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:30:06.225+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "9KswpfEFmh4z5VsynQ3WPE6BJzTijGa2CW2BcHkIhsU", "return_url": "/"}
+2026-04-01T23:30:06.244+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:30:06.506+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "we8cmMILWB7qJ5Ul7mPN98UNdrnASNG3r2ZS9u35iKs", "return_url": "/"}
+2026-04-01T23:30:06.521+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:30:06.789+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "T18Ihwt3-uqqQMstpdjpdEYsdbYwz_ng8axOxmz0adE", "return_url": "/"}
+2026-04-01T23:30:06.808+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:30:07.067+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "dI3JerbTb-J_QsIAs8oiGtxDJvzBiQO5Ckcqksbx2u4", "return_url": "/"}
+2026-04-01T23:30:07.083+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:30:07.340+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "tb6sw1_G4qSN-xYaH5cV7xh7gKxnsGHJwLu6hNGdW5A", "return_url": "/"}
+2026-04-01T23:30:07.357+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:30:22.491+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:30:22.491+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:30:22.491+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:30:22.491+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:30:22.491+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:30:22.491+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:30:22.491+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:30:22.491+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:30:22.491+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:30:22.491+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:30:22.494+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:30:22.494+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:30:22.494+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:30:22.494+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:30:22.494+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:30:22.494+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:30:22.495+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:30:22.495+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:30:22.495+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:30:22.495+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:30:31.129+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:30:31.129+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:30:31.129+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:30:31.129+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:30:31.130+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:30:31.130+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:30:31.136+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:30:31.136+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:30:31.137+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:30:31.137+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:30:31.140+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:30:31.140+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:30:31.140+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:30:31.140+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:30:31.142+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:30:31.142+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:30:31.142+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:30:31.143+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:30:31.146+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:30:31.146+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}

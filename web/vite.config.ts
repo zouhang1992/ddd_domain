@@ -6,12 +6,51 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': {
+      '/locations': {
         target: 'http://localhost:8080',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+      '/rooms': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/landlords': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/leases': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/bills': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/deposits': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/print': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/income': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/operation-logs': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
       },
       '/oauth2': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/health': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/metrics': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       },

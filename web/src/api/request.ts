@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // 使用相对路径配合 Vite 代理
-const API_BASE_URL = import.meta.env.DEV ? '' : 'http://localhost:8080';
+const API_BASE_URL = '';
 
 // 将蛇形命名转换为驼峰命名
 const snakeToCamel = (str: string): string => {
