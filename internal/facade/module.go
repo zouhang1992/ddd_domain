@@ -16,4 +16,5 @@ var Module = fx.Options(
 	fx.Provide(NewIncomeHandler),
 	fx.Provide(NewOperationLogHandler),
 	fx.Provide(NewCQRSDepositHandler),
+	fx.Provide(NewOIDCHandler),
 )

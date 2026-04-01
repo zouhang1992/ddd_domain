@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/zouhang1992/ddd_domain/internal/application"
+	"github.com/zouhang1992/ddd_domain/internal/application/auth"
 	"github.com/zouhang1992/ddd_domain/internal/application/bill"
 	"github.com/zouhang1992/ddd_domain/internal/application/common/service"
 	"github.com/zouhang1992/ddd_domain/internal/application/deposit"
@@ -22,6 +23,7 @@ import (
 	busevent "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/event"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	logging "github.com/zouhang1992/ddd_domain/internal/infrastructure/logging"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/persistence/sqlite"
 )
 
@@ -32,12 +34,18 @@ func main() {
 			fx.Provide(func() sqlite.Config {
 				return sqlite.Config{DSN: "data/ddd.db"}
 			}),
+			fx.Provide(func() auth.Config {
+				// TODO: 实际使用时应从环境变量读取配置
+				return auth.DefaultConfig()
+			}),
 		),
 		// 各个组件模块
 		logging.Module(),
 		sqlite.Module,
 		busmodule.Module,
 		application.Module,
+		auth.Module,
+		middleware.Module,
 		facade.Module,
 		// 注册处理器到总线
 		fx.Invoke(registerCommandHandlers),
@@ -162,6 +170,7 @@ func startServer(
 	authHandler *facade.AuthHandler,
 	incomeHandler *facade.IncomeHandler,
 	operationLogHandler *facade.OperationLogHandler,
+	oidcHandler *facade.OIDCHandler,
 	authService *service.AuthService,
 	printService *service.PrintService,
 ) {
@@ -202,6 +211,7 @@ func startServer(
 	authHandler.RegisterRoutes(mux)
 	incomeHandler.RegisterRoutes(mux)
 	operationLogHandler.RegisterRoutes(mux)
+	oidcHandler.RegisterRoutes(mux)
 
 	logger.Info("Starting server on :8080")
 	if err := http.ListenAndServe(":8080", corsHandler(mux)); err != nil {
