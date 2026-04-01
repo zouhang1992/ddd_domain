@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Table, Button, Modal, Form, Input, message, Popconfirm, Select, DatePicker, InputNumber, Tag, Space, Pagination } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, CheckOutlined, ReloadOutlined, PrinterOutlined, ThunderboltOutlined, HistoryOutlined, SearchOutlined } from '@ant-design/icons';
 import type { Lease, Room, Landlord, Location } from '../types/api';
-import { leaseApi, type LeaseQueryParams, type LeasesQueryResult } from '../api/lease';
+import { leaseApi, type LeasesQueryResult } from '../api/lease';
 import { roomApi } from '../api/room';
 import { landlordApi } from '../api/landlord';
 import { locationApi } from '../api/location';

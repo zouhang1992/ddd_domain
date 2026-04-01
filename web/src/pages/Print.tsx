@@ -3,8 +3,8 @@ import { Card, Button, message, Tabs, Table, Tag, Spin, Space, Form, Input, Sele
 import { DownloadOutlined, HistoryOutlined, SearchOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
 import type { Lease, Bill, Room, Location, Landlord } from '../types/api';
 import { printApi, type PrintJobQueryParams, type PrintJobsQueryResult, type PrintJob } from '../api/print';
-import { leaseApi, type LeaseQueryParams, type LeasesQueryResult } from '../api/lease';
-import { billApi, type BillQueryParams, type BillsQueryResult } from '../api/bill';
+import { leaseApi, type LeasesQueryResult } from '../api/lease';
+import { billApi, type BillsQueryResult } from '../api/bill';
 import { roomApi } from '../api/room';
 import { locationApi } from '../api/location';
 import { landlordApi } from '../api/landlord';
@@ -187,12 +187,12 @@ const Print: React.FC = () => {
 
     // 租户姓名筛选
     if (leaseQueryTenantName) {
-      filtered = filtered.filter(l => l.tenantName.includes(leaseQueryTenantName));
+      filtered = filtered.filter(l => l.tenantName?.includes(leaseQueryTenantName));
     }
 
     // 租户电话筛选
     if (leaseQueryTenantPhone) {
-      filtered = filtered.filter(l => l.tenantPhone.includes(leaseQueryTenantPhone));
+      filtered = filtered.filter(l => l.tenantPhone?.includes(leaseQueryTenantPhone));
     }
 
     // 状态筛选

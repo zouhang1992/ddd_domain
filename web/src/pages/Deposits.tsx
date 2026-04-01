@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Table, Button, message, Select, Pagination, Tag, Form } from 'antd';
 import { HistoryOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
-import { depositApi, type DepositQueryParams, type DepositsQueryResult } from '../api/deposit';
+import { depositApi, type DepositsQueryResult } from '../api/deposit';
 import { leaseApi } from '../api/lease';
 import { roomApi } from '../api/room';
 import { locationApi } from '../api/location';
