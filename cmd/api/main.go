@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
@@ -196,6 +197,9 @@ func startServer(
 		_, _ = w.Write([]byte("OK"))
 	})
 
+	// Prometheus metrics 端点
+	mux.Handle("GET /metrics", promhttp.Handler())
+
 	// 注册业务路由
 	locationHandler.RegisterRoutes(mux)
 	roomHandler.RegisterRoutes(mux)
@@ -208,8 +212,11 @@ func startServer(
 	operationLogHandler.RegisterRoutes(mux)
 	oidcHandler.RegisterRoutes(mux)
 
+	// 应用 metrics 中间件
+	metricsMux := middleware.Metrics(mux)
+
 	logger.Info("Starting server", zap.String("addr", cfg.HTTP.Addr))
-	if err := http.ListenAndServe(cfg.HTTP.Addr, corsHandler(mux)); err != nil {
+	if err := http.ListenAndServe(cfg.HTTP.Addr, corsHandler(metricsMux)); err != nil {
 		logger.Fatal("Server failed", zap.Error(err))
 	}
 }
