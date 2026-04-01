@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/zouhang1992/ddd_domain/internal/application/auth"
 )
 
 // Session Session 数据模型
@@ -90,24 +92,16 @@ func (r *SessionRepository) DeleteExpired() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return result.RowsAffected()
-}
-
-// UserClaims 用户 Claims
-type UserClaims struct {
-	Sub          string                 `json:"sub"`
-	Email        string                 `json:"email"`
-	Name         string                 `json:"name"`
-	RealmRoles   []string               `json:"realm_roles,omitempty"`
-	ResourceRoles map[string][]string    `json:"resource_roles,omitempty"`
-	Permissions  []string               `json:"permissions,omitempty"`
-	Exp          int64                  `json:"exp"`
-	Extra        map[string]any `json:"-"`
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return rowsAffected, nil
 }
 
 // ToClaims 将 JSON 转换为 UserClaims
-func ToClaims(data []byte) (*UserClaims, error) {
-	var claims UserClaims
+func ToClaims(data []byte) (*auth.UserClaims, error) {
+	var claims auth.UserClaims
 	if err := json.Unmarshal(data, &claims); err != nil {
 		return nil, err
 	}
@@ -115,6 +109,6 @@ func ToClaims(data []byte) (*UserClaims, error) {
 }
 
 // FromClaims 将 UserClaims 转换为 JSON
-func FromClaims(claims *UserClaims) ([]byte, error) {
+func FromClaims(claims *auth.UserClaims) ([]byte, error) {
 	return json.Marshal(claims)
 }

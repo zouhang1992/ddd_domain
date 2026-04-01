@@ -20,3 +20,15 @@ func DefaultConfig() Config {
 		SessionTTL: 24 * time.Hour,
 	}
 }
+
+// UserClaims 用户 Claims
+type UserClaims struct {
+	Sub          string                 `json:"sub"`
+	Email        string                 `json:"email"`
+	Name         string                 `json:"name"`
+	RealmRoles   []string               `json:"realm_roles,omitempty"`
+	ResourceRoles map[string][]string    `json:"resource_roles,omitempty"`
+	Permissions  []string               `json:"permissions,omitempty"`
+	Exp          int64                  `json:"exp"`
+	Extra        map[string]any           `json:"-"`
+}
