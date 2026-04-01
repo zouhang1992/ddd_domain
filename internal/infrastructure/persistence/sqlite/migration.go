@@ -165,9 +165,13 @@ func (m *AddSessionsTableMigration) Up(tx *sql.Tx) error {
 	CREATE TABLE IF NOT EXISTS sessions (
 		id TEXT PRIMARY KEY,
 		user_id TEXT NOT NULL,
+		access_token TEXT NOT NULL,
+		refresh_token TEXT,
+		id_token TEXT NOT NULL,
 		claims TEXT NOT NULL,
 		expires_at DATETIME NOT NULL,
-		created_at DATETIME NOT NULL
+		created_at DATETIME NOT NULL,
+		updated_at DATETIME NOT NULL
 	)
 	`); err != nil {
 		return fmt.Errorf("failed to create sessions table: %w", err)

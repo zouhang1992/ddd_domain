@@ -8,118 +8,113 @@ import (
 	"github.com/google/uuid"
 )
 
-// Session represents a user session
+// Session Session 数据模型
 type Session struct {
-	ID        string
-	UserID    string
-	Claims    UserClaims
-	ExpiresAt time.Time
-	CreatedAt time.Time
+	ID           string
+	UserID       string
+	AccessToken  string
+	RefreshToken sql.NullString
+	IDToken      string
+	Claims       []byte
+	ExpiresAt    time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
-// UserClaims represents the user claims stored in the session
-type UserClaims struct {
-	UserID   string   `json:"user_id"`
-	Username string   `json:"username"`
-	Roles    []string `json:"roles"`
-}
-
-// ToClaims converts UserClaims to JSON string
-func (c *UserClaims) ToClaims() (string, error) {
-	data, err := json.Marshal(c)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
-}
-
-// FromClaims converts JSON string to UserClaims
-func FromClaims(data string) (*UserClaims, error) {
-	var claims UserClaims
-	if err := json.Unmarshal([]byte(data), &claims); err != nil {
-		return nil, err
-	}
-	return &claims, nil
-}
-
-// SessionRepository SQLite session repository implementation
+// SessionRepository Session 仓储实现
 type SessionRepository struct {
 	conn *Connection
 }
 
-// NewSessionRepository creates a new session repository
+// NewSessionRepository 创建 Session 仓储
 func NewSessionRepository(conn *Connection) *SessionRepository {
 	return &SessionRepository{conn: conn}
 }
 
-// Save saves a session
+// Save 保存 Session
 func (r *SessionRepository) Save(session *Session) error {
 	if session.ID == "" {
 		session.ID = uuid.NewString()
 	}
-
-	claimsJSON, err := session.Claims.ToClaims()
-	if err != nil {
-		return err
+	now := time.Now()
+	if session.CreatedAt.IsZero() {
+		session.CreatedAt = now
 	}
+	session.UpdatedAt = now
 
-	_, err = r.conn.DB().Exec(`
+	_, err := r.conn.DB().Exec(`
 		INSERT OR REPLACE INTO sessions (
-			id, user_id, claims, expires_at, created_at
-		) VALUES (?, ?, ?, ?, ?)
+			id, user_id, access_token, refresh_token, id_token,
+			claims, expires_at, created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`,
-		session.ID, session.UserID, claimsJSON, session.ExpiresAt, session.CreatedAt)
+		session.ID, session.UserID, session.AccessToken,
+		session.RefreshToken, session.IDToken, session.Claims,
+		session.ExpiresAt, session.CreatedAt, session.UpdatedAt)
 	return err
 }
 
-// FindByID finds a session by ID
+// FindByID 根据 ID 查找 Session
 func (r *SessionRepository) FindByID(id string) (*Session, error) {
 	row := r.conn.DB().QueryRow(`
-		SELECT id, user_id, claims, expires_at, created_at
+		SELECT id, user_id, access_token, refresh_token, id_token,
+			claims, expires_at, created_at, updated_at
 		FROM sessions WHERE id = ?
 		`, id)
 
-	var temp struct {
-		ID        string
-		UserID    string
-		Claims    string
-		ExpiresAt time.Time
-		CreatedAt time.Time
-	}
-
-	err := row.Scan(&temp.ID, &temp.UserID, &temp.Claims, &temp.ExpiresAt, &temp.CreatedAt)
+	var session Session
+	var refreshToken sql.NullString
+	err := row.Scan(
+		&session.ID, &session.UserID, &session.AccessToken,
+		&refreshToken, &session.IDToken, &session.Claims,
+		&session.ExpiresAt, &session.CreatedAt, &session.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-
-	claims, err := FromClaims(temp.Claims)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Session{
-		ID:        temp.ID,
-		UserID:    temp.UserID,
-		Claims:    *claims,
-		ExpiresAt: temp.ExpiresAt,
-		CreatedAt: temp.CreatedAt,
-	}, nil
+	session.RefreshToken = refreshToken
+	return &session, nil
 }
 
-// Delete deletes a session by ID
+// Delete 删除 Session
 func (r *SessionRepository) Delete(id string) error {
 	_, err := r.conn.DB().Exec("DELETE FROM sessions WHERE id = ?", id)
 	return err
 }
 
-// DeleteExpired deletes all expired sessions
-func (r *SessionRepository) DeleteExpired(now time.Time) (int64, error) {
-	result, err := r.conn.DB().Exec("DELETE FROM sessions WHERE expires_at < ?", now)
+// DeleteExpired 删除过期的 Session
+func (r *SessionRepository) DeleteExpired() (int64, error) {
+	result, err := r.conn.DB().Exec("DELETE FROM sessions WHERE expires_at < ?", time.Now())
 	if err != nil {
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+// UserClaims 用户 Claims
+type UserClaims struct {
+	Sub          string                 `json:"sub"`
+	Email        string                 `json:"email"`
+	Name         string                 `json:"name"`
+	RealmRoles   []string               `json:"realm_roles,omitempty"`
+	ResourceRoles map[string][]string    `json:"resource_roles,omitempty"`
+	Permissions  []string               `json:"permissions,omitempty"`
+	Exp          int64                  `json:"exp"`
+	Extra        map[string]any `json:"-"`
+}
+
+// ToClaims 将 JSON 转换为 UserClaims
+func ToClaims(data []byte) (*UserClaims, error) {
+	var claims UserClaims
+	if err := json.Unmarshal(data, &claims); err != nil {
+		return nil, err
+	}
+	return &claims, nil
+}
+
+// FromClaims 将 UserClaims 转换为 JSON
+func FromClaims(claims *UserClaims) ([]byte, error) {
+	return json.Marshal(claims)
 }
