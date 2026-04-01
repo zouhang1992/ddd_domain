@@ -14,12 +14,15 @@ export const authApi = {
     window.location.href = '/oauth2/login';
   },
 
-  // 登出
-  logout: async () => {
+  // 登出 - 直接跳转到后端，后端会处理重定向
+  logout: async (): Promise<void> => {
     try {
-      await apiClient.post('/oauth2/logout');
-    } finally {
-      // 无论登出 API 是否成功，都刷新页面
+      // 直接跳转到后端登出地址，后端会处理重定向到 Keycloak
+      window.location.href = '/oauth2/logout';
+    } catch (error) {
+      console.warn('Logout failed:', error);
+      // 出错时还是清除本地状态并刷新
+      localStorage.removeItem('token');
       window.location.href = '/';
     }
   },

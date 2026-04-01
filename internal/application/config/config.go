@@ -39,6 +39,7 @@ type LoggingConfig struct {
 
 // OIDCConfig OIDC 认证配置
 type OIDCConfig struct {
+	DevMode       bool          `json:"devMode"`       // 开发模式（跳过 OIDC）
 	IssuerURL     string        `json:"issuerUrl"`     // Keycloak Issuer URL
 	ClientID      string        `json:"clientId"`      // Client ID
 	ClientSecret  string        `json:"clientSecret"`  // Client Secret
@@ -63,7 +64,8 @@ func DefaultConfig() Config {
 			OutputPath:  "stdout",
 		},
 		OIDC: OIDCConfig{
-			IssuerURL:   "http://localhost:8081/realms/ddd-realm",
+			DevMode:     true,
+			IssuerURL:   "http://localhost:8081/realms/master",
 			ClientID:    "ddd-app",
 			RedirectURL: "http://localhost:8080/oauth2/callback",
 			Scopes:      []string{"openid", "profile", "email", "roles"},
@@ -98,6 +100,9 @@ func LoadFromEnv() Config {
 	}
 
 	// OIDC 配置
+	if devMode := os.Getenv("OIDC_DEV_MODE"); devMode != "" {
+		cfg.OIDC.DevMode = devMode == "true" || devMode == "1"
+	}
 	if issuer := os.Getenv("OIDC_ISSUER_URL"); issuer != "" {
 		cfg.OIDC.IssuerURL = issuer
 	}

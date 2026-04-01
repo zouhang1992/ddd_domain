@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button } from 'antd';
+import { Layout, Menu, Button, Dropdown, Avatar, Typography } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   HomeOutlined,
@@ -14,10 +14,12 @@ import {
   LogoutOutlined,
   MenuOutlined,
   HistoryOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 
 const { Header, Sider, Content } = Layout;
+const { Text } = Typography;
 
 const menuItems = [
   { key: 'dashboard', icon: <HomeOutlined />, label: '仪表盘', path: '/' },
@@ -38,7 +40,7 @@ const AppLayout: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -127,9 +129,21 @@ const AppLayout: React.FC = () => {
                 onClick={toggleMobileMenu}
               />
               <span style={{ fontSize: 16, fontWeight: 'bold' }}>房屋管理系统</span>
-              <Button icon={<LogoutOutlined />} onClick={handleLogout} size="small">
-                退出
-              </Button>
+              <Dropdown
+                menu={{
+                  items: [
+                    { key: 'user-info', label: <span><UserOutlined /> {user?.name || user?.email || '用户'}</span>, disabled: true },
+                    { type: 'divider' },
+                    { key: 'logout', label: <span><LogoutOutlined /> 退出登录</span>, onClick: handleLogout },
+                  ],
+                }}
+              >
+                <Button type="text" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Avatar size="small" icon={<UserOutlined />} />
+                  <Text>{user?.name || user?.email || '用户'}</Text>
+                  <DownOutlined />
+                </Button>
+              </Dropdown>
             </Header>
             <Content style={{ margin: '16px', padding: 16, background: '#fff', minHeight: 280 }}>
               <Outlet />
@@ -152,9 +166,21 @@ const AppLayout: React.FC = () => {
           </Sider>
           <Layout>
             <Header style={{ background: '#fff', padding: '0 24px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-              <Button icon={<LogoutOutlined />} onClick={handleLogout}>
-                退出登录
-              </Button>
+              <Dropdown
+                menu={{
+                  items: [
+                    { key: 'user-info', label: <span><UserOutlined /> {user?.name || user?.email || '用户'}</span>, disabled: true },
+                    { type: 'divider' },
+                    { key: 'logout', label: <span><LogoutOutlined /> 退出登录</span>, onClick: handleLogout },
+                  ],
+                }}
+              >
+                <Button type="text" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Avatar size="small" icon={<UserOutlined />} />
+                  <Text strong>{user?.name || user?.email || '用户'}</Text>
+                  <DownOutlined />
+                </Button>
+              </Dropdown>
             </Header>
             <Content style={{ margin: '24px 16px', padding: 24, background: '#fff', minHeight: 280 }}>
               <Outlet />

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
+	"github.com/joho/godotenv"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
@@ -29,6 +31,10 @@ import (
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found, using environment variables or defaults")
+	}
+
 	fx.New(
 		// 各个组件模块（配置模块已包含在 application.Module 中）
 		logging.Module(),

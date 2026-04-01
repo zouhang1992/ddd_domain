@@ -33,6 +33,12 @@ func NewOIDCHandler(
 	config auth.Config,
 	log *zap.Logger,
 ) *OIDCHandler {
+	log.Info("OIDC Handler initialized",
+		zap.Bool("dev_mode", config.DevMode),
+		zap.String("issuer_url", config.IssuerURL),
+		zap.String("client_id", config.ClientID),
+		zap.String("redirect_url", config.RedirectURL),
+	)
 	return &OIDCHandler{
 		oidcService:    oidcService,
 		sessionRepo:    sessionRepo,
@@ -47,12 +53,27 @@ func NewOIDCHandler(
 func (h *OIDCHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /oauth2/login", h.Login)
 	mux.HandleFunc("GET /oauth2/callback", h.Callback)
-	mux.HandleFunc("POST /oauth2/logout", h.authMiddleware.RequireAuth(h.Logout))
-	mux.HandleFunc("GET /oauth2/userinfo", h.authMiddleware.RequireAuth(h.UserInfo))
+
+	// 开发模式下，logout 和 userinfo 不需要认证
+	if h.config.DevMode {
+		mux.HandleFunc("POST /oauth2/logout", h.Logout)
+		mux.HandleFunc("GET /oauth2/logout", h.Logout)
+		mux.HandleFunc("GET /oauth2/userinfo", h.UserInfo)
+	} else {
+		mux.HandleFunc("POST /oauth2/logout", h.authMiddleware.RequireAuth(h.Logout))
+		mux.HandleFunc("GET /oauth2/logout", h.authMiddleware.RequireAuth(h.Logout))
+		mux.HandleFunc("GET /oauth2/userinfo", h.authMiddleware.RequireAuth(h.UserInfo))
+	}
 }
 
 // Login 启动 OIDC 登录流程
 func (h *OIDCHandler) Login(w http.ResponseWriter, r *http.Request) {
+	// 开发模式：直接创建 mock session，跳过 OIDC
+	if h.config.DevMode {
+		h.devModeLogin(w, r)
+		return
+	}
+
 	// 生成 state
 	state, err := auth.GenerateState()
 	if err != nil {
@@ -77,6 +98,60 @@ func (h *OIDCHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	h.log.Info("Redirecting to OIDC provider", zap.String("state", state))
 	http.Redirect(w, r, authURL, http.StatusFound)
+}
+
+// devModeLogin 开发模式登录（直接创建 mock session）
+func (h *OIDCHandler) devModeLogin(w http.ResponseWriter, r *http.Request) {
+	// 创建 mock claims
+	claims := &auth.UserClaims{
+		Sub:         "dev-user-id",
+		Email:       "dev@example.com",
+		Name:        "Developer",
+		RealmRoles:  []string{"user", "admin"},
+		Permissions: []string{"read", "write", "delete"},
+		Exp:         time.Now().Add(24 * time.Hour).Unix(),
+	}
+
+	// 序列化 claims
+	claimsJSON, err := sqlite.FromClaims(claims)
+	if err != nil {
+		h.log.Error("Failed to serialize claims", zap.Error(err))
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// 创建 Session
+	session := &sqlite.Session{
+		ID:        uuid.NewString(),
+		UserID:    claims.Sub,
+		Claims:    claimsJSON,
+		ExpiresAt: time.Now().Add(h.config.SessionTTL),
+	}
+
+	// 保存 Session
+	if err := h.sessionRepo.Save(session); err != nil {
+		h.log.Error("Failed to save session", zap.Error(err))
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// 设置 Session Cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     middleware.SessionCookieName,
+		Value:    session.ID,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  session.ExpiresAt,
+	})
+
+	h.log.Info("Dev mode login successful",
+		zap.String("user_id", claims.Sub),
+		zap.String("email", claims.Email))
+
+	// 重定向到前端首页
+	http.Redirect(w, r, "http://localhost:5173/", http.StatusFound)
 }
 
 // Callback 处理 OIDC 回调
@@ -177,19 +252,36 @@ func (h *OIDCHandler) Callback(w http.ResponseWriter, r *http.Request) {
 		zap.String("user_id", claims.Sub),
 		zap.String("email", claims.Email))
 
-	// 重定向到首页
-	http.Redirect(w, r, "/", http.StatusFound)
+	// 重定向到前端首页
+	http.Redirect(w, r, "http://localhost:5173/", http.StatusFound)
 }
 
 // Logout 登出
 func (h *OIDCHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	// 开发模式：记录登出日志
+	if h.config.DevMode {
+		h.log.Info("Dev mode logout requested")
+	}
+
+	var endSessionURL string
+	var idToken string
+
 	// 获取 Session
 	session := middleware.GetSessionFromContext(r.Context())
 	if session != nil {
+		idToken = session.IDToken
+		h.log.Info("Session found for logout",
+			zap.String("session_id", session.ID),
+			zap.String("user_id", session.UserID),
+			zap.Bool("has_id_token", idToken != ""))
 		// 删除 Session
 		if err := h.sessionRepo.Delete(session.ID); err != nil {
 			h.log.Error("Failed to delete session", zap.Error(err))
+		} else {
+			h.log.Info("Session deleted", zap.String("session_id", session.ID))
 		}
+	} else {
+		h.log.Warn("No session found for logout")
 	}
 
 	// 清除 Cookie
@@ -204,14 +296,53 @@ func (h *OIDCHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(-1 * time.Hour),
 	})
 
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(map[string]any{
-		"message": "logged out successfully",
-	})
+	// 获取 OIDC 单点登出 URL
+	h.log.Info("Preparing end session URL",
+		zap.Bool("dev_mode", h.config.DevMode),
+		zap.Bool("has_id_token", idToken != ""))
+	if !h.config.DevMode && idToken != "" {
+		postLogoutRedirectURI := "http://localhost:5173/"
+		if url, err := h.oidcService.GetEndSessionURL(idToken, postLogoutRedirectURI); err == nil {
+			endSessionURL = url
+			h.log.Info("Got end session URL, redirecting", zap.String("url", endSessionURL))
+			http.Redirect(w, r, endSessionURL, http.StatusFound)
+			return
+		} else {
+			h.log.Warn("Failed to get end session URL", zap.Error(err))
+		}
+	} else {
+		h.log.Info("Skipping OIDC end session",
+			zap.Bool("dev_mode", h.config.DevMode),
+			zap.Bool("has_id_token", idToken != ""))
+	}
+
+	// 如果没有 OIDC 单点登出，直接重定向到前端
+	h.log.Info("Redirecting to frontend home")
+	http.Redirect(w, r, "http://localhost:5173/", http.StatusFound)
 }
 
 // UserInfo 获取当前用户信息
 func (h *OIDCHandler) UserInfo(w http.ResponseWriter, r *http.Request) {
+	h.log.Debug("UserInfo request received", zap.Bool("dev_mode", h.config.DevMode))
+
+	// 开发模式：如果没有 session，直接返回 mock 用户
+	if h.config.DevMode {
+		h.log.Debug("Returning mock user (dev mode)")
+		session := middleware.GetSessionFromContext(r.Context())
+		if session == nil {
+			// 创建临时 mock 用户
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"sub":         "dev-user-id",
+				"email":       "dev@example.com",
+				"name":        "Developer",
+				"roles":       []string{"user", "admin"},
+				"permissions": []string{"read", "write", "delete"},
+			})
+			return
+		}
+	}
+
 	claims := middleware.GetUserFromContext(r.Context())
 	if claims == nil {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)

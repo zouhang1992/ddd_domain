@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080';
+// 使用相对路径配合 Vite 代理
+const API_BASE_URL = import.meta.env.DEV ? '' : 'http://localhost:8080';
 
 // 将蛇形命名转换为驼峰命名
 const snakeToCamel = (str: string): string => {
@@ -80,9 +81,9 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
+    // 401 由 AuthContext 处理，不要在这里重定向
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

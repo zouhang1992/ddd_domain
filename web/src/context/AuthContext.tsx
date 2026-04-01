@@ -41,9 +41,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const logout = useCallback(async () => {
-    await authApi.logout();
-    setUser(null);
-    setIsAuthenticated(false);
+    // 直接调用 authApi.logout()，它会跳转到后端，后端再跳转到 Keycloak
+    authApi.logout();
   }, []);
 
   return (

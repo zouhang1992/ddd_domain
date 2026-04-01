@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -30,24 +31,24 @@ type OIDCService struct {
 	ctx          context.Context
 
 	// OIDC discovery 缓存
-	discoveryCache   *oidcDiscovery
-	discoveryMutex   sync.RWMutex
-	discoveryExpiry  time.Time
+	discoveryCache  *oidcDiscovery
+	discoveryMutex  sync.RWMutex
+	discoveryExpiry time.Time
 
 	// JWKS 缓存
-	jwksCache   *jwks
-	jwksMutex   sync.RWMutex
-	jwksExpiry  time.Time
+	jwksCache  *jwks
+	jwksMutex  sync.RWMutex
+	jwksExpiry time.Time
 }
 
 // oidcDiscovery OIDC discovery 响应
 type oidcDiscovery struct {
-	Issuer           string `json:"issuer"`
-	AuthURL          string `json:"authorization_endpoint"`
-	TokenURL         string `json:"token_endpoint"`
-	JWKSURL          string `json:"jwks_uri"`
-	UserInfoURL      string `json:"userinfo_endpoint"`
-	EndSessionURL    string `json:"end_session_endpoint,omitempty"`
+	Issuer        string `json:"issuer"`
+	AuthURL       string `json:"authorization_endpoint"`
+	TokenURL      string `json:"token_endpoint"`
+	JWKSURL       string `json:"jwks_uri"`
+	UserInfoURL   string `json:"userinfo_endpoint"`
+	EndSessionURL string `json:"end_session_endpoint,omitempty"`
 }
 
 // jwks JWKS 响应
@@ -242,4 +243,41 @@ func (s *OIDCService) FetchUserInfo(accessToken string) (map[string]any, error) 
 	}
 
 	return userInfo, nil
+}
+
+// GetEndSessionURL 获取 OIDC 单点登出 URL
+func (s *OIDCService) GetEndSessionURL(idTokenHint string, postLogoutRedirectURI string) (string, error) {
+	discovery, err := s.fetchDiscovery()
+	if err != nil {
+		return "", err
+	}
+
+	if discovery.EndSessionURL == "" {
+		return "", fmt.Errorf("end_session_endpoint not available")
+	}
+
+	endSessionURL := discovery.EndSessionURL
+	params := []string{}
+
+	if idTokenHint != "" {
+		params = append(params, fmt.Sprintf("id_token_hint=%s", idTokenHint))
+	}
+	if postLogoutRedirectURI != "" {
+		params = append(params, fmt.Sprintf("post_logout_redirect_uri=%s", postLogoutRedirectURI))
+	}
+
+	if len(params) > 0 {
+		sep := "?"
+		if len(discovery.EndSessionURL) > 0 && discovery.EndSessionURL[len(discovery.EndSessionURL)-1] == '?' {
+			sep = ""
+		} else if len(discovery.EndSessionURL) > 0 && discovery.EndSessionURL[len(discovery.EndSessionURL)-1] != '&' {
+			sep = "?"
+			if strings.Contains(discovery.EndSessionURL, "?") {
+				sep = "&"
+			}
+		}
+		endSessionURL += sep + strings.Join(params, "&")
+	}
+
+	return endSessionURL, nil
 }

@@ -24,6 +24,7 @@ const (
 type AuthMiddleware struct {
 	sessionRepo *sqlite.SessionRepository
 	oidcService *auth.OIDCService
+	devMode     bool
 	log         *zap.Logger
 }
 
@@ -31,11 +32,13 @@ type AuthMiddleware struct {
 func NewAuthMiddleware(
 	sessionRepo *sqlite.SessionRepository,
 	oidcService *auth.OIDCService,
+	devMode bool,
 	log *zap.Logger,
 ) *AuthMiddleware {
 	return &AuthMiddleware{
 		sessionRepo: sessionRepo,
 		oidcService: oidcService,
+		devMode:     devMode,
 		log:         log,
 	}
 }
@@ -43,6 +46,22 @@ func NewAuthMiddleware(
 // RequireAuth 要求认证的中间件
 func (m *AuthMiddleware) RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// 开发模式：跳过认证检查
+		if m.devMode {
+			// 创建 mock claims 并注入上下文
+			claims := &auth.UserClaims{
+				Sub:         "dev-user-id",
+				Email:       "dev@example.com",
+				Name:        "Developer",
+				RealmRoles:  []string{"user", "admin"},
+				Permissions: []string{"read", "write", "delete"},
+			}
+
+			ctx := context.WithValue(r.Context(), UserContextKey, claims)
+			next.ServeHTTP(w, r.WithContext(ctx))
+			return
+		}
+
 		// 从 Cookie 获取 Session ID
 		cookie, err := r.Cookie(SessionCookieName)
 		if err != nil {
