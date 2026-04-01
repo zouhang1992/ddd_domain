@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 	"github.com/zouhang1992/ddd_domain/internal/application/print"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
@@ -12,25 +13,31 @@ import (
 
 // CQRSPrintHandler 基于 CQRS 的打印 HTTP 处理器
 type CQRSPrintHandler struct {
-	commandBus *buscommand.Bus
-	queryBus   *busquery.Bus
+	commandBus      *buscommand.Bus
+	queryBus        *busquery.Bus
+	authMiddleware  *middleware.AuthMiddleware
 }
 
 // NewCQRSPrintHandler 创建基于 CQRS 的打印处理器
-func NewCQRSPrintHandler(commandBus *buscommand.Bus, queryBus *busquery.Bus) *CQRSPrintHandler {
+func NewCQRSPrintHandler(
+	commandBus *buscommand.Bus, 
+	queryBus *busquery.Bus,
+	authMiddleware *middleware.AuthMiddleware,
+) *CQRSPrintHandler {
 	return &CQRSPrintHandler{
-		commandBus: commandBus,
-		queryBus:   queryBus,
+		commandBus:     commandBus,
+		queryBus:       queryBus,
+		authMiddleware: authMiddleware,
 	}
 }
 
 // RegisterRoutes 注册路由
 func (h *CQRSPrintHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /print/bill", h.PrintBill)
-	mux.HandleFunc("POST /print/lease", h.PrintLease)
-	mux.HandleFunc("POST /print/invoice", h.PrintInvoice)
-	mux.HandleFunc("GET /print/content/{billId}", h.GetPrintContent)
-	mux.HandleFunc("GET /print/jobs", h.ListPrintJobs)
+	mux.HandleFunc("POST /print/bill", h.authMiddleware.RequireAuth(h.PrintBill))
+	mux.HandleFunc("POST /print/lease", h.authMiddleware.RequireAuth(h.PrintLease))
+	mux.HandleFunc("POST /print/invoice", h.authMiddleware.RequireAuth(h.PrintInvoice))
+	mux.HandleFunc("GET /print/content/{billId}", h.authMiddleware.RequireAuth(h.GetPrintContent))
+	mux.HandleFunc("GET /print/jobs", h.authMiddleware.RequireAuth(h.ListPrintJobs))
 }
 
 // PrintBill 打印账单

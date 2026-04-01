@@ -3,6 +3,7 @@ package facade
 import (
 	"encoding/json"
 	"github.com/zouhang1992/ddd_domain/internal/application/landlord"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
@@ -11,25 +12,31 @@ import (
 
 // CQRSLandlordHandler 基于 CQRS 的房东 HTTP 处理器
 type CQRSLandlordHandler struct {
-	commandBus *buscommand.Bus
-	queryBus   *busquery.Bus
+	commandBus      *buscommand.Bus
+	queryBus        *busquery.Bus
+	authMiddleware  *middleware.AuthMiddleware
 }
 
 // NewCQRSLandlordHandler 创建基于 CQRS 的房东处理器
-func NewCQRSLandlordHandler(commandBus *buscommand.Bus, queryBus *busquery.Bus) *CQRSLandlordHandler {
+func NewCQRSLandlordHandler(
+	commandBus *buscommand.Bus, 
+	queryBus *busquery.Bus,
+	authMiddleware *middleware.AuthMiddleware,
+) *CQRSLandlordHandler {
 	return &CQRSLandlordHandler{
-		commandBus: commandBus,
-		queryBus:   queryBus,
+		commandBus:     commandBus,
+		queryBus:       queryBus,
+		authMiddleware: authMiddleware,
 	}
 }
 
 // RegisterRoutes 注册路由
 func (h *CQRSLandlordHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /landlords", h.Create)
-	mux.HandleFunc("GET /landlords", h.List)
-	mux.HandleFunc("GET /landlords/{id}", h.Get)
-	mux.HandleFunc("PUT /landlords/{id}", h.Update)
-	mux.HandleFunc("DELETE /landlords/{id}", h.Delete)
+	mux.HandleFunc("POST /landlords", h.authMiddleware.RequireAuth(h.Create))
+	mux.HandleFunc("GET /landlords", h.authMiddleware.RequireAuth(h.List))
+	mux.HandleFunc("GET /landlords/{id}", h.authMiddleware.RequireAuth(h.Get))
+	mux.HandleFunc("PUT /landlords/{id}", h.authMiddleware.RequireAuth(h.Update))
+	mux.HandleFunc("DELETE /landlords/{id}", h.authMiddleware.RequireAuth(h.Delete))
 }
 
 // Create 创建房东

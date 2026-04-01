@@ -25,6 +25,7 @@ type UserClaims struct {
 	RealmRoles   []string               `json:"realm_roles,omitempty"`
 	ResourceRoles map[string][]string    `json:"resource_roles,omitempty"`
 	Permissions  []string               `json:"permissions,omitempty"`
+	Hello        string                 `json:"hello,omitempty"`
 	Exp          int64                  `json:"exp"`
 	Extra        map[string]any           `json:"-"`
 }

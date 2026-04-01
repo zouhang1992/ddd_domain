@@ -3,6 +3,7 @@ package facade
 import (
 	"encoding/json"
 	"github.com/zouhang1992/ddd_domain/internal/application/room"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
@@ -11,25 +12,31 @@ import (
 
 // CQRSRoomHandler 基于 CQRS 的房间 HTTP 处理器
 type CQRSRoomHandler struct {
-	commandBus *buscommand.Bus
-	queryBus   *busquery.Bus
+	commandBus      *buscommand.Bus
+	queryBus        *busquery.Bus
+	authMiddleware  *middleware.AuthMiddleware
 }
 
 // NewCQRSRoomHandler 创建基于 CQRS 的房间处理器
-func NewCQRSRoomHandler(commandBus *buscommand.Bus, queryBus *busquery.Bus) *CQRSRoomHandler {
+func NewCQRSRoomHandler(
+	commandBus *buscommand.Bus, 
+	queryBus *busquery.Bus,
+	authMiddleware *middleware.AuthMiddleware,
+) *CQRSRoomHandler {
 	return &CQRSRoomHandler{
-		commandBus: commandBus,
-		queryBus:   queryBus,
+		commandBus:     commandBus,
+		queryBus:       queryBus,
+		authMiddleware: authMiddleware,
 	}
 }
 
 // RegisterRoutes 注册路由
 func (h *CQRSRoomHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /rooms", h.Create)
-	mux.HandleFunc("GET /rooms", h.List)
-	mux.HandleFunc("GET /rooms/{id}", h.Get)
-	mux.HandleFunc("PUT /rooms/{id}", h.Update)
-	mux.HandleFunc("DELETE /rooms/{id}", h.Delete)
+	mux.HandleFunc("POST /rooms", h.authMiddleware.RequireAuth(h.Create))
+	mux.HandleFunc("GET /rooms", h.authMiddleware.RequireAuth(h.List))
+	mux.HandleFunc("GET /rooms/{id}", h.authMiddleware.RequireAuth(h.Get))
+	mux.HandleFunc("PUT /rooms/{id}", h.authMiddleware.RequireAuth(h.Update))
+	mux.HandleFunc("DELETE /rooms/{id}", h.authMiddleware.RequireAuth(h.Delete))
 }
 
 // Create 创建房间

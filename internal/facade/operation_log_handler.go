@@ -6,24 +6,32 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	operationlogmodel "github.com/zouhang1992/ddd_domain/internal/domain/operationlog/model"
 	operationlogrepo "github.com/zouhang1992/ddd_domain/internal/domain/operationlog/repository"
 )
 
 // OperationLogHandler 操作日志 HTTP 处理器
 type OperationLogHandler struct {
-	repo operationlogrepo.OperationLogRepository
+	repo            operationlogrepo.OperationLogRepository
+	authMiddleware  *middleware.AuthMiddleware
 }
 
 // NewOperationLogHandler 创建操作日志处理器
-func NewOperationLogHandler(repo operationlogrepo.OperationLogRepository) *OperationLogHandler {
-	return &OperationLogHandler{repo: repo}
+func NewOperationLogHandler(
+	repo operationlogrepo.OperationLogRepository,
+	authMiddleware *middleware.AuthMiddleware,
+) *OperationLogHandler {
+	return &OperationLogHandler{
+		repo:           repo,
+		authMiddleware: authMiddleware,
+	}
 }
 
 // RegisterRoutes 注册路由
 func (h *OperationLogHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /operation-logs", h.ListOperationLogs)
-	mux.HandleFunc("GET /operation-logs/{id}", h.GetOperationLog)
+	mux.HandleFunc("GET /operation-logs", h.authMiddleware.RequireAuth(h.ListOperationLogs))
+	mux.HandleFunc("GET /operation-logs/{id}", h.authMiddleware.RequireAuth(h.GetOperationLog))
 }
 
 // OperationLogResponse 操作日志响应

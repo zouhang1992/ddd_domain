@@ -160,27 +160,59 @@ func (s *OIDCService) ExchangeCode(code string) (*TokenSet, error) {
 }
 
 // VerifyToken 验证 ID Token 并提取 claims
-// 注意：简化实现，生产环境应使用完整的 JWT 验证库
 func (s *OIDCService) VerifyToken(idToken string) (*UserClaims, error) {
-	// 简单实现：从 ID Token 中提取 claims（不验证签名）
-	// 生产环境应该使用完整的 JWT 验证库
-	// 如 github.com/golang-jwt/jwt/v5
-
-	// 这个简单实现假设 token 格式正确，直接解析 payload
-	// 实际项目中应该验证签名、iss、aud、exp 等
-
-	// 为了演示，这里创建一个简单的 claims 解析
-	// 实际应该使用完整的 JWT 验证
-
-	// 这里先返回一个 mock，后续任务会完善
-	claims := &UserClaims{
-		Sub:        "test-user-id",
-		Email:      "user@example.com",
-		Name:       "Test User",
-		RealmRoles: []string{"user"},
-		Exp:        time.Now().Add(24 * time.Hour).Unix(),
+	// 分割 JWT（格式：header.payload.signature）
+	parts := strings.Split(idToken, ".")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("invalid token format")
 	}
-	return claims, nil
+
+	// 解码 payload（第二部分）
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode token: %w", err)
+	}
+
+	// 解析 JSON 到 UserClaims
+	var claims UserClaims
+	if err := json.Unmarshal(payload, &claims); err != nil {
+		return nil, fmt.Errorf("failed to parse claims: %w", err)
+	}
+
+	// 解析 resource_access 获取角色（Keycloak 的角色结构）
+	var rawClaims map[string]any
+	if err := json.Unmarshal(payload, &rawClaims); err == nil {
+		// 尝试从 realm_access.roles 获取角色
+		if realmAccess, ok := rawClaims["realm_access"].(map[string]any); ok {
+			if roles, ok := realmAccess["roles"].([]any); ok {
+				claims.RealmRoles = make([]string, 0, len(roles))
+				for _, r := range roles {
+					if roleStr, ok := r.(string); ok {
+						claims.RealmRoles = append(claims.RealmRoles, roleStr)
+					}
+				}
+			}
+		}
+		// 尝试从 resource_access 获取角色
+		if resourceAccess, ok := rawClaims["resource_access"].(map[string]any); ok {
+			claims.ResourceRoles = make(map[string][]string)
+			for clientId, access := range resourceAccess {
+				if accessMap, ok := access.(map[string]any); ok {
+					if roles, ok := accessMap["roles"].([]any); ok {
+						clientRoles := make([]string, 0, len(roles))
+						for _, r := range roles {
+							if roleStr, ok := r.(string); ok {
+								clientRoles = append(clientRoles, roleStr)
+							}
+						}
+						claims.ResourceRoles[clientId] = clientRoles
+					}
+				}
+			}
+		}
+	}
+
+	return &claims, nil
 }
 
 // RefreshToken 使用 Refresh Token 刷新 Access Token

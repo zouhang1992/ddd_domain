@@ -151,7 +151,7 @@ func (h *OIDCHandler) devModeLogin(w http.ResponseWriter, r *http.Request) {
 		zap.String("email", claims.Email))
 
 	// 重定向到前端首页
-	http.Redirect(w, r, "http://localhost:5173/", http.StatusFound)
+	http.Redirect(w, r, h.config.FrontendURL, http.StatusFound)
 }
 
 // Callback 处理 OIDC 回调
@@ -253,7 +253,7 @@ func (h *OIDCHandler) Callback(w http.ResponseWriter, r *http.Request) {
 		zap.String("email", claims.Email))
 
 	// 重定向到前端首页
-	http.Redirect(w, r, "http://localhost:5173/", http.StatusFound)
+	http.Redirect(w, r, h.config.FrontendURL, http.StatusFound)
 }
 
 // Logout 登出
@@ -301,7 +301,7 @@ func (h *OIDCHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		zap.Bool("dev_mode", h.config.DevMode),
 		zap.Bool("has_id_token", idToken != ""))
 	if !h.config.DevMode && idToken != "" {
-		postLogoutRedirectURI := "http://localhost:5173/"
+		postLogoutRedirectURI := h.config.FrontendURL
 		if url, err := h.oidcService.GetEndSessionURL(idToken, postLogoutRedirectURI); err == nil {
 			endSessionURL = url
 			h.log.Info("Got end session URL, redirecting", zap.String("url", endSessionURL))
@@ -318,7 +318,7 @@ func (h *OIDCHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	// 如果没有 OIDC 单点登出，直接重定向到前端
 	h.log.Info("Redirecting to frontend home")
-	http.Redirect(w, r, "http://localhost:5173/", http.StatusFound)
+	http.Redirect(w, r, h.config.FrontendURL, http.StatusFound)
 }
 
 // UserInfo 获取当前用户信息
@@ -356,6 +356,7 @@ func (h *OIDCHandler) UserInfo(w http.ResponseWriter, r *http.Request) {
 		"name":        claims.Name,
 		"roles":       claims.RealmRoles,
 		"permissions": claims.Permissions,
+		"hello":       claims.Hello,
 	})
 }
 

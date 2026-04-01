@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	billrepo "github.com/zouhang1992/ddd_domain/internal/domain/bill/repository"
 	depositrepo "github.com/zouhang1992/ddd_domain/internal/domain/deposit/repository"
 	leaserepo "github.com/zouhang1992/ddd_domain/internal/domain/lease/repository"
@@ -14,20 +15,33 @@ import (
 
 // IncomeHandler 收入汇总 HTTP 处理器
 type IncomeHandler struct {
-	billRepo    billrepo.BillRepository
-	depositRepo depositrepo.DepositRepository
-	leaseRepo   leaserepo.LeaseRepository
-	roomRepo    roomrepo.RoomRepository
+	billRepo        billrepo.BillRepository
+	depositRepo     depositrepo.DepositRepository
+	leaseRepo       leaserepo.LeaseRepository
+	roomRepo        roomrepo.RoomRepository
+	authMiddleware  *middleware.AuthMiddleware
 }
 
 // NewIncomeHandler 创建收入汇总处理器
-func NewIncomeHandler(billRepo billrepo.BillRepository, depositRepo depositrepo.DepositRepository, leaseRepo leaserepo.LeaseRepository, roomRepo roomrepo.RoomRepository) *IncomeHandler {
-	return &IncomeHandler{billRepo: billRepo, depositRepo: depositRepo, leaseRepo: leaseRepo, roomRepo: roomRepo}
+func NewIncomeHandler(
+	billRepo billrepo.BillRepository, 
+	depositRepo depositrepo.DepositRepository, 
+	leaseRepo leaserepo.LeaseRepository, 
+	roomRepo roomrepo.RoomRepository,
+	authMiddleware *middleware.AuthMiddleware,
+) *IncomeHandler {
+	return &IncomeHandler{
+		billRepo:       billRepo, 
+		depositRepo:    depositRepo, 
+		leaseRepo:      leaseRepo, 
+		roomRepo:       roomRepo,
+		authMiddleware: authMiddleware,
+	}
 }
 
 // RegisterRoutes 注册路由
 func (h *IncomeHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /income", h.GetIncome)
+	mux.HandleFunc("GET /income", h.authMiddleware.RequireAuth(h.GetIncome))
 }
 
 // IncomeReport 收入报告

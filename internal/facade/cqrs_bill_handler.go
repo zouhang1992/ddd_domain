@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/zouhang1992/ddd_domain/internal/application/bill"
 	"github.com/zouhang1992/ddd_domain/internal/application/common/service"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	billmodel "github.com/zouhang1992/ddd_domain/internal/domain/bill/model"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
@@ -13,30 +14,37 @@ import (
 
 // CQRSBillHandler 基于 CQRS 的账单 HTTP 处理器
 type CQRSBillHandler struct {
-	commandBus   *buscommand.Bus
-	queryBus     *busquery.Bus
-	printService *service.PrintService
+	commandBus      *buscommand.Bus
+	queryBus        *busquery.Bus
+	printService    *service.PrintService
+	authMiddleware  *middleware.AuthMiddleware
 }
 
 // NewCQRSBillHandler 创建基于 CQRS 的账单处理器
-func NewCQRSBillHandler(commandBus *buscommand.Bus, queryBus *busquery.Bus, printService *service.PrintService) *CQRSBillHandler {
+func NewCQRSBillHandler(
+	commandBus *buscommand.Bus, 
+	queryBus *busquery.Bus, 
+	printService *service.PrintService,
+	authMiddleware *middleware.AuthMiddleware,
+) *CQRSBillHandler {
 	return &CQRSBillHandler{
-		commandBus:   commandBus,
-		queryBus:     queryBus,
-		printService: printService,
+		commandBus:     commandBus,
+		queryBus:       queryBus,
+		printService:   printService,
+		authMiddleware: authMiddleware,
 	}
 }
 
 // RegisterRoutes 注册路由
 func (h *CQRSBillHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /bills", h.Create)
-	mux.HandleFunc("GET /bills", h.List)
-	mux.HandleFunc("GET /bills/{id}", h.Get)
-	mux.HandleFunc("PUT /bills/{id}", h.Update)
-	mux.HandleFunc("DELETE /bills/{id}", h.Delete)
-	mux.HandleFunc("GET /bills/{id}/receipt", h.PrintReceipt)
-	mux.HandleFunc("POST /bills/{id}/confirm-arrival", h.ConfirmArrival)
-	mux.HandleFunc("GET /leases/{leaseId}/next-bill-period", h.GetNextBillPeriod)
+	mux.HandleFunc("POST /bills", h.authMiddleware.RequireAuth(h.Create))
+	mux.HandleFunc("GET /bills", h.authMiddleware.RequireAuth(h.List))
+	mux.HandleFunc("GET /bills/{id}", h.authMiddleware.RequireAuth(h.Get))
+	mux.HandleFunc("PUT /bills/{id}", h.authMiddleware.RequireAuth(h.Update))
+	mux.HandleFunc("DELETE /bills/{id}", h.authMiddleware.RequireAuth(h.Delete))
+	mux.HandleFunc("GET /bills/{id}/receipt", h.authMiddleware.RequireAuth(h.PrintReceipt))
+	mux.HandleFunc("POST /bills/{id}/confirm-arrival", h.authMiddleware.RequireAuth(h.ConfirmArrival))
+	mux.HandleFunc("GET /leases/{leaseId}/next-bill-period", h.authMiddleware.RequireAuth(h.GetNextBillPeriod))
 }
 
 // Create 创建账单

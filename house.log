@@ -44,3 +44,348 @@
 2026-04-01T19:08:06.298+0800	[34mINFO[0m	facade/oidc_handler.go:307	Got end session URL, redirecting	{"url": "http://localhost:8081/realms/master/protocol/openid-connect/logout?id_token_hint=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJmZVliWWV3ZUhEbC1EZ2lhZkFibkZGczhSWlg3bXMzRHRIQmE1RHhqVnhZIn0.eyJleHAiOjE3NzUwNDE2OTYsImlhdCI6MTc3NTA0MTYzNiwiYXV0aF90aW1lIjoxNzc1MDQxNjM1LCJqdGkiOiI0MjlmZTgwNy02YTU0LTQzYWMtODcyMS1lNjFhZDA3MjVlZDgiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEvcmVhbG1zL21hc3RlciIsImF1ZCI6ImRkZC1hcHAiLCJzdWIiOiIxMjViYzA0OC1hY2E0LTRmMzAtYjkxZi03YjA5ODAwMTQwMTYiLCJ0eXAiOiJJRCIsImF6cCI6ImRkZC1hcHAiLCJzZXNzaW9uX3N0YXRlIjoiOWJlYTM3MzMtNDdkMi00OWYzLWFlOGEtMTc5MzU0YmY2NTc2IiwiYXRfaGFzaCI6Il9GZVcwcmcteEVheEZmOWNBTHFrVXciLCJhY3IiOiIxIiwic2lkIjoiOWJlYTM3MzMtNDdkMi00OWYzLWFlOGEtMTc5MzU0YmY2NTc2IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiLoiKog6YK5IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiem91aGFuZyIsImdpdmVuX25hbWUiOiLoiKoiLCJmYW1pbHlfbmFtZSI6IumCuSIsImVtYWlsIjoiem91aGFuZzIwMDdAMTYzLmNvbSJ9.amHBHG5PGuL-tXClfJlGUgbdTHjJnLUlGGJi0MYhyS2GpHJMgqbChrlRc3wCvBYIY5AWjvM7b8sdMKmGhsADBdydIwJ59x-Oxg6BA_t7b1nqovx23PP_J7YiDkFWbzEUjQ1Y4JmHqOe3jTNFNYEekCn4BvbAAB6UDeoQtZ5I9nGsncj5fLwdJUQ_kndPjB1Hln4Xuvrx9aZjHOmIoT4knVb-DtQODVvucGkVtL1tHSeolwTNzIsKTEhtC0CHUqPdc5rFDMAxfp_3cOqXIA7bwa4-HcELQE47iHVMg58flQvULAxpb8pvRP-kdZynrQq54GBsMmGUAd63n_63rVd24Q&post_logout_redirect_uri=http://localhost:5173/"}
 2026-04-01T19:08:06.358+0800	[34mINFO[0m	facade/oidc_handler.go:99	Redirecting to OIDC provider	{"state": "9qScSfJ4iEgVGCHmcMMyveV99u4MwP9RDqkhU6aGBfg"}
 2026-04-01T19:08:15.377+0800	[34mINFO[0m	facade/oidc_handler.go:251	User authenticated successfully	{"user_id": "test-user-id", "email": "user@example.com"}
+2026-04-01T19:19:12.367+0800	[34mINFO[0m	logging/logging.go:77	Logging system initialized	{"environment": "development", "level": "info"}
+2026-04-01T19:19:12.368+0800	[34mINFO[0m	sqlite/connection.go:23	Opening database connection	{"dsn": "data/ddd.db"}
+2026-04-01T19:19:12.375+0800	[34mINFO[0m	sqlite/connection.go:66	Database connection established successfully
+2026-04-01T19:19:12.375+0800	[34mINFO[0m	sqlite/connection.go:76	Database schema initialized successfully
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.activated"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.checkout"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.expired"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	api/main.go:64	Lease room event handler registered	{"events": "lease.activated, lease.checkout, lease.expired"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.created"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.updated"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.deleted"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.rented"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.available"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.created"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.activated"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.checkout"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.expired"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.renewed"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.deleted"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.created"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.updated"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.deleted"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.created"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.updated"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.paid"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.deleted"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.created"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.updated"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.deleted"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.created"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.returning"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.returned"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.deleted"}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	api/main.go:87	Operation log event handler registered	{"events": ["room.created", "room.updated", "room.deleted", "room.rented", "room.available", "lease.created", "lease.activated", "lease.checkout", "lease.expired", "lease.renewed", "lease.deleted", "landlord.created", "landlord.updated", "landlord.deleted", "bill.created", "bill.updated", "bill.paid", "bill.deleted", "location.created", "location.updated", "location.deleted", "deposit.created", "deposit.returning", "deposit.returned", "deposit.deleted"]}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	lease/scheduler.go:33	Starting lease expiration scheduler
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	lease/scheduler.go:77	Running lease expiration check
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	lease/scheduler.go:85	Lease expiration check completed	{"processed_count": 0}
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	lease/scheduler.go:54	Lease expiration scheduler started, will run hourly
+2026-04-01T19:19:12.376+0800	[34mINFO[0m	facade/oidc_handler.go:36	OIDC Handler initialized	{"dev_mode": false, "issuer_url": "http://localhost:8081/realms/master", "client_id": "ddd-app", "redirect_url": "http://localhost:8080/oauth2/callback"}
+2026-04-01T19:19:12.377+0800	[34mINFO[0m	api/main.go:211	Starting server	{"addr": ":8080"}
+2026-04-01T19:19:36.233+0800	[34mINFO[0m	facade/oidc_handler.go:273	Session found for logout	{"session_id": "c50abda0-ae72-4549-8879-794b918bf0e0", "user_id": "test-user-id", "has_id_token": true}
+2026-04-01T19:19:36.234+0800	[34mINFO[0m	facade/oidc_handler.go:281	Session deleted	{"session_id": "c50abda0-ae72-4549-8879-794b918bf0e0"}
+2026-04-01T19:19:36.234+0800	[34mINFO[0m	facade/oidc_handler.go:300	Preparing end session URL	{"dev_mode": false, "has_id_token": true}
+2026-04-01T19:19:36.245+0800	[34mINFO[0m	facade/oidc_handler.go:307	Got end session URL, redirecting	{"url": "http://localhost:8081/realms/master/protocol/openid-connect/logout?id_token_hint=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJmZVliWWV3ZUhEbC1EZ2lhZkFibkZGczhSWlg3bXMzRHRIQmE1RHhqVnhZIn0.eyJleHAiOjE3NzUwNDE3NTUsImlhdCI6MTc3NTA0MTY5NSwiYXV0aF90aW1lIjoxNzc1MDQxNjk1LCJqdGkiOiJkZjU0Zjg0MC1mNzhkLTRiM2ItYjUzZi1kYjI5MWNiNTNlNWMiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEvcmVhbG1zL21hc3RlciIsImF1ZCI6ImRkZC1hcHAiLCJzdWIiOiIxMjViYzA0OC1hY2E0LTRmMzAtYjkxZi03YjA5ODAwMTQwMTYiLCJ0eXAiOiJJRCIsImF6cCI6ImRkZC1hcHAiLCJzZXNzaW9uX3N0YXRlIjoiY2I0MzdiNjYtNDhiMi00NGZlLTljMTEtYzRmOGFjZDhkNTI4IiwiYXRfaGFzaCI6IkdhamVjbi1oYmZzSFdjXzU2cmJuNGciLCJhY3IiOiIxIiwic2lkIjoiY2I0MzdiNjYtNDhiMi00NGZlLTljMTEtYzRmOGFjZDhkNTI4IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiLoiKog6YK5IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiem91aGFuZyIsImdpdmVuX25hbWUiOiLoiKoiLCJmYW1pbHlfbmFtZSI6IumCuSIsImVtYWlsIjoiem91aGFuZzIwMDdAMTYzLmNvbSJ9.UWR271fq2RJdw-m-NI35q1l4pf04ds6qt9EbGNAvmcKnN4dA-NeLWwxSJtqL2VgTwKHcUeUJquEnPpdLwnU2zLRyXq4B4dIVPHTgC0oC7b3eTX6vk9yUqm7EsdUJDyyZzt9aAcwvTkIXcjp6Hq-xS40gS6sAznJnxiKm-8eQaIwD-788ow_na1AEhTICA-KFOxuOwfMN0u3b3KM3DBt-d1taApkKoF6vuKvAlRpsDBun5R-G8TSqC6Lci5f7lBkZIyUF8o62GCziOi0bj9TSP2iLqkbu1rPJE4uD3q-3bN8zJqsmajxIB7Sv8fRrn83Iir_D9Xr8wYAk2jRFlT-IIg&post_logout_redirect_uri=http://localhost:5173/"}
+2026-04-01T19:19:36.333+0800	[34mINFO[0m	facade/oidc_handler.go:99	Redirecting to OIDC provider	{"state": "dTw7N9lQd-_9AaSW_2xU4q3Teqy2hVZ4LWLiNXHbLvU"}
+2026-04-01T19:19:43.215+0800	[34mINFO[0m	facade/oidc_handler.go:251	User authenticated successfully	{"user_id": "test-user-id", "email": "user@example.com"}
+2026-04-01T19:19:48.360+0800	[34mINFO[0m	facade/oidc_handler.go:273	Session found for logout	{"session_id": "406a78d8-eecd-432e-8b73-5a08a3531908", "user_id": "test-user-id", "has_id_token": true}
+2026-04-01T19:19:48.361+0800	[34mINFO[0m	facade/oidc_handler.go:281	Session deleted	{"session_id": "406a78d8-eecd-432e-8b73-5a08a3531908"}
+2026-04-01T19:19:48.361+0800	[34mINFO[0m	facade/oidc_handler.go:300	Preparing end session URL	{"dev_mode": false, "has_id_token": true}
+2026-04-01T19:19:48.361+0800	[34mINFO[0m	facade/oidc_handler.go:307	Got end session URL, redirecting	{"url": "http://localhost:8081/realms/master/protocol/openid-connect/logout?id_token_hint=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJmZVliWWV3ZUhEbC1EZ2lhZkFibkZGczhSWlg3bXMzRHRIQmE1RHhqVnhZIn0.eyJleHAiOjE3NzUwNDI0NDMsImlhdCI6MTc3NTA0MjM4MywiYXV0aF90aW1lIjoxNzc1MDQyMzgzLCJqdGkiOiJkYTg4YzA5Yi0wNzUwLTQ1ZWEtOGZiMy1jNTYyZWRlYWU4NjQiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEvcmVhbG1zL21hc3RlciIsImF1ZCI6ImRkZC1hcHAiLCJzdWIiOiIxMjViYzA0OC1hY2E0LTRmMzAtYjkxZi03YjA5ODAwMTQwMTYiLCJ0eXAiOiJJRCIsImF6cCI6ImRkZC1hcHAiLCJzZXNzaW9uX3N0YXRlIjoiNzA2OTllZTItNGI4ZS00ZWZmLWI1MTctZjIzOWNlNjBjZDM0IiwiYXRfaGFzaCI6InpOWkNTbFI5UzNZNWU3SWVUVXR5ZWciLCJhY3IiOiIxIiwic2lkIjoiNzA2OTllZTItNGI4ZS00ZWZmLWI1MTctZjIzOWNlNjBjZDM0IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiLoiKog6YK5IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiem91aGFuZyIsImdpdmVuX25hbWUiOiLoiKoiLCJmYW1pbHlfbmFtZSI6IumCuSIsImVtYWlsIjoiem91aGFuZzIwMDdAMTYzLmNvbSJ9.P8sLo758X7J1ltk3O6KkUFWUtotiL8m5-ysqLRrjmNpyo4ANjCqWJKf8qzN4PdVFqlVn8qfz06RaO2JAMvSoe8Ko2n7fZwwctTeX9i9ySPq7et5nceBjx22LXJDVDAtjMHG2pV_3fj9SJ-HqmWh23Gfr_ZeO_o-hUekSEC4M1wwHP2XDbAl8a1HABSv7uOjh3D17ghLk8wjOH6X5mh0cyf5VNY5Up9o80FAtd-ePdUpp6rk8WbbUgn8TXguS_jIHDnH94VHwpX6aviPN_pXeuSrSxxRA_ljieyqtPKNkSVqgyS0t2bTb86RBL0J-SR8dTDG0DgTFhQl3YSkI07sPmg&post_logout_redirect_uri=http://localhost:5173/"}
+2026-04-01T19:19:48.432+0800	[34mINFO[0m	facade/oidc_handler.go:99	Redirecting to OIDC provider	{"state": "9hDS1-Vk2101b4bw3HIZUNeQ91GQN7x-1rrJDOvBORc"}
+2026-04-01T19:20:35.454+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T19:20:35.456+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T19:21:45.001+0800	[34mINFO[0m	facade/oidc_handler.go:251	User authenticated successfully	{"user_id": "test-user-id", "email": "user@example.com"}
+2026-04-01T20:00:00.052+0800	[34mINFO[0m	lease/scheduler.go:77	Running lease expiration check
+2026-04-01T20:00:00.053+0800	[34mINFO[0m	lease/scheduler.go:85	Lease expiration check completed	{"processed_count": 0}
+2026-04-01T20:04:51.457+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T20:04:51.457+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T20:04:53.616+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T20:04:53.616+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T20:04:57.245+0800	[34mINFO[0m	facade/oidc_handler.go:273	Session found for logout	{"session_id": "2b0901d6-7344-48ac-b52e-5279e88b4533", "user_id": "test-user-id", "has_id_token": true}
+2026-04-01T20:04:57.245+0800	[34mINFO[0m	facade/oidc_handler.go:281	Session deleted	{"session_id": "2b0901d6-7344-48ac-b52e-5279e88b4533"}
+2026-04-01T20:04:57.245+0800	[34mINFO[0m	facade/oidc_handler.go:300	Preparing end session URL	{"dev_mode": false, "has_id_token": true}
+2026-04-01T20:04:57.245+0800	[34mINFO[0m	facade/oidc_handler.go:307	Got end session URL, redirecting	{"url": "http://localhost:8081/realms/master/protocol/openid-connect/logout?id_token_hint=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJmZVliWWV3ZUhEbC1EZ2lhZkFibkZGczhSWlg3bXMzRHRIQmE1RHhqVnhZIn0.eyJleHAiOjE3NzUwNDI1NjQsImlhdCI6MTc3NTA0MjUwNCwiYXV0aF90aW1lIjoxNzc1MDQyNTA0LCJqdGkiOiJkOThmNDEzMS1jNjNkLTQxODYtODRlNi03NmZjZDRhYWRlZWEiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEvcmVhbG1zL21hc3RlciIsImF1ZCI6ImRkZC1hcHAiLCJzdWIiOiIxMjViYzA0OC1hY2E0LTRmMzAtYjkxZi03YjA5ODAwMTQwMTYiLCJ0eXAiOiJJRCIsImF6cCI6ImRkZC1hcHAiLCJzZXNzaW9uX3N0YXRlIjoiOGYxMTY3OTctODRlZS00ZGU3LWE4MTgtYzM0NzBhZmVmZTQwIiwiYXRfaGFzaCI6Ilp4V2dfZ29wNy0zT2lnTGNDSThEUFEiLCJhY3IiOiIxIiwic2lkIjoiOGYxMTY3OTctODRlZS00ZGU3LWE4MTgtYzM0NzBhZmVmZTQwIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiLoiKog6YK5IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiem91aGFuZyIsImdpdmVuX25hbWUiOiLoiKoiLCJmYW1pbHlfbmFtZSI6IumCuSIsImVtYWlsIjoiem91aGFuZzIwMDdAMTYzLmNvbSJ9.OsZStIIc9eBT48W5v4VvRIYeZQomM7ZIusQksPmIB_OF2oyfER7UHkiEDDu-72wF4cx_-apoJGpFwtNWENQg5HiIgir2gPoak3kzJ2Dhz7rZ1nPEULVQA9L88s0xyOyERVyChYHd8rI5FcqRi2-IR_wayCAw_U6ChSdV5GFO5ZVrqDNx1hUojHlLs3xDJZMJ-q7mHNxXE1YnsQDJ0mxSNyScpBbNChnjQTY3XienMR-ZI5RKOuXnt0o5BI4UKq1Vzmqtk95SM3MNvkuQy1KfMyMigKYJv1aTMAxXsE6zG9_6O9maXhHlSCkoInuVm-GCbGcaSY_slI0qiEPDVNEghQ&post_logout_redirect_uri=http://localhost:5173/"}
+2026-04-01T20:04:57.461+0800	[34mINFO[0m	facade/oidc_handler.go:99	Redirecting to OIDC provider	{"state": "ga9IbLphT0Kf8oNmWAbCNtBL8hC92aMeJhoFN5UIQpU"}
+2026-04-01T20:04:59.300+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T20:04:59.301+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T20:05:00.754+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T20:05:00.755+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T20:05:07.250+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T20:05:07.251+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T20:05:11.207+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T20:05:11.207+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T20:05:21.861+0800	[34mINFO[0m	logging/logging.go:77	Logging system initialized	{"environment": "development", "level": "info"}
+2026-04-01T20:05:21.863+0800	[34mINFO[0m	sqlite/connection.go:23	Opening database connection	{"dsn": "data/ddd.db"}
+2026-04-01T20:05:21.870+0800	[34mINFO[0m	sqlite/connection.go:66	Database connection established successfully
+2026-04-01T20:05:21.871+0800	[34mINFO[0m	sqlite/connection.go:76	Database schema initialized successfully
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.activated"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.checkout"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.expired"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	api/main.go:64	Lease room event handler registered	{"events": "lease.activated, lease.checkout, lease.expired"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.created"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.updated"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.deleted"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.rented"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.available"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.created"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.activated"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.checkout"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.expired"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.renewed"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.deleted"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.created"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.updated"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.deleted"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.created"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.updated"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.paid"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.deleted"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.created"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.updated"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.deleted"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.created"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.returning"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.returned"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.deleted"}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	api/main.go:87	Operation log event handler registered	{"events": ["room.created", "room.updated", "room.deleted", "room.rented", "room.available", "lease.created", "lease.activated", "lease.checkout", "lease.expired", "lease.renewed", "lease.deleted", "landlord.created", "landlord.updated", "landlord.deleted", "bill.created", "bill.updated", "bill.paid", "bill.deleted", "location.created", "location.updated", "location.deleted", "deposit.created", "deposit.returning", "deposit.returned", "deposit.deleted"]}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	lease/scheduler.go:33	Starting lease expiration scheduler
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	lease/scheduler.go:77	Running lease expiration check
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	lease/scheduler.go:85	Lease expiration check completed	{"processed_count": 0}
+2026-04-01T20:05:21.872+0800	[34mINFO[0m	lease/scheduler.go:54	Lease expiration scheduler started, will run hourly
+2026-04-01T20:05:21.873+0800	[34mINFO[0m	facade/oidc_handler.go:36	OIDC Handler initialized	{"dev_mode": false, "issuer_url": "http://localhost:8081/realms/master", "client_id": "ddd-app", "redirect_url": "http://localhost:8080/oauth2/callback"}
+2026-04-01T20:05:21.873+0800	[34mINFO[0m	api/main.go:211	Starting server	{"addr": ":8080"}
+2026-04-01T20:05:33.988+0800	[33mWARN[0m	facade/oidc_handler.go:178	Invalid state	{"state": "ga9IbLphT0Kf8oNmWAbCNtBL8hC92aMeJhoFN5UIQpU"}
+github.com/zouhang1992/ddd_domain/internal/facade.(*OIDCHandler).Callback
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/internal/facade/oidc_handler.go:178
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.(*ServeMux).ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2861
+main.startServer.startServer.func1.func3
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/cmd/api/main.go:189
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.serverHandler.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:3340
+net/http.(*conn).serve
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2109
+2026-04-01T20:05:39.662+0800	[34mINFO[0m	facade/oidc_handler.go:99	Redirecting to OIDC provider	{"state": "pcjV43-fHR00RkquL_Y0bvt8CxxQipqYsCs-g_yEo-I"}
+2026-04-01T20:05:39.685+0800	[34mINFO[0m	facade/oidc_handler.go:251	User authenticated successfully	{"user_id": "test-user-id", "email": "user@example.com"}
+2026-04-01T20:05:43.386+0800	[34mINFO[0m	facade/oidc_handler.go:273	Session found for logout	{"session_id": "3d29828e-8721-4fbf-81b6-f81bb1ea0948", "user_id": "test-user-id", "has_id_token": true}
+2026-04-01T20:05:43.387+0800	[34mINFO[0m	facade/oidc_handler.go:281	Session deleted	{"session_id": "3d29828e-8721-4fbf-81b6-f81bb1ea0948"}
+2026-04-01T20:05:43.387+0800	[34mINFO[0m	facade/oidc_handler.go:300	Preparing end session URL	{"dev_mode": false, "has_id_token": true}
+2026-04-01T20:05:43.387+0800	[34mINFO[0m	facade/oidc_handler.go:307	Got end session URL, redirecting	{"url": "http://localhost:8081/realms/master/protocol/openid-connect/logout?id_token_hint=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJmZVliWWV3ZUhEbC1EZ2lhZkFibkZGczhSWlg3bXMzRHRIQmE1RHhqVnhZIn0.eyJleHAiOjE3NzUwNDUxOTksImlhdCI6MTc3NTA0NTEzOSwiYXV0aF90aW1lIjoxNzc1MDQ1MTMzLCJqdGkiOiJhMzVhNmRlZS1jMmU4LTRmOTgtYTBhZC1kNTc2NDliNWI1NjkiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEvcmVhbG1zL21hc3RlciIsImF1ZCI6ImRkZC1hcHAiLCJzdWIiOiIxMjViYzA0OC1hY2E0LTRmMzAtYjkxZi03YjA5ODAwMTQwMTYiLCJ0eXAiOiJJRCIsImF6cCI6ImRkZC1hcHAiLCJzZXNzaW9uX3N0YXRlIjoiMzc4ODA5NDItNzM5Zi00YTI2LWEwODQtYmNmYTA4YzRhNTk0IiwiYXRfaGFzaCI6IlZuVTlVTzRlR1duTWRETFBSajh4N2ciLCJhY3IiOiIwIiwic2lkIjoiMzc4ODA5NDItNzM5Zi00YTI2LWEwODQtYmNmYTA4YzRhNTk0IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiLoiKog6YK5IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiem91aGFuZyIsImdpdmVuX25hbWUiOiLoiKoiLCJmYW1pbHlfbmFtZSI6IumCuSIsImVtYWlsIjoiem91aGFuZzIwMDdAMTYzLmNvbSJ9.UAhGBXP6EJrV_Rs2WKyVNFiDmTTFEhAE5U01V0c1tP4Xrf0vOejCagx9fCqR1kgb3QVCZ4aM9uOkQo-238u_pHCHibgo61vGexVosAAeZid6Vay5cFhyhDUdpdNerBv2uofm9RHA0-mzXF_snFHB0pROkyCRXHd_SPqiwLC6LzUxXwjYGoRYF2aPa_BVS0EC1xHAUMd7rNKB7lspHU9igQfidrN6Wub_h_fglCEFSnkPkGaRTywQ9A84smm6Km7kte9v-w-rdOvgM22x2IJXXoqnkNVdZmqlhTTISr_HfHTpQGfE5Zoo_gKl8MQAP2IfS27VIMnv0caCfh1_2nj5Xg&post_logout_redirect_uri=http://localhost:5173"}
+2026-04-01T20:05:43.454+0800	[34mINFO[0m	facade/oidc_handler.go:99	Redirecting to OIDC provider	{"state": "8Ht--SYa-Ay1dIFp0LZWd0rE8mVaKHhh-AIkXbMGMrA"}
+2026-04-01T20:05:49.914+0800	[34mINFO[0m	facade/oidc_handler.go:251	User authenticated successfully	{"user_id": "test-user-id", "email": "user@example.com"}
+2026-04-01T20:05:53.645+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T20:05:53.645+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T20:05:57.691+0800	[34mINFO[0m	facade/oidc_handler.go:273	Session found for logout	{"session_id": "2ea196ac-b7ec-442c-8cdc-3f979ccf2976", "user_id": "test-user-id", "has_id_token": true}
+2026-04-01T20:05:57.691+0800	[34mINFO[0m	facade/oidc_handler.go:281	Session deleted	{"session_id": "2ea196ac-b7ec-442c-8cdc-3f979ccf2976"}
+2026-04-01T20:05:57.691+0800	[34mINFO[0m	facade/oidc_handler.go:300	Preparing end session URL	{"dev_mode": false, "has_id_token": true}
+2026-04-01T20:05:57.691+0800	[34mINFO[0m	facade/oidc_handler.go:307	Got end session URL, redirecting	{"url": "http://localhost:8081/realms/master/protocol/openid-connect/logout?id_token_hint=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJmZVliWWV3ZUhEbC1EZ2lhZkFibkZGczhSWlg3bXMzRHRIQmE1RHhqVnhZIn0.eyJleHAiOjE3NzUwNDUyMDksImlhdCI6MTc3NTA0NTE0OSwiYXV0aF90aW1lIjoxNzc1MDQ1MTQ5LCJqdGkiOiJiZGVhMDc0Ni05OWQxLTRiMGMtYWZhZS04Zjk1YjI5YTQzZTYiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEvcmVhbG1zL21hc3RlciIsImF1ZCI6ImRkZC1hcHAiLCJzdWIiOiIxMjViYzA0OC1hY2E0LTRmMzAtYjkxZi03YjA5ODAwMTQwMTYiLCJ0eXAiOiJJRCIsImF6cCI6ImRkZC1hcHAiLCJzZXNzaW9uX3N0YXRlIjoiMzVjOTFjNzEtZDA3YS00ZTc4LTkzMDYtNDE3ODdmMTk0ZWUzIiwiYXRfaGFzaCI6Il9UY3V2S3NpRVp6RFpNdy04QWV1UkEiLCJhY3IiOiIxIiwic2lkIjoiMzVjOTFjNzEtZDA3YS00ZTc4LTkzMDYtNDE3ODdmMTk0ZWUzIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiLoiKog6YK5IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiem91aGFuZyIsImdpdmVuX25hbWUiOiLoiKoiLCJmYW1pbHlfbmFtZSI6IumCuSIsImVtYWlsIjoiem91aGFuZzIwMDdAMTYzLmNvbSJ9.QS6Nizeyp5o--TD0YvwqXFDv2gpfe11TKrC2NjBGjT7n-ZvaYOoMPYLL9hlmUjJUvnEkf-KFEk034tmhyN9_J2ModAP64AqqhTCp1hh9TojZ36Fg_A3vd4vpCi4BnBoOjs27oaKIqSXdFXFXJJJWkfeyEt48oD0xbV_zu06-lynCKz8QRcUsgXWvWJrOn0LR1DImfgVxj89qVv-S7LXM9vdToIe7ruizUhjAUl7N25sKzaWLO5PvNVT5Q8d8CdPOUggGEK36JGWXu5Z6kSGW9n9T_BUsjxKEa0UctQYMRC8FL3PoAnBu_97AnbeovL_M2CA4tLla1xAtz6dxG-qgsw&post_logout_redirect_uri=http://localhost:5173"}
+2026-04-01T20:05:57.752+0800	[34mINFO[0m	facade/oidc_handler.go:99	Redirecting to OIDC provider	{"state": "BMaDays85JcrcbR_nihjca9f8p2mLwG9ibtsLNTf27U"}
+2026-04-01T20:06:11.383+0800	[34mINFO[0m	facade/oidc_handler.go:251	User authenticated successfully	{"user_id": "test-user-id", "email": "user@example.com"}
+2026-04-01T20:15:42.285+0800	[34mINFO[0m	logging/logging.go:77	Logging system initialized	{"environment": "development", "level": "info"}
+2026-04-01T20:15:42.286+0800	[34mINFO[0m	sqlite/connection.go:23	Opening database connection	{"dsn": "data/ddd.db"}
+2026-04-01T20:15:42.292+0800	[34mINFO[0m	sqlite/connection.go:66	Database connection established successfully
+2026-04-01T20:15:42.293+0800	[34mINFO[0m	sqlite/connection.go:76	Database schema initialized successfully
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.activated"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.checkout"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.expired"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	api/main.go:64	Lease room event handler registered	{"events": "lease.activated, lease.checkout, lease.expired"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.created"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.updated"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.deleted"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.rented"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.available"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.created"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.activated"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.checkout"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.expired"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.renewed"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.deleted"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.created"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.updated"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.deleted"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.created"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.updated"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.paid"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.deleted"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.created"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.updated"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.deleted"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.created"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.returning"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.returned"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.deleted"}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	api/main.go:87	Operation log event handler registered	{"events": ["room.created", "room.updated", "room.deleted", "room.rented", "room.available", "lease.created", "lease.activated", "lease.checkout", "lease.expired", "lease.renewed", "lease.deleted", "landlord.created", "landlord.updated", "landlord.deleted", "bill.created", "bill.updated", "bill.paid", "bill.deleted", "location.created", "location.updated", "location.deleted", "deposit.created", "deposit.returning", "deposit.returned", "deposit.deleted"]}
+2026-04-01T20:15:42.294+0800	[34mINFO[0m	lease/scheduler.go:33	Starting lease expiration scheduler
+2026-04-01T20:15:42.295+0800	[34mINFO[0m	lease/scheduler.go:77	Running lease expiration check
+2026-04-01T20:15:42.295+0800	[34mINFO[0m	lease/scheduler.go:85	Lease expiration check completed	{"processed_count": 0}
+2026-04-01T20:15:42.295+0800	[34mINFO[0m	lease/scheduler.go:54	Lease expiration scheduler started, will run hourly
+2026-04-01T20:15:42.295+0800	[34mINFO[0m	facade/oidc_handler.go:36	OIDC Handler initialized	{"dev_mode": false, "issuer_url": "http://localhost:8081/realms/master", "client_id": "ddd-app", "redirect_url": "http://localhost:8080/oauth2/callback"}
+2026-04-01T20:15:42.295+0800	[34mINFO[0m	api/main.go:211	Starting server	{"addr": ":8080"}
+2026-04-01T20:33:43.104+0800	[34mINFO[0m	logging/logging.go:77	Logging system initialized	{"environment": "development", "level": "info"}
+2026-04-01T20:33:43.105+0800	[34mINFO[0m	sqlite/connection.go:23	Opening database connection	{"dsn": "data/ddd.db"}
+2026-04-01T20:33:43.110+0800	[34mINFO[0m	sqlite/connection.go:66	Database connection established successfully
+2026-04-01T20:33:43.111+0800	[34mINFO[0m	sqlite/connection.go:76	Database schema initialized successfully
+2026-04-01T20:33:43.111+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.activated"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.checkout"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.expired"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	api/main.go:64	Lease room event handler registered	{"events": "lease.activated, lease.checkout, lease.expired"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.created"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.updated"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.deleted"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.rented"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "room.available"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.created"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.activated"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.checkout"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.expired"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.renewed"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "lease.deleted"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.created"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.updated"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "landlord.deleted"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.created"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.updated"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.paid"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "bill.deleted"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.created"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.updated"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "location.deleted"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.created"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.returning"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.returned"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	event/bus.go:40	Event subscriber added	{"event": "deposit.deleted"}
+2026-04-01T20:33:43.112+0800	[34mINFO[0m	api/main.go:87	Operation log event handler registered	{"events": ["room.created", "room.updated", "room.deleted", "room.rented", "room.available", "lease.created", "lease.activated", "lease.checkout", "lease.expired", "lease.renewed", "lease.deleted", "landlord.created", "landlord.updated", "landlord.deleted", "bill.created", "bill.updated", "bill.paid", "bill.deleted", "location.created", "location.updated", "location.deleted", "deposit.created", "deposit.returning", "deposit.returned", "deposit.deleted"]}
+2026-04-01T20:33:43.113+0800	[34mINFO[0m	lease/scheduler.go:33	Starting lease expiration scheduler
+2026-04-01T20:33:43.113+0800	[34mINFO[0m	lease/scheduler.go:77	Running lease expiration check
+2026-04-01T20:33:43.113+0800	[34mINFO[0m	lease/scheduler.go:85	Lease expiration check completed	{"processed_count": 0}
+2026-04-01T20:33:43.113+0800	[34mINFO[0m	lease/scheduler.go:54	Lease expiration scheduler started, will run hourly
+2026-04-01T20:33:43.113+0800	[34mINFO[0m	facade/oidc_handler.go:36	OIDC Handler initialized	{"dev_mode": false, "issuer_url": "http://localhost:8081/realms/master", "client_id": "ddd-app", "redirect_url": "http://localhost:8080/oauth2/callback"}
+2026-04-01T20:33:43.114+0800	[34mINFO[0m	api/main.go:211	Starting server	{"addr": ":8080"}
+2026-04-01T20:33:48.252+0800	[34mINFO[0m	facade/oidc_handler.go:273	Session found for logout	{"session_id": "e1912040-eaa7-41b0-a5b6-73dfd3541109", "user_id": "test-user-id", "has_id_token": true}
+2026-04-01T20:33:48.252+0800	[34mINFO[0m	facade/oidc_handler.go:281	Session deleted	{"session_id": "e1912040-eaa7-41b0-a5b6-73dfd3541109"}
+2026-04-01T20:33:48.252+0800	[34mINFO[0m	facade/oidc_handler.go:300	Preparing end session URL	{"dev_mode": false, "has_id_token": true}
+2026-04-01T20:33:48.263+0800	[34mINFO[0m	facade/oidc_handler.go:307	Got end session URL, redirecting	{"url": "http://localhost:8081/realms/master/protocol/openid-connect/logout?id_token_hint=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJmZVliWWV3ZUhEbC1EZ2lhZkFibkZGczhSWlg3bXMzRHRIQmE1RHhqVnhZIn0.eyJleHAiOjE3NzUwNDUyMzEsImlhdCI6MTc3NTA0NTE3MSwiYXV0aF90aW1lIjoxNzc1MDQ1MTcxLCJqdGkiOiI1ZjkxZDllMC05YTU0LTRjZmYtYWFmNi05MDE5YjVkMmI1OGQiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEvcmVhbG1zL21hc3RlciIsImF1ZCI6ImRkZC1hcHAiLCJzdWIiOiIxMjViYzA0OC1hY2E0LTRmMzAtYjkxZi03YjA5ODAwMTQwMTYiLCJ0eXAiOiJJRCIsImF6cCI6ImRkZC1hcHAiLCJzZXNzaW9uX3N0YXRlIjoiZmRmYWJhOTEtZTNjMy00NGM5LTg3M2MtYTM2ZDNlNDQ0YzdlIiwiYXRfaGFzaCI6Ijg4bTRJaklNd0QtTEJ2WjBqMFZZdHciLCJhY3IiOiIxIiwic2lkIjoiZmRmYWJhOTEtZTNjMy00NGM5LTg3M2MtYTM2ZDNlNDQ0YzdlIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiLoiKog6YK5IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiem91aGFuZyIsImdpdmVuX25hbWUiOiLoiKoiLCJmYW1pbHlfbmFtZSI6IumCuSIsImVtYWlsIjoiem91aGFuZzIwMDdAMTYzLmNvbSJ9.FgOumMx0h6jkEXAaE6e0suJLSZ2cf-WJAg7SXDYXitXrDjkuuJyzYty_GrmR_nuYmxTSLegz7Jp_0ksYX4iOxKt0u6DnFmpyFTFPSOQHbUEqY_qZBY2LiahLVwSXcBSQsFzhLcACJUGFK209IZiUG3VydBajKp5ge_zENiFhor5Wf_7_B6yP7mBGC65FYQUcAKSYgncyGo9oLImGI--2RLJU4txlqXuZ5uG3CnlhaT_facSao5FRDpTzKr1oFfqYmfmihyafRY7d0wLXJhRZGORfbEtRJDfDzQfMyaC20rX2Uhe8aiQb2ZVDVJOrpJ5VpQjbqr6T5u8g0Mh5WUw0gA&post_logout_redirect_uri=http://localhost:5173"}
+2026-04-01T20:33:48.332+0800	[34mINFO[0m	facade/oidc_handler.go:99	Redirecting to OIDC provider	{"state": "XNsNGsKpP_xUEiyryYJ8J2eaAW9OtDEx_ZX_5ENQu4Y"}
+2026-04-01T20:33:48.342+0800	[31mERROR[0m	facade/oidc_handler.go:165	OIDC error	{"error": "invalid_scope"}
+github.com/zouhang1992/ddd_domain/internal/facade.(*OIDCHandler).Callback
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/internal/facade/oidc_handler.go:165
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.(*ServeMux).ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2861
+main.startServer.startServer.func1.func3
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/cmd/api/main.go:189
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.serverHandler.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:3340
+net/http.(*conn).serve
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2109
+2026-04-01T20:33:51.584+0800	[31mERROR[0m	facade/oidc_handler.go:165	OIDC error	{"error": "invalid_scope"}
+github.com/zouhang1992/ddd_domain/internal/facade.(*OIDCHandler).Callback
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/internal/facade/oidc_handler.go:165
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.(*ServeMux).ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2861
+main.startServer.startServer.func1.func3
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/cmd/api/main.go:189
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.serverHandler.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:3340
+net/http.(*conn).serve
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2109
+2026-04-01T20:33:51.747+0800	[31mERROR[0m	facade/oidc_handler.go:165	OIDC error	{"error": "invalid_scope"}
+github.com/zouhang1992/ddd_domain/internal/facade.(*OIDCHandler).Callback
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/internal/facade/oidc_handler.go:165
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.(*ServeMux).ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2861
+main.startServer.startServer.func1.func3
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/cmd/api/main.go:189
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.serverHandler.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:3340
+net/http.(*conn).serve
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2109
+2026-04-01T20:33:57.990+0800	[34mINFO[0m	facade/oidc_handler.go:99	Redirecting to OIDC provider	{"state": "muZz38i4ypprio_ptoej2o7EHYYjvogsxZUbUm1WC8s"}
+2026-04-01T20:33:57.996+0800	[31mERROR[0m	facade/oidc_handler.go:165	OIDC error	{"error": "invalid_scope"}
+github.com/zouhang1992/ddd_domain/internal/facade.(*OIDCHandler).Callback
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/internal/facade/oidc_handler.go:165
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.(*ServeMux).ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2861
+main.startServer.startServer.func1.func3
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/cmd/api/main.go:189
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.serverHandler.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:3340
+net/http.(*conn).serve
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2109
+2026-04-01T20:34:06.728+0800	[34mINFO[0m	facade/oidc_handler.go:99	Redirecting to OIDC provider	{"state": "zyVXF-e-QPotmCnl_7m3Hen_AvisGTyIggR_lng1kjA"}
+2026-04-01T20:34:06.734+0800	[31mERROR[0m	facade/oidc_handler.go:165	OIDC error	{"error": "invalid_scope"}
+github.com/zouhang1992/ddd_domain/internal/facade.(*OIDCHandler).Callback
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/internal/facade/oidc_handler.go:165
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.(*ServeMux).ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2861
+main.startServer.startServer.func1.func3
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/cmd/api/main.go:189
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.serverHandler.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:3340
+net/http.(*conn).serve
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2109
+2026-04-01T20:34:31.944+0800	[34mINFO[0m	facade/oidc_handler.go:99	Redirecting to OIDC provider	{"state": "Fm33lPtIirgqmzYR6exp-iM3upcqhKlWR0RDNLDSmkE"}
+2026-04-01T20:34:31.950+0800	[31mERROR[0m	facade/oidc_handler.go:165	OIDC error	{"error": "invalid_scope"}
+github.com/zouhang1992/ddd_domain/internal/facade.(*OIDCHandler).Callback
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/internal/facade/oidc_handler.go:165
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.(*ServeMux).ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2861
+main.startServer.startServer.func1.func3
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/cmd/api/main.go:189
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.serverHandler.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:3340
+net/http.(*conn).serve
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2109
+2026-04-01T20:36:22.410+0800	[31mERROR[0m	facade/oidc_handler.go:165	OIDC error	{"error": "invalid_scope"}
+github.com/zouhang1992/ddd_domain/internal/facade.(*OIDCHandler).Callback
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/internal/facade/oidc_handler.go:165
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.(*ServeMux).ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2861
+main.startServer.startServer.func1.func3
+	/Users/bytedance/go/src/github.com/zouhang1992/ddd_domain/cmd/api/main.go:189
+net/http.HandlerFunc.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2322
+net/http.serverHandler.ServeHTTP
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:3340
+net/http.(*conn).serve
+	/Users/bytedance/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.25.0.darwin-arm64/src/net/http/server.go:2109
+2026-04-01T20:36:27.606+0800	[34mINFO[0m	facade/oidc_handler.go:99	Redirecting to OIDC provider	{"state": "uUMO7bEZ9ifjuicYM3AimKJUYLbl7eE29neCG38sMQI"}
+2026-04-01T20:36:27.631+0800	[34mINFO[0m	facade/oidc_handler.go:251	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com"}
+2026-04-01T20:37:14.545+0800	[34mINFO[0m	facade/oidc_handler.go:273	Session found for logout	{"session_id": "c7f3f5c5-834d-418c-ac8a-663db9d45a72", "user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "has_id_token": true}
+2026-04-01T20:37:14.546+0800	[34mINFO[0m	facade/oidc_handler.go:281	Session deleted	{"session_id": "c7f3f5c5-834d-418c-ac8a-663db9d45a72"}
+2026-04-01T20:37:14.546+0800	[34mINFO[0m	facade/oidc_handler.go:300	Preparing end session URL	{"dev_mode": false, "has_id_token": true}
+2026-04-01T20:37:14.546+0800	[34mINFO[0m	facade/oidc_handler.go:307	Got end session URL, redirecting	{"url": "http://localhost:8081/realms/master/protocol/openid-connect/logout?id_token_hint=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJmZVliWWV3ZUhEbC1EZ2lhZkFibkZGczhSWlg3bXMzRHRIQmE1RHhqVnhZIn0.eyJleHAiOjE3NzUwNDcwNDcsImlhdCI6MTc3NTA0Njk4NywiYXV0aF90aW1lIjoxNzc1MDQ2OTUwLCJqdGkiOiIwMDFiZDYzNS01ZDE5LTQ3ZTEtOWUxOS1kNTRlZTBjZTRhZTAiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEvcmVhbG1zL21hc3RlciIsImF1ZCI6ImRkZC1hcHAiLCJzdWIiOiIxMjViYzA0OC1hY2E0LTRmMzAtYjkxZi03YjA5ODAwMTQwMTYiLCJ0eXAiOiJJRCIsImF6cCI6ImRkZC1hcHAiLCJzZXNzaW9uX3N0YXRlIjoiMGMzMjlhNTUtZmQwZi00NGYzLWEwNWMtNTdiNDE2MGE4MjE5IiwiYXRfaGFzaCI6IlR0UTdoMjRYaXBubWkxRWUtXzhZakEiLCJhY3IiOiIwIiwic2lkIjoiMGMzMjlhNTUtZmQwZi00NGYzLWEwNWMtNTdiNDE2MGE4MjE5IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiLoiKog6YK5IiwiaGVsbG8iOiJ3b3JsZCIsInByZWZlcnJlZF91c2VybmFtZSI6InpvdWhhbmciLCJnaXZlbl9uYW1lIjoi6IiqIiwiZmFtaWx5X25hbWUiOiLpgrkiLCJlbWFpbCI6InpvdWhhbmcyMDA3QDE2My5jb20ifQ.TqnVgncnvpnwPBTIBBN-fB4FRZ2R30bTt42nAMaGGWUnGZqhCg2zx_MYZGAHX5ReFHY6hLF0HxBgsChnF_erw4eljyzMPayCRQwaZJz7sncTNRvhCqtpZ-x4Ok3stNmlGDSv7l_uQdYC8H8vBFR0sR52li-LqeY7WtOK6OCR9l8RiyCzwQtQElbZH04LmVWRcDtlBOwEKXSZwufHCeIOF1fEtIZ96R-q4fTV3NYniHzfVPK3ISd_poDlpfPrjiHOoJ0lSCya1ZyRdB7gmmgXtT_2xCr5d7obG4-rcabtwarbtIbD7DVUVQmR12v7MA7WvGXZnASNxaj7-yi2lG9IUA&post_logout_redirect_uri=http://localhost:5173"}
+2026-04-01T20:37:14.598+0800	[34mINFO[0m	facade/oidc_handler.go:99	Redirecting to OIDC provider	{"state": "8b6EWxwLOsqiLC-aVYAzQ4F8OybQlj8fFCPJfiVKxqQ"}
+2026-04-01T20:37:26.350+0800	[34mINFO[0m	facade/oidc_handler.go:251	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com"}

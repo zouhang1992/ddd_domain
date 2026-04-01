@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/zouhang1992/ddd_domain/internal/application/common/service"
 	"github.com/zouhang1992/ddd_domain/internal/application/lease"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	"net/http"
@@ -13,32 +14,39 @@ import (
 
 // CQRSLeaseHandler 基于 CQRS 的租约 HTTP 处理器
 type CQRSLeaseHandler struct {
-	commandBus   *buscommand.Bus
-	queryBus     *busquery.Bus
-	printService *service.PrintService
+	commandBus      *buscommand.Bus
+	queryBus        *busquery.Bus
+	printService    *service.PrintService
+	authMiddleware  *middleware.AuthMiddleware
 }
 
 // NewCQRSLeaseHandler 创建基于 CQRS 的租约处理器
-func NewCQRSLeaseHandler(commandBus *buscommand.Bus, queryBus *busquery.Bus, printService *service.PrintService) *CQRSLeaseHandler {
+func NewCQRSLeaseHandler(
+	commandBus *buscommand.Bus, 
+	queryBus *busquery.Bus, 
+	printService *service.PrintService,
+	authMiddleware *middleware.AuthMiddleware,
+) *CQRSLeaseHandler {
 	return &CQRSLeaseHandler{
-		commandBus:   commandBus,
-		queryBus:     queryBus,
-		printService: printService,
+		commandBus:     commandBus,
+		queryBus:       queryBus,
+		printService:   printService,
+		authMiddleware: authMiddleware,
 	}
 }
 
 // RegisterRoutes 注册路由
 func (h *CQRSLeaseHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /leases", h.Create)
-	mux.HandleFunc("GET /leases", h.List)
-	mux.HandleFunc("GET /leases/{id}", h.Get)
-	mux.HandleFunc("PUT /leases/{id}", h.Update)
-	mux.HandleFunc("DELETE /leases/{id}", h.Delete)
-	mux.HandleFunc("POST /leases/{id}/renew", h.Renew)
-	mux.HandleFunc("POST /leases/{id}/checkout", h.Checkout)
-	mux.HandleFunc("POST /leases/{id}/checkout-with-bills", h.CheckoutWithBills)
-	mux.HandleFunc("PUT /leases/{id}/activate", h.Activate)
-	mux.HandleFunc("GET /leases/{id}/contract", h.PrintContract)
+	mux.HandleFunc("POST /leases", h.authMiddleware.RequireAuth(h.Create))
+	mux.HandleFunc("GET /leases", h.authMiddleware.RequireAuth(h.List))
+	mux.HandleFunc("GET /leases/{id}", h.authMiddleware.RequireAuth(h.Get))
+	mux.HandleFunc("PUT /leases/{id}", h.authMiddleware.RequireAuth(h.Update))
+	mux.HandleFunc("DELETE /leases/{id}", h.authMiddleware.RequireAuth(h.Delete))
+	mux.HandleFunc("POST /leases/{id}/renew", h.authMiddleware.RequireAuth(h.Renew))
+	mux.HandleFunc("POST /leases/{id}/checkout", h.authMiddleware.RequireAuth(h.Checkout))
+	mux.HandleFunc("POST /leases/{id}/checkout-with-bills", h.authMiddleware.RequireAuth(h.CheckoutWithBills))
+	mux.HandleFunc("PUT /leases/{id}/activate", h.authMiddleware.RequireAuth(h.Activate))
+	mux.HandleFunc("GET /leases/{id}/contract", h.authMiddleware.RequireAuth(h.PrintContract))
 }
 
 // Create 创建租约

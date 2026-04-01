@@ -6,6 +6,7 @@ export interface UserInfo {
   name: string;
   roles: string[];
   permissions: string[];
+  hello?: string;
 }
 
 export const authApi = {

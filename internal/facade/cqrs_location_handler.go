@@ -2,34 +2,42 @@ package facade
 
 import (
 	"encoding/json"
+	"net/http"
+	"strconv"
+
 	"github.com/zouhang1992/ddd_domain/internal/application/location"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
-	"net/http"
-	"strconv"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 )
 
 // CQRSLocationHandler 基于 CQRS 的位置 HTTP 处理器
 type CQRSLocationHandler struct {
-	commandBus *buscommand.Bus
-	queryBus   *busquery.Bus
+	commandBus     *buscommand.Bus
+	queryBus       *busquery.Bus
+	authMiddleware *middleware.AuthMiddleware
 }
 
 // NewCQRSLocationHandler 创建基于 CQRS 的位置处理器
-func NewCQRSLocationHandler(commandBus *buscommand.Bus, queryBus *busquery.Bus) *CQRSLocationHandler {
+func NewCQRSLocationHandler(
+	commandBus *buscommand.Bus,
+	queryBus *busquery.Bus,
+	authMiddleware *middleware.AuthMiddleware,
+) *CQRSLocationHandler {
 	return &CQRSLocationHandler{
-		commandBus: commandBus,
-		queryBus:   queryBus,
+		commandBus:     commandBus,
+		queryBus:       queryBus,
+		authMiddleware: authMiddleware,
 	}
 }
 
 // RegisterRoutes 注册路由
 func (h *CQRSLocationHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /locations", h.Create)
-	mux.HandleFunc("GET /locations", h.List)
-	mux.HandleFunc("GET /locations/{id}", h.Get)
-	mux.HandleFunc("PUT /locations/{id}", h.Update)
-	mux.HandleFunc("DELETE /locations/{id}", h.Delete)
+	mux.HandleFunc("POST /locations", h.authMiddleware.RequireAuth(h.Create))
+	mux.HandleFunc("GET /locations", h.authMiddleware.RequireAuth(h.List))
+	mux.HandleFunc("GET /locations/{id}", h.authMiddleware.RequireAuth(h.Get))
+	mux.HandleFunc("PUT /locations/{id}", h.authMiddleware.RequireAuth(h.Update))
+	mux.HandleFunc("DELETE /locations/{id}", h.authMiddleware.RequireAuth(h.Delete))
 }
 
 // Create 创建位置

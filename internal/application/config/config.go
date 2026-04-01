@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 	"time"
 )
 
@@ -44,6 +45,7 @@ type OIDCConfig struct {
 	ClientID      string        `json:"clientId"`      // Client ID
 	ClientSecret  string        `json:"clientSecret"`  // Client Secret
 	RedirectURL   string        `json:"redirectUrl"`   // 回调 URL
+	FrontendURL   string        `json:"frontendUrl"`   // 前端地址（登录/登出后跳转）
 	Scopes        []string      `json:"scopes"`        // 请求的 scopes
 	SessionSecret string        `json:"sessionSecret"` // Session 加密密钥
 	SessionTTL    time.Duration `json:"sessionTtl"`    // Session 有效期
@@ -68,6 +70,7 @@ func DefaultConfig() Config {
 			IssuerURL:   "http://localhost:8081/realms/master",
 			ClientID:    "ddd-app",
 			RedirectURL: "http://localhost:8080/oauth2/callback",
+			FrontendURL: "http://localhost:5173",
 			Scopes:      []string{"openid", "profile", "email", "roles"},
 			SessionTTL:  24 * time.Hour,
 		},
@@ -114,6 +117,20 @@ func LoadFromEnv() Config {
 	}
 	if redirectURL := os.Getenv("OIDC_REDIRECT_URL"); redirectURL != "" {
 		cfg.OIDC.RedirectURL = redirectURL
+	}
+	if frontendURL := os.Getenv("OIDC_FRONTEND_URL"); frontendURL != "" {
+		cfg.OIDC.FrontendURL = frontendURL
+	}
+	if scopes := os.Getenv("OIDC_SCOPES"); scopes != "" {
+		var scopeList []string
+		for _, s := range strings.Split(scopes, ",") {
+			if scope := strings.TrimSpace(s); scope != "" {
+				scopeList = append(scopeList, scope)
+			}
+		}
+		if len(scopeList) > 0 {
+			cfg.OIDC.Scopes = scopeList
+		}
 	}
 	if sessionSecret := os.Getenv("OIDC_SESSION_SECRET"); sessionSecret != "" {
 		cfg.OIDC.SessionSecret = sessionSecret

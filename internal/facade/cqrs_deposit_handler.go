@@ -6,30 +6,37 @@ import (
 	"strconv"
 
 	"github.com/zouhang1992/ddd_domain/internal/application/deposit"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 )
 
 // CQRSDepositHandler 基于 CQRS 的押金 HTTP 处理器
 type CQRSDepositHandler struct {
-	commandBus *buscommand.Bus
-	queryBus   *busquery.Bus
+	commandBus      *buscommand.Bus
+	queryBus        *busquery.Bus
+	authMiddleware  *middleware.AuthMiddleware
 }
 
 // NewCQRSDepositHandler 创建基于 CQRS 的押金处理器
-func NewCQRSDepositHandler(commandBus *buscommand.Bus, queryBus *busquery.Bus) *CQRSDepositHandler {
+func NewCQRSDepositHandler(
+	commandBus *buscommand.Bus, 
+	queryBus *busquery.Bus,
+	authMiddleware *middleware.AuthMiddleware,
+) *CQRSDepositHandler {
 	return &CQRSDepositHandler{
-		commandBus: commandBus,
-		queryBus:   queryBus,
+		commandBus:     commandBus,
+		queryBus:       queryBus,
+		authMiddleware: authMiddleware,
 	}
 }
 
 // RegisterRoutes 注册路由
 func (h *CQRSDepositHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /deposits", h.List)
-	mux.HandleFunc("GET /deposits/{id}", h.Get)
-	mux.HandleFunc("POST /deposits/{id}/mark-returning", h.MarkReturning)
-	mux.HandleFunc("POST /deposits/{id}/mark-returned", h.MarkReturned)
+	mux.HandleFunc("GET /deposits", h.authMiddleware.RequireAuth(h.List))
+	mux.HandleFunc("GET /deposits/{id}", h.authMiddleware.RequireAuth(h.Get))
+	mux.HandleFunc("POST /deposits/{id}/mark-returning", h.authMiddleware.RequireAuth(h.MarkReturning))
+	mux.HandleFunc("POST /deposits/{id}/mark-returned", h.authMiddleware.RequireAuth(h.MarkReturned))
 }
 
 // List 列出押金
