@@ -1,19 +1,15 @@
 package auth
 
-import "time"
+import (
+	"time"
 
-// Config OIDC 配置
-type Config struct {
-	IssuerURL     string
-	ClientID      string
-	ClientSecret  string
-	RedirectURL   string
-	Scopes        []string
-	SessionSecret string
-	SessionTTL    time.Duration
-}
+	"github.com/zouhang1992/ddd_domain/internal/application/config"
+)
 
-// DefaultConfig 返回默认配置
+// Config OIDC 配置（别名以保持向后兼容）
+type Config = config.OIDCConfig
+
+// DefaultConfig 返回默认配置（向后兼容）
 func DefaultConfig() Config {
 	return Config{
 		Scopes:     []string{"openid", "profile", "email", "roles"},

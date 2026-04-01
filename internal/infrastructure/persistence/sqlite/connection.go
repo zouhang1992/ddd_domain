@@ -5,12 +5,12 @@ import (
 	_ "modernc.org/sqlite"
 
 	"go.uber.org/zap"
+
+	"github.com/zouhang1992/ddd_domain/internal/application/config"
 )
 
-// Config SQLite 配置
-type Config struct {
-	DSN string // Data Source Name, e.g., "data/ddd.db"
-}
+// Config SQLite 配置（别名以保持向后兼容）
+type Config = config.DatabaseConfig
 
 // Connection SQLite 连接
 type Connection struct {
@@ -19,7 +19,7 @@ type Connection struct {
 }
 
 // NewConnection 创建 SQLite 连接
-func NewConnection(cfg Config, logger *zap.Logger) (*Connection, error) {
+func NewConnection(cfg config.DatabaseConfig, logger *zap.Logger) (*Connection, error) {
 	logger.Info("Opening database connection", zap.String("dsn", cfg.DSN))
 
 	// Add SQLite 配置详解：

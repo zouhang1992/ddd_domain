@@ -3,6 +3,7 @@ package application
 import (
 	"github.com/zouhang1992/ddd_domain/internal/application/bill"
 	"github.com/zouhang1992/ddd_domain/internal/application/common"
+	"github.com/zouhang1992/ddd_domain/internal/application/config"
 	"github.com/zouhang1992/ddd_domain/internal/application/deposit"
 	"github.com/zouhang1992/ddd_domain/internal/application/landlord"
 	"github.com/zouhang1992/ddd_domain/internal/application/lease"
@@ -15,6 +16,7 @@ import (
 
 // Module provides all application components
 var Module = fx.Options(
+	config.Module,
 	landlord.Module,
 	lease.Module,
 	bill.Module,

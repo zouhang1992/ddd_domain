@@ -10,6 +10,7 @@ import (
 	"github.com/zouhang1992/ddd_domain/internal/application/auth"
 	"github.com/zouhang1992/ddd_domain/internal/application/bill"
 	"github.com/zouhang1992/ddd_domain/internal/application/common/service"
+	"github.com/zouhang1992/ddd_domain/internal/application/config"
 	"github.com/zouhang1992/ddd_domain/internal/application/deposit"
 	"github.com/zouhang1992/ddd_domain/internal/application/landlord"
 	"github.com/zouhang1992/ddd_domain/internal/application/lease"
@@ -29,17 +30,7 @@ import (
 
 func main() {
 	fx.New(
-		// 配置模块
-		fx.Options(
-			fx.Provide(func() sqlite.Config {
-				return sqlite.Config{DSN: "data/ddd.db"}
-			}),
-			fx.Provide(func() auth.Config {
-				// TODO: 实际使用时应从环境变量读取配置
-				return auth.DefaultConfig()
-			}),
-		),
-		// 各个组件模块
+		// 各个组件模块（配置模块已包含在 application.Module 中）
 		logging.Module(),
 		sqlite.Module,
 		busmodule.Module,
@@ -160,6 +151,7 @@ func registerQueryHandlers(
 
 func startServer(
 	logger *zap.Logger,
+	cfg config.Config,
 	locationHandler *facade.CQRSLocationHandler,
 	roomHandler *facade.CQRSRoomHandler,
 	landlordHandler *facade.CQRSLandlordHandler,
@@ -210,8 +202,8 @@ func startServer(
 	operationLogHandler.RegisterRoutes(mux)
 	oidcHandler.RegisterRoutes(mux)
 
-	logger.Info("Starting server on :8080")
-	if err := http.ListenAndServe(":8080", corsHandler(mux)); err != nil {
+	logger.Info("Starting server", zap.String("addr", cfg.HTTP.Addr))
+	if err := http.ListenAndServe(cfg.HTTP.Addr, corsHandler(mux)); err != nil {
 		logger.Fatal("Server failed", zap.Error(err))
 	}
 }
