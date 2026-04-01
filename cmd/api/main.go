@@ -167,11 +167,9 @@ func startServer(
 	billHandler *facade.CQRSBillHandler,
 	depositHandler *facade.CQRSDepositHandler,
 	printHandler *facade.CQRSPrintHandler,
-	authHandler *facade.AuthHandler,
 	incomeHandler *facade.IncomeHandler,
 	operationLogHandler *facade.OperationLogHandler,
 	oidcHandler *facade.OIDCHandler,
-	authService *service.AuthService,
 	printService *service.PrintService,
 ) {
 	mux := http.NewServeMux()
@@ -208,7 +206,6 @@ func startServer(
 	billHandler.RegisterRoutes(mux)
 	depositHandler.RegisterRoutes(mux)
 	printHandler.RegisterRoutes(mux)
-	authHandler.RegisterRoutes(mux)
 	incomeHandler.RegisterRoutes(mux)
 	operationLogHandler.RegisterRoutes(mux)
 	oidcHandler.RegisterRoutes(mux)

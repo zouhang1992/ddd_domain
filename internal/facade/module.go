@@ -12,7 +12,6 @@ var Module = fx.Options(
 	fx.Provide(NewCQRSLocationHandler),
 	fx.Provide(NewCQRSRoomHandler),
 	fx.Provide(NewCQRSPrintHandler),
-	fx.Provide(NewAuthHandler),
 	fx.Provide(NewIncomeHandler),
 	fx.Provide(NewOperationLogHandler),
 	fx.Provide(NewCQRSDepositHandler),
