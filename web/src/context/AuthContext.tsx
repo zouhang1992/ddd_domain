@@ -23,6 +23,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const userInfo = await authApi.getUserInfo();
       setUser(userInfo);
       setIsAuthenticated(true);
+      // 登录成功后，检查是否有 returnUrl 需要跳转
+      const returnUrl = sessionStorage.getItem('returnUrl');
+      if (returnUrl && returnUrl !== '/') {
+        sessionStorage.removeItem('returnUrl');
+        window.location.href = returnUrl;
+      }
     } catch {
       setUser(null);
       setIsAuthenticated(false);

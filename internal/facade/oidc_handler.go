@@ -21,8 +21,13 @@ type OIDCHandler struct {
 	config         auth.Config
 	log            *zap.Logger
 
-	// 简单的 state 存储（生产环境应使用 Redis 或数据库）
-	stateStore map[string]time.Time
+	// state 存储（生产环境应使用 Redis 或数据库）
+	stateStore map[string]stateData
+}
+
+type stateData struct {
+	expiry    time.Time
+	returnURL string
 }
 
 // NewOIDCHandler 创建 OIDC 处理器
@@ -45,7 +50,7 @@ func NewOIDCHandler(
 		authMiddleware: authMiddleware,
 		config:         config,
 		log:            log,
-		stateStore:     make(map[string]time.Time),
+		stateStore:     make(map[string]stateData),
 	}
 }
 
@@ -68,9 +73,15 @@ func (h *OIDCHandler) RegisterRoutes(mux *http.ServeMux) {
 
 // Login 启动 OIDC 登录流程
 func (h *OIDCHandler) Login(w http.ResponseWriter, r *http.Request) {
+	// 获取 return_url
+	returnURL := r.URL.Query().Get("return_url")
+	if returnURL == "" {
+		returnURL = "/"
+	}
+
 	// 开发模式：直接创建 mock session，跳过 OIDC
 	if h.config.DevMode {
-		h.devModeLogin(w, r)
+		h.devModeLogin(w, r, returnURL)
 		return
 	}
 
@@ -83,7 +94,10 @@ func (h *OIDCHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 存储 state（5 分钟过期）
-	h.stateStore[state] = time.Now().Add(5 * time.Minute)
+	h.stateStore[state] = stateData{
+		expiry:    time.Now().Add(5 * time.Minute),
+		returnURL: returnURL,
+	}
 
 	// 清理过期的 state
 	h.cleanupExpiredStates()
@@ -96,12 +110,12 @@ func (h *OIDCHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.log.Info("Redirecting to OIDC provider", zap.String("state", state))
+	h.log.Info("Redirecting to OIDC provider", zap.String("state", state), zap.String("return_url", returnURL))
 	http.Redirect(w, r, authURL, http.StatusFound)
 }
 
 // devModeLogin 开发模式登录（直接创建 mock session）
-func (h *OIDCHandler) devModeLogin(w http.ResponseWriter, r *http.Request) {
+func (h *OIDCHandler) devModeLogin(w http.ResponseWriter, r *http.Request, returnURL string) {
 	// 创建 mock claims
 	claims := &auth.UserClaims{
 		Sub:         "dev-user-id",
@@ -148,10 +162,15 @@ func (h *OIDCHandler) devModeLogin(w http.ResponseWriter, r *http.Request) {
 
 	h.log.Info("Dev mode login successful",
 		zap.String("user_id", claims.Sub),
-		zap.String("email", claims.Email))
+		zap.String("email", claims.Email),
+		zap.String("return_url", returnURL))
 
-	// 重定向到前端首页
-	http.Redirect(w, r, h.config.FrontendURL, http.StatusFound)
+	// 重定向到 returnURL 或前端首页
+	redirectURL := h.config.FrontendURL
+	if returnURL != "/" {
+		redirectURL += returnURL
+	}
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
 // Callback 处理 OIDC 回调
@@ -173,13 +192,13 @@ func (h *OIDCHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 验证 state
-	stateExpiry, ok := h.stateStore[state]
+	stateData, ok := h.stateStore[state]
 	if !ok {
 		h.log.Warn("Invalid state", zap.String("state", state))
 		http.Error(w, "invalid state", http.StatusBadRequest)
 		return
 	}
-	if time.Now().After(stateExpiry) {
+	if time.Now().After(stateData.expiry) {
 		h.log.Warn("State expired", zap.String("state", state))
 		delete(h.stateStore, state)
 		http.Error(w, "state expired", http.StatusBadRequest)
@@ -250,10 +269,15 @@ func (h *OIDCHandler) Callback(w http.ResponseWriter, r *http.Request) {
 
 	h.log.Info("User authenticated successfully",
 		zap.String("user_id", claims.Sub),
-		zap.String("email", claims.Email))
+		zap.String("email", claims.Email),
+		zap.String("return_url", stateData.returnURL))
 
-	// 重定向到前端首页
-	http.Redirect(w, r, h.config.FrontendURL, http.StatusFound)
+	// 重定向到 returnURL 或前端首页
+	redirectURL := h.config.FrontendURL
+	if stateData.returnURL != "/" {
+		redirectURL += stateData.returnURL
+	}
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
 // Logout 登出
@@ -363,8 +387,8 @@ func (h *OIDCHandler) UserInfo(w http.ResponseWriter, r *http.Request) {
 // cleanupExpiredStates 清理过期的 state
 func (h *OIDCHandler) cleanupExpiredStates() {
 	now := time.Now()
-	for state, expiry := range h.stateStore {
-		if now.After(expiry) {
+	for state, data := range h.stateStore {
+		if now.After(data.expiry) {
 			delete(h.stateStore, state)
 		}
 	}

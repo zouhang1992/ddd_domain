@@ -12,7 +12,10 @@ export interface UserInfo {
 export const authApi = {
   // 启动 OIDC 登录流程 - 直接跳转到后端
   login: () => {
-    window.location.href = '/oauth2/login';
+    // 保存当前完整路径（包括 hash），登录后返回
+    const returnUrl = window.location.pathname + window.location.search + window.location.hash;
+    sessionStorage.setItem('returnUrl', returnUrl);
+    window.location.href = `/oauth2/login?return_url=${encodeURIComponent(returnUrl)}`;
   },
 
   // 登出 - 直接跳转到后端，后端会处理重定向
