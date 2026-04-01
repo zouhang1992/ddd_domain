@@ -32,12 +32,12 @@ export interface OperationLogQueryParams {
 
 export const operationLogApi = {
   list: async (params?: OperationLogQueryParams) => {
-    const response = await apiClient.get<OperationLogsQueryResult>('/operation-logs', { params });
+    const response = await apiClient.get<OperationLogsQueryResult>('/api/operation-logs', { params });
     return response.data;
   },
 
   get: async (id: string) => {
-    const response = await apiClient.get<OperationLog>(`/operation-logs/${id}`);
+    const response = await apiClient.get<OperationLog>(`/api/operation-logs/${id}`);
     return response.data;
   },
 };

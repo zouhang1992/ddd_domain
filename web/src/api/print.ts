@@ -39,35 +39,34 @@ export interface PrintJobsQueryResult {
 
 export const printApi = {
   printBill: async (billId: string) => {
-    const response = await apiClient.post<{ jobId: string }>('/print/bill', { billId });
+    const response = await apiClient.post<{ jobId: string }>('/api/print/bill', { billId });
     return response.data;
   },
 
   printLease: async (leaseId: string) => {
-    const response = await apiClient.post<{ jobId: string }>('/print/lease', { leaseId });
+    const response = await apiClient.post<{ jobId: string }>('/api/print/lease', { leaseId });
     return response.data;
   },
 
   printInvoice: async (billId: string) => {
-    const response = await apiClient.post<{ jobId: string }>('/print/invoice', { billId });
+    const response = await apiClient.post<{ jobId: string }>('/api/print/invoice', { billId });
     return response.data;
   },
 
   getPrintContent: async (billId: string) => {
-    const response = await apiClient.get(`/print/content/${billId}`, {
+    const response = await apiClient.get(`/api/print/content/${billId}`, {
       responseType: 'blob',
     });
     return response.data;
   },
 
   listPrintJobs: async (params?: PrintJobQueryParams) => {
-    const response = await apiClient.get<PrintJobsQueryResult>('/print/jobs', { params });
+    const response = await apiClient.get<PrintJobsQueryResult>('/api/print/jobs', { params });
     return response.data;
   },
 
-  // Directly download receipt (simpler flow)
   downloadReceipt: async (billId: string) => {
-    const response = await apiClient.get(`/bills/${billId}/receipt`, {
+    const response = await apiClient.get(`/api/bills/${billId}/receipt`, {
       responseType: 'blob',
     });
     const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/html' }));
@@ -80,9 +79,8 @@ export const printApi = {
     window.URL.revokeObjectURL(url);
   },
 
-  // Download lease contract
   downloadContract: async (leaseId: string) => {
-    const response = await apiClient.get(`/leases/${leaseId}/contract`, {
+    const response = await apiClient.get(`/api/leases/${leaseId}/contract`, {
       responseType: 'blob',
     });
     const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/html' }));

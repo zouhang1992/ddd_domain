@@ -1238,3 +1238,240 @@ net/http.(*conn).serve
 2026-04-01T23:38:47.360+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
 2026-04-01T23:38:47.361+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
 2026-04-01T23:38:47.361+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:39:48.310+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:39:48.311+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:39:48.313+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:39:48.314+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:39:48.961+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:39:48.963+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:39:48.962+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:39:48.963+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:39:48.966+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:39:48.967+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:39:48.967+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:39:48.967+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:39:49.634+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:39:49.635+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:39:49.637+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:39:49.638+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:39:54.073+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:39:54.074+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:39:54.074+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:39:54.074+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:39:54.074+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:39:54.074+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:39:54.074+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:39:54.075+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:39:54.080+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:39:54.080+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:39:54.080+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:39:54.080+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:39:54.080+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:39:54.080+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:39:54.080+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:39:54.080+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:39:54.640+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:39:54.641+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:39:54.641+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:39:54.641+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:39:54.642+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:39:54.643+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:39:54.643+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:39:54.643+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:39:54.647+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:39:54.647+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:39:54.652+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:39:54.652+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:39:54.652+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:39:54.652+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:39:54.652+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:39:54.652+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:39:54.652+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:39:54.652+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:39:54.654+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:39:54.654+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:42:03.641+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:42:03.641+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:42:03.641+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:42:03.641+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:42:03.641+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:42:03.641+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:42:03.642+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:42:03.642+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:42:03.652+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:42:03.652+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:42:03.653+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:42:03.653+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:42:03.653+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:42:03.653+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:42:03.653+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:42:03.653+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:42:04.765+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:42:04.765+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:42:04.769+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:42:04.769+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:42:33.599+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:42:33.600+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:42:41.479+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:42:41.479+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:42:50.882+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:42:50.882+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:42:50.885+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:42:50.885+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:42:50.886+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:42:50.886+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:42:50.886+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:42:50.886+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:42:50.890+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:42:50.890+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:42:50.892+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:42:50.892+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:42:50.892+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:42:50.892+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:42:50.893+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:42:50.893+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:55:22.071+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:55:22.072+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:55:22.072+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:55:22.072+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:55:22.072+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:55:22.072+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:55:22.072+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:55:22.072+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:55:22.077+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:55:22.077+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:55:22.077+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:55:22.077+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:55:22.077+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:55:22.078+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:55:22.078+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:55:22.078+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:55:23.719+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:55:23.720+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:55:23.722+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:55:23.723+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:55:24.338+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:55:24.338+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:55:24.338+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:55:24.338+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:55:24.342+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:55:24.342+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:55:24.342+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:55:24.342+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:55:38.921+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:55:38.921+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:55:38.924+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:55:38.924+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:55:54.681+0800	[34mINFO[0m	facade/oidc_handler.go:297	Session found for logout	{"session_id": "06f4e5e3-43fd-4951-acf2-0c223aba4743", "user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "has_id_token": true}
+2026-04-01T23:55:54.683+0800	[34mINFO[0m	facade/oidc_handler.go:305	Session deleted	{"session_id": "06f4e5e3-43fd-4951-acf2-0c223aba4743"}
+2026-04-01T23:55:54.683+0800	[34mINFO[0m	facade/oidc_handler.go:324	Preparing end session URL	{"dev_mode": false, "has_id_token": true}
+2026-04-01T23:55:54.683+0800	[34mINFO[0m	facade/oidc_handler.go:331	Got end session URL, redirecting	{"url": "http://localhost:8081/realms/master/protocol/openid-connect/logout?id_token_hint=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJmZVliWWV3ZUhEbC1EZ2lhZkFibkZGczhSWlg3bXMzRHRIQmE1RHhqVnhZIn0.eyJleHAiOjE3NzUwNTc5NzksImlhdCI6MTc3NTA1NzkxOSwiYXV0aF90aW1lIjoxNzc1MDU3OTE5LCJqdGkiOiJkMGExMDE5Yy02OTE1LTRiY2EtYjAyZS01N2UwYTIxMmNlYzYiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEvcmVhbG1zL21hc3RlciIsImF1ZCI6ImRkZC1hcHAiLCJzdWIiOiIxMjViYzA0OC1hY2E0LTRmMzAtYjkxZi03YjA5ODAwMTQwMTYiLCJ0eXAiOiJJRCIsImF6cCI6ImRkZC1hcHAiLCJzZXNzaW9uX3N0YXRlIjoiMjllYTBmMzYtZjE0ZC00ZWMyLWIyZWItY2UwOTQ1MDU3MTMwIiwiYXRfaGFzaCI6IjFFbWpuRWIxXzlVVVpsdXIySWgxVEEiLCJhY3IiOiIxIiwic2lkIjoiMjllYTBmMzYtZjE0ZC00ZWMyLWIyZWItY2UwOTQ1MDU3MTMwIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiLoiKog6YK5IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiem91aGFuZyIsImdpdmVuX25hbWUiOiLoiKoiLCJmYW1pbHlfbmFtZSI6IumCuSIsImVtYWlsIjoiem91aGFuZzIwMDdAMTYzLmNvbSJ9.BV6QiAtlCiO14VwQRk5VAHHJm0z4t_sZA5wh0IEVaoZ6V7G2v0yxO3H6vesYaZXTackWXUIwj8uPcPXgOArN_VtOHSNk-Zx7pi3edJzWDIE1c7RHBkg-KqqSHJE4G1vwQ8GHeWHtliSo7N2190p3C6u7IPWulr-l-oVyiOKHaKuFllX6Da_vV1CS02a51CyO-GJ6uf6RTEKyYmVJp64fZSYydeH0NiarsPw7xIi_KJjUoUR3nbnO_amnA3cRLow8k6egv9qcp6JcnIpERqHtKcDeT6_QzcWYU8Hc9-ysZyjY3zs-k-0ItIejPPbXfeuihB04lNSRu3mSN01ewUlzZQ&post_logout_redirect_uri=http://localhost:5173"}
+2026-04-01T23:55:54.823+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "qO9VMXfp4lwDM6hDL8CS625DPNk8pxJjA5Z2xvnJEVM", "return_url": "/"}
+2026-04-01T23:56:14.659+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/"}
+2026-04-01T23:56:14.829+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:56:14.829+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:56:14.829+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:56:14.829+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:56:14.829+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:56:14.829+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:56:14.829+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:56:14.829+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:56:14.830+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:56:14.830+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:56:14.834+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:56:14.835+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:56:14.835+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:56:14.835+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:56:14.836+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:56:14.836+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:56:14.836+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:56:14.836+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:56:14.837+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:56:14.837+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:56:16.924+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:56:16.924+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:56:16.928+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:56:16.928+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:56:18.397+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:56:18.397+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:56:18.398+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:56:18.398+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:56:18.399+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:56:18.399+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:56:18.399+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:56:18.399+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:56:18.399+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:56:18.399+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:56:18.401+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:56:18.401+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:56:18.402+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:56:18.402+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:56:18.404+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_leases"}
+2026-04-01T23:56:18.404+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_bills"}
+2026-04-01T23:56:18.404+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:56:18.404+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_leases"}
+2026-04-01T23:56:18.404+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_bills"}
+2026-04-01T23:56:18.404+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:56:19.220+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:56:19.221+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:56:19.223+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:56:19.223+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:56:20.054+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:56:20.054+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:56:20.054+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:56:20.054+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:56:20.057+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:56:20.057+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:56:20.057+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:56:20.057+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:56:21.124+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:56:21.125+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:56:21.129+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:56:21.129+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:56:26.820+0800	[34mINFO[0m	facade/oidc_handler.go:297	Session found for logout	{"session_id": "1a1b307b-9d90-4112-a371-f6b823e80664", "user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "has_id_token": true}
+2026-04-01T23:56:26.821+0800	[34mINFO[0m	facade/oidc_handler.go:305	Session deleted	{"session_id": "1a1b307b-9d90-4112-a371-f6b823e80664"}
+2026-04-01T23:56:26.821+0800	[34mINFO[0m	facade/oidc_handler.go:324	Preparing end session URL	{"dev_mode": false, "has_id_token": true}
+2026-04-01T23:56:26.821+0800	[34mINFO[0m	facade/oidc_handler.go:331	Got end session URL, redirecting	{"url": "http://localhost:8081/realms/master/protocol/openid-connect/logout?id_token_hint=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJmZVliWWV3ZUhEbC1EZ2lhZkFibkZGczhSWlg3bXMzRHRIQmE1RHhqVnhZIn0.eyJleHAiOjE3NzUwNTkwMzQsImlhdCI6MTc3NTA1ODk3NCwiYXV0aF90aW1lIjoxNzc1MDU4OTc0LCJqdGkiOiI1MWZkOTNlNC0yZGQ1LTRjZmQtOTdjNi00NjQ1NzVkMjA0ZjIiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODEvcmVhbG1zL21hc3RlciIsImF1ZCI6ImRkZC1hcHAiLCJzdWIiOiIxMjViYzA0OC1hY2E0LTRmMzAtYjkxZi03YjA5ODAwMTQwMTYiLCJ0eXAiOiJJRCIsImF6cCI6ImRkZC1hcHAiLCJzZXNzaW9uX3N0YXRlIjoiM2I1ZjEwM2EtYTczNC00MGVkLWIyM2ItMDczMWNjZmU1Y2Q0IiwiYXRfaGFzaCI6IlgwVGhjZHhSNTlOV09BNmxvTnc2S1EiLCJhY3IiOiIxIiwic2lkIjoiM2I1ZjEwM2EtYTczNC00MGVkLWIyM2ItMDczMWNjZmU1Y2Q0IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiLoiKog6YK5IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiem91aGFuZyIsImdpdmVuX25hbWUiOiLoiKoiLCJmYW1pbHlfbmFtZSI6IumCuSIsImVtYWlsIjoiem91aGFuZzIwMDdAMTYzLmNvbSJ9.KvSpnnxI-TEPVARGmd9cwU3_itTYVI1P871D45aTKyr-DgZQi6Kv3x_Bk-uV4R-pW3S2z51-19DMN6pnG5gS8SStgORIMXrvkPSPXzks4LxiB1Rmf_d50V9CmmNekzDaxk1S4KUatobrxn_hvMuhwOaTAEcigISJhL6XONqTk4jnpmUbjUm0bMX6qIxeeeTrNkgI5okGPBjIDIPK5b6TPL-S7mpDVNfQdE7ffeLog9Go7OMBo0uN4qu9H6QlTUhJwDXAvc66a7d7hRcbQeME265EjeMD98LcitJChl-zoAPlpqSfL1ioXdKzbv7GRksQeqcfrcewBApv6HZUCINu1w&post_logout_redirect_uri=http://localhost:5173"}
+2026-04-01T23:56:26.945+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "u5bRs-fhh0eXNxRh9QvH-wyd-JbS4v4x-Xca2zRANuo", "return_url": "/"}
+2026-04-01T23:56:38.039+0800	[34mINFO[0m	facade/oidc_handler.go:113	Redirecting to OIDC provider	{"state": "gDsSJ4SvZT9_uD2SzEd5pgkfhDsWYgvG49DZqYpGxE4", "return_url": "/locations"}
+2026-04-01T23:57:08.180+0800	[34mINFO[0m	facade/oidc_handler.go:270	User authenticated successfully	{"user_id": "125bc048-aca4-4f30-b91f-7b0980014016", "email": "zouhang2007@163.com", "return_url": "/locations"}
+2026-04-01T23:57:08.416+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:57:08.416+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:57:08.574+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:57:08.574+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:57:08.577+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:57:08.577+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:57:10.176+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:57:10.176+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:57:10.177+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:57:10.177+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:57:10.180+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:57:10.180+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:57:10.180+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:57:10.180+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:57:11.398+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:57:11.399+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:57:11.401+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_landlords"}
+2026-04-01T23:57:11.401+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_landlords"}
+2026-04-01T23:57:12.158+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:57:12.158+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:57:12.158+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:57:12.158+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:57:12.164+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:57:12.164+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:57:12.164+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:57:12.164+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:57:12.623+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:57:12.623+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:57:12.626+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:57:12.627+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:58:52.528+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:58:52.528+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:58:52.529+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:58:52.529+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-01T23:58:52.533+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_rooms"}
+2026-04-01T23:58:52.533+0800	[34mINFO[0m	query/bus.go:39	Dispatching query	{"query": "list_locations"}
+2026-04-01T23:58:52.533+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_rooms"}
+2026-04-01T23:58:52.533+0800	[34mINFO[0m	query/bus.go:70	Query executed successfully	{"query": "list_locations"}
+2026-04-02T00:00:00.001+0800	[34mINFO[0m	lease/scheduler.go:77	Running lease expiration check
+2026-04-02T00:00:00.007+0800	[34mINFO[0m	lease/scheduler.go:85	Lease expiration check completed	{"processed_count": 0}
