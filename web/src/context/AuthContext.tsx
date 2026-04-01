@@ -1,30 +1,53 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { authApi } from '../api/auth';
+import { authApi, type UserInfo } from '../api/auth';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (token: string) => void;
+  user: UserInfo | null;
+  login: () => void;
   logout: () => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => authApi.isAuthenticated());
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<UserInfo | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = useCallback((token: string) => {
-    authApi.setToken(token);
-    setIsAuthenticated(true);
+  // 检查认证状态
+  const checkAuth = useCallback(async () => {
+    try {
+      const userInfo = await authApi.getUserInfo();
+      setUser(userInfo);
+      setIsAuthenticated(true);
+    } catch {
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const logout = useCallback(() => {
-    authApi.logout();
+  // 初始化时检查认证状态
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  const login = useCallback(() => {
+    authApi.login();
+  }, []);
+
+  const logout = useCallback(async () => {
+    await authApi.logout();
+    setUser(null);
     setIsAuthenticated(false);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

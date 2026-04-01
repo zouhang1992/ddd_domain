@@ -61,7 +61,6 @@ const AppLayout: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
   };
 
   const selectedKey = menuItems.find((item) => {

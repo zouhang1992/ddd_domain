@@ -1,10 +1,9 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ConfigProvider } from 'antd';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ConfigProvider, Spin } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AppLayout from './components/Layout';
-import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Locations from './pages/Locations';
 import Rooms from './pages/Rooms';
@@ -18,8 +17,29 @@ import OperationLogs from './pages/OperationLogs';
 import 'dayjs/locale/zh-cn';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+  const { isAuthenticated, loading, login } = useAuth();
+
+  // 显示加载状态
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh'
+      }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  // 未认证则跳转到 OIDC 登录
+  if (!isAuthenticated) {
+    login();
+    return null;
+  }
+
+  return <>{children}</>;
 };
 
 const App: React.FC = () => {
@@ -28,7 +48,6 @@ const App: React.FC = () => {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/login" element={<Login />} />
             <Route path="/" element={
               <ProtectedRoute>
                 <AppLayout />
