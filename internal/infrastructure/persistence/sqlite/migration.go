@@ -17,6 +17,7 @@ var migrations = []Migration{
 	&BaseMigration{},
 	&AddDepositAmountToLeasesMigration{},
 	&AddOperationLogsTableMigration{},
+	&AddSessionsTableMigration{},
 	&AddStatusAndNoteToRoomsMigration{},
 	&AddDueDateToBillsMigration{},
 	&AddRefundDepositAmountToBillsMigration{},
@@ -145,6 +146,56 @@ func (m *AddOperationLogsTableMigration) Down(tx *sql.Tx) error {
 
 	// 删除表
 	if _, err := tx.Exec("DROP TABLE IF EXISTS operation_logs"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AddSessionsTableMigration 创建 sessions 表
+type AddSessionsTableMigration struct{}
+
+func (m *AddSessionsTableMigration) Version() string {
+	return "202604011200" // 格式：YYYYMMDDHHMM
+}
+
+func (m *AddSessionsTableMigration) Up(tx *sql.Tx) error {
+	// 创建 sessions 表
+	if _, err := tx.Exec(`
+	CREATE TABLE IF NOT EXISTS sessions (
+		id TEXT PRIMARY KEY,
+		user_id TEXT NOT NULL,
+		claims TEXT NOT NULL,
+		expires_at DATETIME NOT NULL,
+		created_at DATETIME NOT NULL
+	)
+	`); err != nil {
+		return fmt.Errorf("failed to create sessions table: %w", err)
+	}
+
+	// 创建索引
+	if _, err := tx.Exec(`CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)`); err != nil {
+		return fmt.Errorf("failed to create idx_sessions_user_id index: %w", err)
+	}
+
+	if _, err := tx.Exec(`CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at)`); err != nil {
+		return fmt.Errorf("failed to create idx_sessions_expires_at index: %w", err)
+	}
+
+	return nil
+}
+
+func (m *AddSessionsTableMigration) Down(tx *sql.Tx) error {
+	// 删除索引
+	if _, err := tx.Exec("DROP INDEX IF EXISTS idx_sessions_user_id"); err != nil {
+		return err
+	}
+	if _, err := tx.Exec("DROP INDEX IF EXISTS idx_sessions_expires_at"); err != nil {
+		return err
+	}
+
+	// 删除表
+	if _, err := tx.Exec("DROP TABLE IF EXISTS sessions"); err != nil {
 		return err
 	}
 
