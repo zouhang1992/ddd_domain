@@ -17,26 +17,26 @@ export interface LandlordQueryParams {
 
 export const landlordApi = {
   list: async (params?: LandlordQueryParams) => {
-    const response = await apiClient.get<LandlordsQueryResult>('/api/landlords', { params });
+    const response = await apiClient.get<LandlordsQueryResult>('landlords', { params });
     return response.data;
   },
 
   get: async (id: string) => {
-    const response = await apiClient.get<Landlord>(`/api/landlords/${id}`);
+    const response = await apiClient.get<Landlord>(`landlords/${id}`);
     return response.data;
   },
 
   create: async (data: { name: string; phone: string; note: string }) => {
-    const response = await apiClient.post<Landlord>('/api/landlords', data);
+    const response = await apiClient.post<Landlord>('landlords', data);
     return response.data;
   },
 
   update: async (id: string, data: { name: string; phone: string; note: string }) => {
-    const response = await apiClient.put<Landlord>(`/api/landlords/${id}`, data);
+    const response = await apiClient.put<Landlord>(`landlords/${id}`, data);
     return response.data;
   },
 
   delete: async (id: string) => {
-    await apiClient.delete(`/api/landlords/${id}`);
+    await apiClient.delete(`landlords/${id}`);
   },
 };

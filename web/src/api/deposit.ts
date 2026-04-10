@@ -29,22 +29,22 @@ export interface DepositQueryParams {
 
 export const depositApi = {
   list: async (params?: DepositQueryParams) => {
-    const response = await apiClient.get<DepositsQueryResult>('/api/deposits', { params });
+    const response = await apiClient.get<DepositsQueryResult>('deposits', { params });
     return response.data;
   },
 
   get: async (id: string) => {
-    const response = await apiClient.get<Deposit>(`/api/deposits/${id}`);
+    const response = await apiClient.get<Deposit>(`deposits/${id}`);
     return response.data;
   },
 
   markReturning: async (id: string) => {
-    const response = await apiClient.post<Deposit>(`/api/deposits/${id}/mark-returning`);
+    const response = await apiClient.post<Deposit>(`deposits/${id}/mark-returning`);
     return response.data;
   },
 
   markReturned: async (id: string) => {
-    const response = await apiClient.post<Deposit>(`/api/deposits/${id}/mark-returned`);
+    const response = await apiClient.post<Deposit>(`deposits/${id}/mark-returned`);
     return response.data;
   },
 };

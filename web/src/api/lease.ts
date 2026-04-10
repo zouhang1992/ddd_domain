@@ -21,12 +21,12 @@ export interface LeaseQueryParams {
 
 export const leaseApi = {
   list: async (params?: LeaseQueryParams) => {
-    const response = await apiClient.get<LeasesQueryResult>('/api/leases', { params });
+    const response = await apiClient.get<LeasesQueryResult>('leases', { params });
     return response.data;
   },
 
   get: async (id: string) => {
-    const response = await apiClient.get<Lease>(`/api/leases/${id}`);
+    const response = await apiClient.get<Lease>(`leases/${id}`);
     return response.data;
   },
 
@@ -42,7 +42,7 @@ export const leaseApi = {
     depositAmount: number;
     depositNote: string;
   }) => {
-    const response = await apiClient.post<Lease>('/api/leases', data);
+    const response = await apiClient.post<Lease>('leases', data);
     return response.data;
   },
 
@@ -54,12 +54,12 @@ export const leaseApi = {
     rentAmount: number;
     note: string;
   }) => {
-    const response = await apiClient.put<Lease>(`/api/leases/${id}`, data);
+    const response = await apiClient.put<Lease>(`leases/${id}`, data);
     return response.data;
   },
 
   delete: async (id: string) => {
-    await apiClient.delete(`/api/leases/${id}`);
+    await apiClient.delete(`leases/${id}`);
   },
 
   renew: async (id: string, data: {
@@ -68,12 +68,12 @@ export const leaseApi = {
     newRentAmount: number;
     note: string;
   }) => {
-    const response = await apiClient.post<Lease>(`/api/leases/${id}/renew`, data);
+    const response = await apiClient.post<Lease>(`leases/${id}/renew`, data);
     return response.data;
   },
 
   checkout: async (id: string) => {
-    const response = await apiClient.post<Lease>(`/api/leases/${id}/checkout`);
+    const response = await apiClient.post<Lease>(`leases/${id}/checkout`);
     return response.data;
   },
 
@@ -85,12 +85,12 @@ export const leaseApi = {
     otherAmount: number;
     note: string;
   }) => {
-    const response = await apiClient.post(`/api/leases/${id}/checkout-with-bills`, data);
+    const response = await apiClient.post(`leases/${id}/checkout-with-bills`, data);
     return response.data;
   },
 
   printContract: async (id: string) => {
-    const response = await apiClient.get(`/api/leases/${id}/contract`, {
+    const response = await apiClient.get(`leases/${id}/contract`, {
       responseType: 'blob',
     });
     const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/html' }));
@@ -104,7 +104,7 @@ export const leaseApi = {
   },
 
   activate: async (id: string) => {
-    const response = await apiClient.put<Lease>(`/api/leases/${id}/activate`);
+    const response = await apiClient.put<Lease>(`leases/${id}/activate`);
     return response.data;
   },
 };

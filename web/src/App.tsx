@@ -1,9 +1,10 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ConfigProvider, Spin } from 'antd';
+import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AppLayout from './components/Layout';
+import { AuthLoadingPage, RedirectingPage } from './components/LoadingPage';
 import Dashboard from './pages/Dashboard';
 import Locations from './pages/Locations';
 import Rooms from './pages/Rooms';
@@ -19,24 +20,15 @@ import 'dayjs/locale/zh-cn';
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading, login } = useAuth();
 
-  // 显示加载状态
+  // 显示认证加载状态
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh'
-      }}>
-        <Spin size="large" />
-      </div>
-    );
+    return <AuthLoadingPage />;
   }
 
   // 未认证则跳转到 OIDC 登录
   if (!isAuthenticated) {
     login();
-    return null;
+    return <RedirectingPage to="登录页面" />;
   }
 
   return <>{children}</>;

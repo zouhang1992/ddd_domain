@@ -1,7 +1,23 @@
 import axios from 'axios';
 
-// 使用相对路径配合 Vite 代理
-const API_BASE_URL = '';
+// API基础配置
+const API_BASE_URL = '/api';
+
+// 创建两个API客户端：一个用于业务API，一个用于oauth2
+
+// 业务API客户端（使用/api前缀）
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  withCredentials: true, // 重要：携带cookie
+});
+
+// OAuth2客户端（不使用/api前缀）
+export const oauthClient = axios.create({
+  baseURL: '',
+  timeout: 10000,
+  withCredentials: true, // 重要：携带cookie
+});
 
 // 将蛇形命名转换为驼峰命名
 const snakeToCamel = (str: string): string => {
@@ -49,18 +65,9 @@ const convertKeysToSnakeCase = (obj: any): any => {
   return convertedObj;
 };
 
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-});
-
+// 业务API客户端拦截器
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
     // 请求时将驼峰命名转换为蛇形命名
     if (config.data) {
       config.data = convertKeysToSnakeCase(config.data);
@@ -82,9 +89,6 @@ apiClient.interceptors.response.use(
   },
   (error) => {
     // 401 由 AuthContext 处理，不要在这里重定向
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-    }
     return Promise.reject(error);
   }
 );

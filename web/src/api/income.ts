@@ -34,7 +34,7 @@ export const incomeApi = {
     if (locationId) {
       params.location_id = locationId;
     }
-    const response = await apiClient.get<IncomeReport>('/api/income', { params });
+    const response = await apiClient.get<IncomeReport>('income', { params });
     return response.data;
   },
 };

@@ -200,16 +200,20 @@ func startServer(
 	// Prometheus metrics 端点
 	mux.Handle("GET /metrics", promhttp.Handler())
 
-	// 注册业务路由
-	locationHandler.RegisterRoutes(mux)
-	roomHandler.RegisterRoutes(mux)
-	landlordHandler.RegisterRoutes(mux)
-	leaseHandler.RegisterRoutes(mux)
-	billHandler.RegisterRoutes(mux)
-	depositHandler.RegisterRoutes(mux)
-	printHandler.RegisterRoutes(mux)
-	incomeHandler.RegisterRoutes(mux)
-	operationLogHandler.RegisterRoutes(mux)
+	// 注册业务路由 (带 /api 前缀，使用 StripPrefix 去掉)
+	apiMux := http.NewServeMux()
+	locationHandler.RegisterRoutes(apiMux)
+	roomHandler.RegisterRoutes(apiMux)
+	landlordHandler.RegisterRoutes(apiMux)
+	leaseHandler.RegisterRoutes(apiMux)
+	billHandler.RegisterRoutes(apiMux)
+	depositHandler.RegisterRoutes(apiMux)
+	printHandler.RegisterRoutes(apiMux)
+	incomeHandler.RegisterRoutes(apiMux)
+	operationLogHandler.RegisterRoutes(apiMux)
+	mux.Handle("/api/", http.StripPrefix("/api", apiMux))
+
+	// OIDC 路由保持在根路径
 	oidcHandler.RegisterRoutes(mux)
 
 	// 应用 metrics 中间件

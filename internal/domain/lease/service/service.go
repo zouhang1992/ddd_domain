@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -109,11 +110,23 @@ func (s *LeaseService) ValidateDelete(leaseID string) error {
 // ValidateActivate 校验租约是否可激活
 func (s *LeaseService) ValidateActivate(lease *leasemodel.Lease, room *roommodel.Room) error {
 	if lease.Status != leasemodel.LeaseStatusPending {
-		return domerrors.ErrInvalidState
+		return errors.New("租约状态不是待生效，当前状态: " + string(lease.Status))
 	}
 
-	if lease.StartDate.After(time.Now()) {
-		return domerrors.ErrInvalidState
+	// 使用 Asia/Shanghai 时区
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		// 如果加载时区失败，使用本地时间
+		loc = time.Local
+	}
+
+	// 允许激活开始日期在今天或之前的租约（使用 Asia/Shanghai 时区）
+	now := time.Now().In(loc)
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+	leaseStartDate := time.Date(lease.StartDate.Year(), lease.StartDate.Month(), lease.StartDate.Day(), 0, 0, 0, 0, loc)
+
+	if leaseStartDate.After(today) {
+		return errors.New("租约开始日期晚于今天，开始日期: " + lease.StartDate.Format("2006-01-02") + ", 今天: " + today.Format("2006-01-02"))
 	}
 
 	if err := s.ValidateRoomForLease(room); err != nil {

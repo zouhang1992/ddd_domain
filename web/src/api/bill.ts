@@ -24,12 +24,12 @@ export interface BillQueryParams {
 
 export const billApi = {
   list: async (params?: BillQueryParams) => {
-    const response = await apiClient.get<BillsQueryResult>('/api/bills', { params });
+    const response = await apiClient.get<BillsQueryResult>('bills', { params });
     return response.data;
   },
 
   get: async (id: string) => {
-    const response = await apiClient.get<Bill>(`/api/bills/${id}`);
+    const response = await apiClient.get<Bill>(`bills/${id}`);
     return response.data;
   },
 
@@ -47,7 +47,7 @@ export const billApi = {
     dueDate: string;
     note: string;
   }) => {
-    const response = await apiClient.post<Bill>('/api/bills', data);
+    const response = await apiClient.post<Bill>('bills', data);
     return response.data;
   },
 
@@ -63,16 +63,16 @@ export const billApi = {
     dueDate: string;
     note: string;
   }) => {
-    const response = await apiClient.put<Bill>(`/api/bills/${id}`, data);
+    const response = await apiClient.put<Bill>(`bills/${id}`, data);
     return response.data;
   },
 
   delete: async (id: string) => {
-    await apiClient.delete(`/api/bills/${id}`);
+    await apiClient.delete(`bills/${id}`);
   },
 
   printReceipt: async (id: string) => {
-    const response = await apiClient.get(`/api/bills/${id}/receipt`, {
+    const response = await apiClient.get(`bills/${id}/receipt`, {
       responseType: 'blob',
     });
     const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/html' }));
@@ -86,13 +86,13 @@ export const billApi = {
   },
 
   confirmArrival: async (id: string, paidAt?: string) => {
-    const response = await apiClient.post(`/api/bills/${id}/confirm-arrival`, paidAt ? { paidAt } : {});
+    const response = await apiClient.post(`bills/${id}/confirm-arrival`, paidAt ? { paidAt } : {});
     return response.data;
   },
 
   getNextBillPeriod: async (leaseId: string) => {
     const response = await apiClient.get<{ billStart: string }>(
-      `/api/leases/${leaseId}/next-bill-period`
+      `leases/${leaseId}/next-bill-period`
     );
     return response.data;
   },

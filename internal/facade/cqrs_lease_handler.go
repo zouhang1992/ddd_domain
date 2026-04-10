@@ -310,8 +310,8 @@ func (h *CQRSLeaseHandler) Activate(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		if err.Error() == "invalid lease state" || err.Error() == "lease start date has not arrived" {
-			http.Error(w, err.Error(), http.StatusConflict)
+		if err.Error() == "invalid state" {
+			http.Error(w, "租约状态无效，只有待生效状态的租约可以生效，且开始日期不能晚于今天", http.StatusConflict)
 			return
 		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
