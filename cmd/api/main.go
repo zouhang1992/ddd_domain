@@ -28,7 +28,7 @@ import (
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
 	logging "github.com/zouhang1992/ddd_domain/internal/infrastructure/logging"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
-	"github.com/zouhang1992/ddd_domain/internal/infrastructure/persistence/sqlite"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/persistence"
 )
 
 func main() {
@@ -39,7 +39,7 @@ func main() {
 	fx.New(
 		// 各个组件模块（配置模块已包含在 application.Module 中）
 		logging.Module(),
-		sqlite.Module,
+		persistence.Module(),
 		busmodule.Module,
 		application.Module,
 		auth.Module,

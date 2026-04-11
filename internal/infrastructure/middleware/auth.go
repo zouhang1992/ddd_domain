@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/zouhang1992/ddd_domain/internal/application/auth"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/persistence/mysql"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/persistence/sqlite"
 	"go.uber.org/zap"
 )
@@ -22,7 +23,7 @@ const (
 
 // AuthMiddleware 认证中间件
 type AuthMiddleware struct {
-	sessionRepo *sqlite.SessionRepository
+	sessionRepo any
 	oidcService *auth.OIDCService
 	devMode     bool
 	log         *zap.Logger
@@ -30,7 +31,8 @@ type AuthMiddleware struct {
 
 // NewAuthMiddleware 创建认证中间件
 func NewAuthMiddleware(
-	sessionRepo *sqlite.SessionRepository,
+	sessionRepo any,
+	toClaims any,
 	oidcService *auth.OIDCService,
 	devMode bool,
 	log *zap.Logger,
@@ -71,22 +73,50 @@ func (m *AuthMiddleware) RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// 查找 Session
-		session, err := m.sessionRepo.FindByID(cookie.Value)
-		if err != nil {
-			m.log.Error("Failed to find session", zap.Error(err))
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
-			return
-		}
-		if session == nil {
-			m.log.Debug("Session not found", zap.String("session_id", cookie.Value))
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
-			return
-		}
+		var claims *auth.UserClaims
+		var session any
 
-		// 解析 claims
-		claims, err := sqlite.ToClaims(session.Claims)
-		if err != nil {
-			m.log.Error("Failed to parse claims", zap.Error(err))
+		switch repo := m.sessionRepo.(type) {
+		case *sqlite.SessionRepository:
+			s, err := repo.FindByID(cookie.Value)
+			if err != nil {
+				m.log.Error("Failed to find session", zap.Error(err))
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+			if s == nil {
+				m.log.Debug("Session not found", zap.String("session_id", cookie.Value))
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+			session = s
+			claims, err = sqlite.ToClaims(s.Claims)
+			if err != nil {
+				m.log.Error("Failed to parse claims", zap.Error(err))
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+		case *mysql.SessionRepository:
+			s, err := repo.FindByID(cookie.Value)
+			if err != nil {
+				m.log.Error("Failed to find session", zap.Error(err))
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+			if s == nil {
+				m.log.Debug("Session not found", zap.String("session_id", cookie.Value))
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+			session = s
+			claims, err = mysql.ToClaims(s.Claims)
+			if err != nil {
+				m.log.Error("Failed to parse claims", zap.Error(err))
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+		default:
+			m.log.Error("Unsupported session repository type")
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -107,16 +137,29 @@ func (m *AuthMiddleware) OptionalAuth(next http.HandlerFunc) http.HandlerFunc {
 		cookie, err := r.Cookie(SessionCookieName)
 		if err == nil && cookie != nil {
 			// 查找 Session
-			session, err := m.sessionRepo.FindByID(cookie.Value)
-			if err == nil && session != nil {
-				// 解析 claims
-				claims, err := sqlite.ToClaims(session.Claims)
-				if err == nil {
-					// 将用户信息注入上下文
-					ctx := context.WithValue(r.Context(), UserContextKey, claims)
-					ctx = context.WithValue(ctx, SessionContextKey, session)
-					r = r.WithContext(ctx)
+			var claims *auth.UserClaims
+			var session any
+
+			switch repo := m.sessionRepo.(type) {
+			case *sqlite.SessionRepository:
+				s, err := repo.FindByID(cookie.Value)
+				if err == nil && s != nil {
+					session = s
+					claims, _ = sqlite.ToClaims(s.Claims)
 				}
+			case *mysql.SessionRepository:
+				s, err := repo.FindByID(cookie.Value)
+				if err == nil && s != nil {
+					session = s
+					claims, _ = mysql.ToClaims(s.Claims)
+				}
+			}
+
+			if claims != nil {
+				// 将用户信息注入上下文
+				ctx := context.WithValue(r.Context(), UserContextKey, claims)
+				ctx = context.WithValue(ctx, SessionContextKey, session)
+				r = r.WithContext(ctx)
 			}
 		}
 
@@ -134,9 +177,6 @@ func GetUserFromContext(ctx context.Context) *auth.UserClaims {
 }
 
 // GetSessionFromContext 从上下文获取 Session 信息
-func GetSessionFromContext(ctx context.Context) *sqlite.Session {
-	if session, ok := ctx.Value(SessionContextKey).(*sqlite.Session); ok {
-		return session
-	}
-	return nil
+func GetSessionFromContext(ctx context.Context) any {
+	return ctx.Value(SessionContextKey)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/zouhang1992/ddd_domain/internal/application/auth"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/persistence/mysql"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/persistence/sqlite"
 	"go.uber.org/zap"
 )
@@ -16,7 +17,7 @@ import (
 // OIDCHandler OIDC HTTP 处理器
 type OIDCHandler struct {
 	oidcService    *auth.OIDCService
-	sessionRepo    *sqlite.SessionRepository
+	sessionRepo    any
 	authMiddleware *middleware.AuthMiddleware
 	config         auth.Config
 	log            *zap.Logger
@@ -33,7 +34,7 @@ type stateData struct {
 // NewOIDCHandler 创建 OIDC 处理器
 func NewOIDCHandler(
 	oidcService *auth.OIDCService,
-	sessionRepo *sqlite.SessionRepository,
+	sessionRepo any,
 	authMiddleware *middleware.AuthMiddleware,
 	config auth.Config,
 	log *zap.Logger,
@@ -126,25 +127,85 @@ func (h *OIDCHandler) devModeLogin(w http.ResponseWriter, r *http.Request, retur
 		Exp:         time.Now().Add(24 * time.Hour).Unix(),
 	}
 
-	// 序列化 claims
-	claimsJSON, err := sqlite.FromClaims(claims)
-	if err != nil {
-		h.log.Error("Failed to serialize claims", zap.Error(err))
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
+	h.saveSessionAndRedirect(w, r, claims, nil, returnURL)
+}
 
-	// 创建 Session
-	session := &sqlite.Session{
-		ID:        uuid.NewString(),
-		UserID:    claims.Sub,
-		Claims:    claimsJSON,
-		ExpiresAt: time.Now().Add(h.config.SessionTTL),
-	}
+// saveSessionAndRedirect saves the session using the appropriate repository and redirects
+func (h *OIDCHandler) saveSessionAndRedirect(w http.ResponseWriter, r *http.Request, claims *auth.UserClaims, tokenSet *auth.TokenSet, returnURL string) {
+	sessionID := uuid.NewString()
 
-	// 保存 Session
-	if err := h.sessionRepo.Save(session); err != nil {
-		h.log.Error("Failed to save session", zap.Error(err))
+	switch repo := h.sessionRepo.(type) {
+	case *sqlite.SessionRepository:
+		// 序列化 claims
+		claimsJSON, err := sqlite.FromClaims(claims)
+		if err != nil {
+			h.log.Error("Failed to serialize claims", zap.Error(err))
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		// 创建 Session
+		session := &sqlite.Session{
+			ID:        sessionID,
+			UserID:    claims.Sub,
+			Claims:    claimsJSON,
+			ExpiresAt: time.Now().Add(h.config.SessionTTL),
+		}
+
+		if tokenSet != nil {
+			session.AccessToken = tokenSet.AccessToken
+			session.IDToken = tokenSet.IDToken
+			if tokenSet.RefreshToken != "" {
+				session.RefreshToken = sql.NullString{
+					String: tokenSet.RefreshToken,
+					Valid:  true,
+				}
+			}
+		}
+
+		// 保存 Session
+		if err := repo.Save(session); err != nil {
+			h.log.Error("Failed to save session", zap.Error(err))
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+
+	case *mysql.SessionRepository:
+		// 序列化 claims
+		claimsJSON, err := mysql.FromClaims(claims)
+		if err != nil {
+			h.log.Error("Failed to serialize claims", zap.Error(err))
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		// 创建 Session
+		session := &mysql.Session{
+			ID:        sessionID,
+			UserID:    claims.Sub,
+			Claims:    claimsJSON,
+			ExpiresAt: time.Now().Add(h.config.SessionTTL),
+		}
+
+		if tokenSet != nil {
+			session.AccessToken = tokenSet.AccessToken
+			session.IDToken = tokenSet.IDToken
+			if tokenSet.RefreshToken != "" {
+				session.RefreshToken = sql.NullString{
+					String: tokenSet.RefreshToken,
+					Valid:  true,
+				}
+			}
+		}
+
+		// 保存 Session
+		if err := repo.Save(session); err != nil {
+			h.log.Error("Failed to save session", zap.Error(err))
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+	default:
+		h.log.Error("Unsupported session repository type")
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -152,15 +213,15 @@ func (h *OIDCHandler) devModeLogin(w http.ResponseWriter, r *http.Request, retur
 	// 设置 Session Cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     middleware.SessionCookieName,
-		Value:    session.ID,
+		Value:    sessionID,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
-		Expires:  session.ExpiresAt,
+		Expires:  time.Now().Add(h.config.SessionTTL),
 	})
 
-	h.log.Info("Dev mode login successful",
+	h.log.Info("Login successful",
 		zap.String("user_id", claims.Sub),
 		zap.String("email", claims.Email),
 		zap.String("return_url", returnURL))
@@ -224,60 +285,7 @@ func (h *OIDCHandler) Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 序列化 claims
-	claimsJSON, err := sqlite.FromClaims(claims)
-	if err != nil {
-		h.log.Error("Failed to serialize claims", zap.Error(err))
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	// 创建 Session
-	session := &sqlite.Session{
-		ID:          uuid.NewString(),
-		UserID:      claims.Sub,
-		AccessToken: tokenSet.AccessToken,
-		IDToken:     tokenSet.IDToken,
-		Claims:      claimsJSON,
-		ExpiresAt:   time.Now().Add(h.config.SessionTTL),
-	}
-
-	if tokenSet.RefreshToken != "" {
-		session.RefreshToken = sql.NullString{
-			String: tokenSet.RefreshToken,
-			Valid:  true,
-		}
-	}
-
-	// 保存 Session
-	if err := h.sessionRepo.Save(session); err != nil {
-		h.log.Error("Failed to save session", zap.Error(err))
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	// 设置 Session Cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:     middleware.SessionCookieName,
-		Value:    session.ID,
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   false, // 生产环境应设为 true
-		SameSite: http.SameSiteLaxMode,
-		Expires:  session.ExpiresAt,
-	})
-
-	h.log.Info("User authenticated successfully",
-		zap.String("user_id", claims.Sub),
-		zap.String("email", claims.Email),
-		zap.String("return_url", stateData.returnURL))
-
-	// 重定向到 returnURL 或前端首页
-	redirectURL := h.config.FrontendURL
-	if stateData.returnURL != "/" {
-		redirectURL += stateData.returnURL
-	}
-	http.Redirect(w, r, redirectURL, http.StatusFound)
+	h.saveSessionAndRedirect(w, r, claims, tokenSet, stateData.returnURL)
 }
 
 // Logout 登出
@@ -291,18 +299,37 @@ func (h *OIDCHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	var idToken string
 
 	// 获取 Session
-	session := middleware.GetSessionFromContext(r.Context())
-	if session != nil {
-		idToken = session.IDToken
+	sessionAny := middleware.GetSessionFromContext(r.Context())
+	if sessionAny != nil {
+		var sessionID string
+
+		switch s := sessionAny.(type) {
+		case *sqlite.Session:
+			idToken = s.IDToken
+			sessionID = s.ID
+		case *mysql.Session:
+			idToken = s.IDToken
+			sessionID = s.ID
+		}
+
 		h.log.Info("Session found for logout",
-			zap.String("session_id", session.ID),
-			zap.String("user_id", session.UserID),
+			zap.String("session_id", sessionID),
 			zap.Bool("has_id_token", idToken != ""))
+
 		// 删除 Session
-		if err := h.sessionRepo.Delete(session.ID); err != nil {
-			h.log.Error("Failed to delete session", zap.Error(err))
-		} else {
-			h.log.Info("Session deleted", zap.String("session_id", session.ID))
+		switch repo := h.sessionRepo.(type) {
+		case *sqlite.SessionRepository:
+			if err := repo.Delete(sessionID); err != nil {
+				h.log.Error("Failed to delete session", zap.Error(err))
+			} else {
+				h.log.Info("Session deleted", zap.String("session_id", sessionID))
+			}
+		case *mysql.SessionRepository:
+			if err := repo.Delete(sessionID); err != nil {
+				h.log.Error("Failed to delete session", zap.Error(err))
+			} else {
+				h.log.Info("Session deleted", zap.String("session_id", sessionID))
+			}
 		}
 	} else {
 		h.log.Warn("No session found for logout")

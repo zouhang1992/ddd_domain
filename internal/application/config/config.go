@@ -28,7 +28,8 @@ type HTTPConfig struct {
 
 // DatabaseConfig 数据库配置
 type DatabaseConfig struct {
-	DSN string `json:"dsn"` // SQLite 数据文件路径，如 "data/ddd.db"
+	Type string `json:"type"` // 数据库类型: "sqlite" 或 "mysql"
+	DSN  string `json:"dsn"`  // 数据文件路径或连接字符串
 }
 
 // LoggingConfig 日志配置
@@ -58,7 +59,8 @@ func DefaultConfig() Config {
 			Addr: ":8080",
 		},
 		Database: DatabaseConfig{
-			DSN: "data/ddd.db",
+			Type: "sqlite",
+			DSN:  "data/ddd.db",
 		},
 		Logging: LoggingConfig{
 			Environment: "development",
@@ -87,6 +89,9 @@ func LoadFromEnv() Config {
 	}
 
 	// 数据库配置
+	if dbType := os.Getenv("DATABASE_TYPE"); dbType != "" {
+		cfg.Database.Type = dbType
+	}
 	if dsn := os.Getenv("DATABASE_DSN"); dsn != "" {
 		cfg.Database.DSN = dsn
 	}
