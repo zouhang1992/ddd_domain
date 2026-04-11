@@ -6,6 +6,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
@@ -29,6 +30,7 @@ import (
 	logging "github.com/zouhang1992/ddd_domain/internal/infrastructure/logging"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/persistence"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/tracing"
 )
 
 func main() {
@@ -40,6 +42,7 @@ func main() {
 		// 各个组件模块（配置模块已包含在 application.Module 中）
 		logging.Module(),
 		persistence.Module(),
+		tracing.Module(),
 		busmodule.Module,
 		application.Module,
 		auth.Module,
@@ -159,6 +162,7 @@ func registerQueryHandlers(
 func startServer(
 	logger *zap.Logger,
 	cfg config.Config,
+	tp trace.TracerProvider,
 	locationHandler *facade.CQRSLocationHandler,
 	roomHandler *facade.CQRSRoomHandler,
 	landlordHandler *facade.CQRSLandlordHandler,
@@ -217,10 +221,19 @@ func startServer(
 	oidcHandler.RegisterRoutes(mux)
 
 	// 应用 metrics 中间件
-	metricsMux := middleware.Metrics(mux)
+	handler := middleware.Metrics(mux)
+
+	// 应用 tracing 中间件（如果启用）
+	if cfg.Tracing.Enabled {
+		logger.Info("Tracing middleware enabled",
+			zap.String("serviceName", cfg.Tracing.ServiceName))
+		handler = middleware.Tracing(tp, cfg.Tracing.ServiceName)(handler)
+	} else {
+		logger.Info("Tracing middleware disabled")
+	}
 
 	logger.Info("Starting server", zap.String("addr", cfg.HTTP.Addr))
-	if err := http.ListenAndServe(cfg.HTTP.Addr, metricsMux); err != nil {
+	if err := http.ListenAndServe(cfg.HTTP.Addr, handler); err != nil {
 		logger.Fatal("Server failed", zap.Error(err))
 	}
 }

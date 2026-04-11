@@ -2,13 +2,14 @@ package facade
 
 import (
 	"encoding/json"
-	"net/http"
-	"strconv"
-	"time"
-
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/logging"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	operationlogmodel "github.com/zouhang1992/ddd_domain/internal/domain/operationlog/model"
 	operationlogrepo "github.com/zouhang1992/ddd_domain/internal/domain/operationlog/repository"
+	"go.uber.org/zap"
+	"net/http"
+	"strconv"
+	"time"
 )
 
 // OperationLogHandler 操作日志 HTTP 处理器
@@ -81,6 +82,9 @@ func toResponse(log *operationlogmodel.OperationLog) OperationLogResponse {
 
 // ListOperationLogs 列出操作日志
 func (h *OperationLogHandler) ListOperationLogs(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logging.Ctx(ctx).Info("Listing operation logs")
+
 	query := r.URL.Query()
 
 	// 解析分页参数
@@ -136,6 +140,12 @@ func (h *OperationLogHandler) ListOperationLogs(w http.ResponseWriter, r *http.R
 		endTimeStr = query.Get("endTime")
 	}
 
+	logging.Ctx(ctx).Debug("Operation log query parameters",
+		zap.String("domain_type", domainType),
+		zap.String("aggregate_id", aggregateID),
+		zap.String("start_time", startTimeStr),
+		zap.String("end_time", endTimeStr))
+
 	switch {
 	case domainType != "" && aggregateID != "":
 		logs, total, err = h.repo.FindByDomainTypeAndAggregateID(domainType, aggregateID, offset, limit)
@@ -148,11 +158,13 @@ func (h *OperationLogHandler) ListOperationLogs(w http.ResponseWriter, r *http.R
 		var startTime, endTime time.Time
 		startTime, err = time.Parse(time.RFC3339, startTimeStr)
 		if err != nil {
+			logging.Ctx(ctx).Error("Invalid start_time format", zap.Error(err))
 			http.Error(w, "invalid start_time format", http.StatusBadRequest)
 			return
 		}
 		endTime, err = time.Parse(time.RFC3339, endTimeStr)
 		if err != nil {
+			logging.Ctx(ctx).Error("Invalid end_time format", zap.Error(err))
 			http.Error(w, "invalid end_time format", http.StatusBadRequest)
 			return
 		}
@@ -165,6 +177,7 @@ func (h *OperationLogHandler) ListOperationLogs(w http.ResponseWriter, r *http.R
 	}
 
 	if err != nil {
+		logging.Ctx(ctx).Error("Failed to list operation logs", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -183,26 +196,36 @@ func (h *OperationLogHandler) ListOperationLogs(w http.ResponseWriter, r *http.R
 		Limit: limit,
 	}
 
+	logging.Ctx(ctx).Info("Operation logs listed successfully",
+		zap.Int("total", total),
+		zap.Int("page", page),
+		zap.Int("limit", limit))
+
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(resp)
 }
 
 // GetOperationLog 获取单个操作日志
 func (h *OperationLogHandler) GetOperationLog(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Getting operation log", zap.String("id", id))
 
 	log, err := h.repo.FindByID(id)
 	if err != nil {
+		logging.Ctx(ctx).Error("Failed to get operation log", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if log == nil {
+		logging.Ctx(ctx).Warn("Operation log not found", zap.String("id", id))
 		http.Error(w, "operation log not found", http.StatusNotFound)
 		return
 	}
 
 	resp := toResponse(log)
 
+	logging.Ctx(ctx).Info("Operation log retrieved successfully", zap.String("id", id))
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(resp)
 }

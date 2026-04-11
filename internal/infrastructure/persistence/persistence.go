@@ -25,7 +25,7 @@ func Module() fx.Option {
 		fx.Provide(
 			fx.Annotate(
 				provideConnection,
-				fx.As(new(any)),
+				fx.As(new(DBConnection)),
 			),
 		),
 		fx.Provide(
@@ -82,18 +82,8 @@ func Module() fx.Option {
 				fx.As(new(any)),
 			),
 		),
-		fx.Provide(
-			fx.Annotate(
-				provideToClaimsFunc,
-				fx.As(new(ToClaimsFunc)),
-			),
-		),
-		fx.Provide(
-			fx.Annotate(
-				provideFromClaimsFunc,
-				fx.As(new(FromClaimsFunc)),
-			),
-		),
+		fx.Provide(provideToClaimsFunc),
+		fx.Provide(provideFromClaimsFunc),
 	)
 }
 
@@ -103,8 +93,11 @@ type Connection interface {
 	Close() error
 }
 
+// DBConnection is a named type for database connection to avoid Fx type conflicts
+type DBConnection any
+
 // Repository provider functions
-func provideConnection(cfg config.Config, logger *zap.Logger) (any, error) {
+func provideConnection(cfg config.Config, logger *zap.Logger) (DBConnection, error) {
 	switch cfg.Database.Type {
 	case "mysql":
 		logger.Info("Using MySQL database")
@@ -117,7 +110,7 @@ func provideConnection(cfg config.Config, logger *zap.Logger) (any, error) {
 	}
 }
 
-func provideLandlordRepository(conn any) (landlordrepo.LandlordRepository, error) {
+func provideLandlordRepository(conn DBConnection) (landlordrepo.LandlordRepository, error) {
 	switch c := conn.(type) {
 	case *sqlite.Connection:
 		return sqlite.NewLandlordRepository(c), nil
@@ -128,7 +121,7 @@ func provideLandlordRepository(conn any) (landlordrepo.LandlordRepository, error
 	}
 }
 
-func provideLeaseRepository(conn any) (leaserepo.LeaseRepository, error) {
+func provideLeaseRepository(conn DBConnection) (leaserepo.LeaseRepository, error) {
 	switch c := conn.(type) {
 	case *sqlite.Connection:
 		return sqlite.NewLeaseRepository(c), nil
@@ -139,7 +132,7 @@ func provideLeaseRepository(conn any) (leaserepo.LeaseRepository, error) {
 	}
 }
 
-func provideBillRepository(conn any) (billrepo.BillRepository, error) {
+func provideBillRepository(conn DBConnection) (billrepo.BillRepository, error) {
 	switch c := conn.(type) {
 	case *sqlite.Connection:
 		return sqlite.NewBillRepository(c), nil
@@ -150,7 +143,7 @@ func provideBillRepository(conn any) (billrepo.BillRepository, error) {
 	}
 }
 
-func provideDepositRepository(conn any) (depositrepo.DepositRepository, error) {
+func provideDepositRepository(conn DBConnection) (depositrepo.DepositRepository, error) {
 	switch c := conn.(type) {
 	case *sqlite.Connection:
 		return sqlite.NewDepositRepository(c), nil
@@ -161,7 +154,7 @@ func provideDepositRepository(conn any) (depositrepo.DepositRepository, error) {
 	}
 }
 
-func provideLocationRepository(conn any) (locationrepo.LocationRepository, error) {
+func provideLocationRepository(conn DBConnection) (locationrepo.LocationRepository, error) {
 	switch c := conn.(type) {
 	case *sqlite.Connection:
 		return sqlite.NewLocationRepository(c), nil
@@ -172,7 +165,7 @@ func provideLocationRepository(conn any) (locationrepo.LocationRepository, error
 	}
 }
 
-func provideRoomRepository(conn any) (roomrepo.RoomRepository, error) {
+func provideRoomRepository(conn DBConnection) (roomrepo.RoomRepository, error) {
 	switch c := conn.(type) {
 	case *sqlite.Connection:
 		return sqlite.NewRoomRepository(c), nil
@@ -183,7 +176,7 @@ func provideRoomRepository(conn any) (roomrepo.RoomRepository, error) {
 	}
 }
 
-func provideOperationLogRepository(conn any) (operationlogrepo.OperationLogRepository, error) {
+func provideOperationLogRepository(conn DBConnection) (operationlogrepo.OperationLogRepository, error) {
 	switch c := conn.(type) {
 	case *sqlite.Connection:
 		return sqlite.NewOperationLogRepository(c), nil
@@ -194,7 +187,7 @@ func provideOperationLogRepository(conn any) (operationlogrepo.OperationLogRepos
 	}
 }
 
-func providePrintJobRepository(conn any) (printrepo.PrintJobRepository, error) {
+func providePrintJobRepository(conn DBConnection) (printrepo.PrintJobRepository, error) {
 	switch c := conn.(type) {
 	case *sqlite.Connection:
 		return sqlite.NewPrintJobRepository(c), nil
@@ -205,7 +198,7 @@ func providePrintJobRepository(conn any) (printrepo.PrintJobRepository, error) {
 	}
 }
 
-func provideSessionRepository(conn any) (any, error) {
+func provideSessionRepository(conn DBConnection) (any, error) {
 	switch c := conn.(type) {
 	case *sqlite.Connection:
 		return sqlite.NewSessionRepository(c), nil
@@ -216,7 +209,7 @@ func provideSessionRepository(conn any) (any, error) {
 	}
 }
 
-func provideToClaimsFunc(conn any) (ToClaimsFunc, error) {
+func provideToClaimsFunc(conn DBConnection) (ToClaimsFunc, error) {
 	switch conn.(type) {
 	case *sqlite.Connection:
 		return sqlite.ToClaims, nil
@@ -227,7 +220,7 @@ func provideToClaimsFunc(conn any) (ToClaimsFunc, error) {
 	}
 }
 
-func provideFromClaimsFunc(conn any) (FromClaimsFunc, error) {
+func provideFromClaimsFunc(conn DBConnection) (FromClaimsFunc, error) {
 	switch conn.(type) {
 	case *sqlite.Connection:
 		return sqlite.FromClaims, nil

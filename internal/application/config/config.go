@@ -19,6 +19,9 @@ type Config struct {
 
 	// OIDC 认证配置
 	OIDC OIDCConfig `json:"oidc"`
+
+	// 链路追踪配置
+	Tracing TracingConfig `json:"tracing"`
 }
 
 // HTTPConfig HTTP 服务配置
@@ -52,6 +55,13 @@ type OIDCConfig struct {
 	SessionTTL    time.Duration `json:"sessionTtl"`    // Session 有效期
 }
 
+// TracingConfig 链路追踪配置
+type TracingConfig struct {
+	Enabled     bool   `json:"enabled"`     // 是否启用链路追踪
+	ServiceName string `json:"serviceName"` // 服务名称
+	Endpoint    string `json:"endpoint"`    // Jaeger OTLP endpoint，如 "jaeger:4318"
+}
+
 // DefaultConfig 返回默认配置
 func DefaultConfig() Config {
 	return Config{
@@ -75,6 +85,11 @@ func DefaultConfig() Config {
 			FrontendURL: "http://localhost:5173",
 			Scopes:      []string{"openid", "profile", "email", "roles"},
 			SessionTTL:  24 * time.Hour,
+		},
+		Tracing: TracingConfig{
+			Enabled:     false,
+			ServiceName: "ddd-house",
+			Endpoint:    "jaeger:4318",
 		},
 	}
 }
@@ -144,6 +159,17 @@ func LoadFromEnv() Config {
 		if d, err := time.ParseDuration(ttl); err == nil {
 			cfg.OIDC.SessionTTL = d
 		}
+	}
+
+	// Tracing 配置
+	if enabled := os.Getenv("TRACING_ENABLED"); enabled != "" {
+		cfg.Tracing.Enabled = enabled == "true" || enabled == "1"
+	}
+	if serviceName := os.Getenv("TRACING_SERVICE_NAME"); serviceName != "" {
+		cfg.Tracing.ServiceName = serviceName
+	}
+	if endpoint := os.Getenv("TRACING_ENDPOINT"); endpoint != "" {
+		cfg.Tracing.Endpoint = endpoint
 	}
 
 	return cfg

@@ -3,15 +3,15 @@ package facade
 import (
 	"database/sql"
 	"encoding/json"
-	"net/http"
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/zouhang1992/ddd_domain/internal/application/auth"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/logging"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/persistence/mysql"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/persistence/sqlite"
 	"go.uber.org/zap"
+	"net/http"
+	"time"
 )
 
 // OIDCHandler OIDC HTTP 处理器
@@ -20,7 +20,6 @@ type OIDCHandler struct {
 	sessionRepo    any
 	authMiddleware *middleware.AuthMiddleware
 	config         auth.Config
-	log            *zap.Logger
 
 	// state 存储（生产环境应使用 Redis 或数据库）
 	stateStore map[string]stateData
@@ -50,7 +49,6 @@ func NewOIDCHandler(
 		sessionRepo:    sessionRepo,
 		authMiddleware: authMiddleware,
 		config:         config,
-		log:            log,
 		stateStore:     make(map[string]stateData),
 	}
 }
@@ -74,6 +72,9 @@ func (h *OIDCHandler) RegisterRoutes(mux *http.ServeMux) {
 
 // Login 启动 OIDC 登录流程
 func (h *OIDCHandler) Login(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logging.Ctx(ctx).Info("Starting OIDC login flow")
+
 	// 获取 return_url
 	returnURL := r.URL.Query().Get("return_url")
 	if returnURL == "" {
@@ -82,6 +83,7 @@ func (h *OIDCHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	// 开发模式：直接创建 mock session，跳过 OIDC
 	if h.config.DevMode {
+		logging.Ctx(ctx).Info("Dev mode login", zap.String("return_url", returnURL))
 		h.devModeLogin(w, r, returnURL)
 		return
 	}
@@ -89,7 +91,7 @@ func (h *OIDCHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// 生成 state
 	state, err := auth.GenerateState()
 	if err != nil {
-		h.log.Error("Failed to generate state", zap.Error(err))
+		logging.Ctx(ctx).Error("Failed to generate state", zap.Error(err))
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -106,17 +108,22 @@ func (h *OIDCHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// 获取认证 URL
 	authURL, err := h.oidcService.GetAuthURL(state)
 	if err != nil {
-		h.log.Error("Failed to get auth URL", zap.Error(err))
+		logging.Ctx(ctx).Error("Failed to get auth URL", zap.Error(err))
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	h.log.Info("Redirecting to OIDC provider", zap.String("state", state), zap.String("return_url", returnURL))
+	logging.Ctx(ctx).Info("Redirecting to OIDC provider",
+		zap.String("state", state),
+		zap.String("return_url", returnURL))
 	http.Redirect(w, r, authURL, http.StatusFound)
 }
 
 // devModeLogin 开发模式登录（直接创建 mock session）
 func (h *OIDCHandler) devModeLogin(w http.ResponseWriter, r *http.Request, returnURL string) {
+	ctx := r.Context()
+	logging.Ctx(ctx).Info("Dev mode login - creating mock session")
+
 	// 创建 mock claims
 	claims := &auth.UserClaims{
 		Sub:         "dev-user-id",
@@ -132,14 +139,19 @@ func (h *OIDCHandler) devModeLogin(w http.ResponseWriter, r *http.Request, retur
 
 // saveSessionAndRedirect saves the session using the appropriate repository and redirects
 func (h *OIDCHandler) saveSessionAndRedirect(w http.ResponseWriter, r *http.Request, claims *auth.UserClaims, tokenSet *auth.TokenSet, returnURL string) {
+	ctx := r.Context()
 	sessionID := uuid.NewString()
+
+	logging.Ctx(ctx).Info("Saving session",
+		zap.String("session_id", sessionID),
+		zap.String("user_id", claims.Sub))
 
 	switch repo := h.sessionRepo.(type) {
 	case *sqlite.SessionRepository:
 		// 序列化 claims
 		claimsJSON, err := sqlite.FromClaims(claims)
 		if err != nil {
-			h.log.Error("Failed to serialize claims", zap.Error(err))
+			logging.Ctx(ctx).Error("Failed to serialize claims", zap.Error(err))
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
@@ -165,7 +177,7 @@ func (h *OIDCHandler) saveSessionAndRedirect(w http.ResponseWriter, r *http.Requ
 
 		// 保存 Session
 		if err := repo.Save(session); err != nil {
-			h.log.Error("Failed to save session", zap.Error(err))
+			logging.Ctx(ctx).Error("Failed to save session", zap.Error(err))
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
@@ -174,7 +186,7 @@ func (h *OIDCHandler) saveSessionAndRedirect(w http.ResponseWriter, r *http.Requ
 		// 序列化 claims
 		claimsJSON, err := mysql.FromClaims(claims)
 		if err != nil {
-			h.log.Error("Failed to serialize claims", zap.Error(err))
+			logging.Ctx(ctx).Error("Failed to serialize claims", zap.Error(err))
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
@@ -200,12 +212,12 @@ func (h *OIDCHandler) saveSessionAndRedirect(w http.ResponseWriter, r *http.Requ
 
 		// 保存 Session
 		if err := repo.Save(session); err != nil {
-			h.log.Error("Failed to save session", zap.Error(err))
+			logging.Ctx(ctx).Error("Failed to save session", zap.Error(err))
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
 	default:
-		h.log.Error("Unsupported session repository type")
+		logging.Ctx(ctx).Error("Unsupported session repository type")
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -221,7 +233,7 @@ func (h *OIDCHandler) saveSessionAndRedirect(w http.ResponseWriter, r *http.Requ
 		Expires:  time.Now().Add(h.config.SessionTTL),
 	})
 
-	h.log.Info("Login successful",
+	logging.Ctx(ctx).Info("Login successful",
 		zap.String("user_id", claims.Sub),
 		zap.String("email", claims.Email),
 		zap.String("return_url", returnURL))
@@ -236,18 +248,22 @@ func (h *OIDCHandler) saveSessionAndRedirect(w http.ResponseWriter, r *http.Requ
 
 // Callback 处理 OIDC 回调
 func (h *OIDCHandler) Callback(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logging.Ctx(ctx).Info("Processing OIDC callback")
+
 	// 获取 query 参数
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 	errorParam := r.URL.Query().Get("error")
 
 	if errorParam != "" {
-		h.log.Error("OIDC error", zap.String("error", errorParam))
+		logging.Ctx(ctx).Error("OIDC error", zap.String("error", errorParam))
 		http.Error(w, "authentication failed", http.StatusUnauthorized)
 		return
 	}
 
 	if code == "" || state == "" {
+		logging.Ctx(ctx).Warn("Missing code or state in callback")
 		http.Error(w, "missing code or state", http.StatusBadRequest)
 		return
 	}
@@ -255,12 +271,12 @@ func (h *OIDCHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	// 验证 state
 	stateData, ok := h.stateStore[state]
 	if !ok {
-		h.log.Warn("Invalid state", zap.String("state", state))
+		logging.Ctx(ctx).Warn("Invalid state", zap.String("state", state))
 		http.Error(w, "invalid state", http.StatusBadRequest)
 		return
 	}
 	if time.Now().After(stateData.expiry) {
-		h.log.Warn("State expired", zap.String("state", state))
+		logging.Ctx(ctx).Warn("State expired", zap.String("state", state))
 		delete(h.stateStore, state)
 		http.Error(w, "state expired", http.StatusBadRequest)
 		return
@@ -272,7 +288,7 @@ func (h *OIDCHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	// 用 code 换取 tokens
 	tokenSet, err := h.oidcService.ExchangeCode(code)
 	if err != nil {
-		h.log.Error("Failed to exchange code", zap.Error(err))
+		logging.Ctx(ctx).Error("Failed to exchange code", zap.Error(err))
 		http.Error(w, "authentication failed", http.StatusUnauthorized)
 		return
 	}
@@ -280,7 +296,7 @@ func (h *OIDCHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	// 验证 token 并提取 claims
 	claims, err := h.oidcService.VerifyToken(tokenSet.IDToken)
 	if err != nil {
-		h.log.Error("Failed to verify token", zap.Error(err))
+		logging.Ctx(ctx).Error("Failed to verify token", zap.Error(err))
 		http.Error(w, "authentication failed", http.StatusUnauthorized)
 		return
 	}
@@ -290,9 +306,12 @@ func (h *OIDCHandler) Callback(w http.ResponseWriter, r *http.Request) {
 
 // Logout 登出
 func (h *OIDCHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logging.Ctx(ctx).Info("Processing logout")
+
 	// 开发模式：记录登出日志
 	if h.config.DevMode {
-		h.log.Info("Dev mode logout requested")
+		logging.Ctx(ctx).Info("Dev mode logout requested")
 	}
 
 	var endSessionURL string
@@ -312,7 +331,7 @@ func (h *OIDCHandler) Logout(w http.ResponseWriter, r *http.Request) {
 			sessionID = s.ID
 		}
 
-		h.log.Info("Session found for logout",
+		logging.Ctx(ctx).Info("Session found for logout",
 			zap.String("session_id", sessionID),
 			zap.Bool("has_id_token", idToken != ""))
 
@@ -320,19 +339,19 @@ func (h *OIDCHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		switch repo := h.sessionRepo.(type) {
 		case *sqlite.SessionRepository:
 			if err := repo.Delete(sessionID); err != nil {
-				h.log.Error("Failed to delete session", zap.Error(err))
+				logging.Ctx(ctx).Error("Failed to delete session", zap.Error(err))
 			} else {
-				h.log.Info("Session deleted", zap.String("session_id", sessionID))
+				logging.Ctx(ctx).Info("Session deleted", zap.String("session_id", sessionID))
 			}
 		case *mysql.SessionRepository:
 			if err := repo.Delete(sessionID); err != nil {
-				h.log.Error("Failed to delete session", zap.Error(err))
+				logging.Ctx(ctx).Error("Failed to delete session", zap.Error(err))
 			} else {
-				h.log.Info("Session deleted", zap.String("session_id", sessionID))
+				logging.Ctx(ctx).Info("Session deleted", zap.String("session_id", sessionID))
 			}
 		}
 	} else {
-		h.log.Warn("No session found for logout")
+		logging.Ctx(ctx).Warn("No session found for logout")
 	}
 
 	// 清除 Cookie
@@ -348,37 +367,38 @@ func (h *OIDCHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// 获取 OIDC 单点登出 URL
-	h.log.Info("Preparing end session URL",
+	logging.Ctx(ctx).Info("Preparing end session URL",
 		zap.Bool("dev_mode", h.config.DevMode),
 		zap.Bool("has_id_token", idToken != ""))
 	if !h.config.DevMode && idToken != "" {
 		postLogoutRedirectURI := h.config.FrontendURL
 		if url, err := h.oidcService.GetEndSessionURL(idToken, postLogoutRedirectURI); err == nil {
 			endSessionURL = url
-			h.log.Info("Got end session URL, redirecting", zap.String("url", endSessionURL))
+			logging.Ctx(ctx).Info("Got end session URL, redirecting", zap.String("url", endSessionURL))
 			http.Redirect(w, r, endSessionURL, http.StatusFound)
 			return
 		} else {
-			h.log.Warn("Failed to get end session URL", zap.Error(err))
+			logging.Ctx(ctx).Warn("Failed to get end session URL", zap.Error(err))
 		}
 	} else {
-		h.log.Info("Skipping OIDC end session",
+		logging.Ctx(ctx).Info("Skipping OIDC end session",
 			zap.Bool("dev_mode", h.config.DevMode),
 			zap.Bool("has_id_token", idToken != ""))
 	}
 
 	// 如果没有 OIDC 单点登出，直接重定向到前端
-	h.log.Info("Redirecting to frontend home")
+	logging.Ctx(ctx).Info("Redirecting to frontend home")
 	http.Redirect(w, r, h.config.FrontendURL, http.StatusFound)
 }
 
 // UserInfo 获取当前用户信息
 func (h *OIDCHandler) UserInfo(w http.ResponseWriter, r *http.Request) {
-	h.log.Debug("UserInfo request received", zap.Bool("dev_mode", h.config.DevMode))
+	ctx := r.Context()
+	logging.Ctx(ctx).Debug("UserInfo request received", zap.Bool("dev_mode", h.config.DevMode))
 
 	// 开发模式：如果没有 session，直接返回 mock 用户
 	if h.config.DevMode {
-		h.log.Debug("Returning mock user (dev mode)")
+		logging.Ctx(ctx).Debug("Returning mock user (dev mode)")
 		session := middleware.GetSessionFromContext(r.Context())
 		if session == nil {
 			// 创建临时 mock 用户
@@ -396,10 +416,12 @@ func (h *OIDCHandler) UserInfo(w http.ResponseWriter, r *http.Request) {
 
 	claims := middleware.GetUserFromContext(r.Context())
 	if claims == nil {
+		logging.Ctx(ctx).Warn("Unauthorized user info request")
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Returning user info", zap.String("user_id", claims.Sub))
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]any{
 		"sub":         claims.Sub,

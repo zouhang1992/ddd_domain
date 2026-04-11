@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"github.com/zouhang1992/ddd_domain/internal/application/common/service"
 	"github.com/zouhang1992/ddd_domain/internal/application/lease"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/logging"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
+	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 	"time"
@@ -22,8 +24,8 @@ type CQRSLeaseHandler struct {
 
 // NewCQRSLeaseHandler 创建基于 CQRS 的租约处理器
 func NewCQRSLeaseHandler(
-	commandBus *buscommand.Bus, 
-	queryBus *busquery.Bus, 
+	commandBus *buscommand.Bus,
+	queryBus *busquery.Bus,
 	printService *service.PrintService,
 	authMiddleware *middleware.AuthMiddleware,
 ) *CQRSLeaseHandler {
@@ -51,6 +53,9 @@ func (h *CQRSLeaseHandler) RegisterRoutes(mux *http.ServeMux) {
 
 // Create 创建租约
 func (h *CQRSLeaseHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logging.Ctx(ctx).Info("Creating lease")
+
 	var req struct {
 		RoomID        string `json:"room_id"`
 		LandlordID    string `json:"landlord_id"`
@@ -64,18 +69,21 @@ func (h *CQRSLeaseHandler) Create(w http.ResponseWriter, r *http.Request) {
 		DepositNote   string `json:"deposit_note"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logging.Ctx(ctx).Error("Failed to decode request", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	startDate, err := time.Parse("2006-01-02", req.StartDate)
 	if err != nil {
+		logging.Ctx(ctx).Error("Invalid start_date format", zap.Error(err))
 		http.Error(w, "invalid start_date format", http.StatusBadRequest)
 		return
 	}
 
 	endDate, err := time.Parse("2006-01-02", req.EndDate)
 	if err != nil {
+		logging.Ctx(ctx).Error("Invalid end_date format", zap.Error(err))
 		http.Error(w, "invalid end_date format", http.StatusBadRequest)
 		return
 	}
@@ -96,13 +104,16 @@ func (h *CQRSLeaseHandler) Create(w http.ResponseWriter, r *http.Request) {
 	result, err := h.commandBus.Dispatch(cmd)
 	if err != nil {
 		if err.Error() == "room already has an active lease" {
+			logging.Ctx(ctx).Warn("Room already has an active lease", zap.String("room_id", req.RoomID))
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to create lease", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Lease created successfully")
 	lease := result.(any)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -111,6 +122,9 @@ func (h *CQRSLeaseHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // List 列出租约
 func (h *CQRSLeaseHandler) List(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logging.Ctx(ctx).Info("Listing leases")
+
 	q := lease.ListLeasesQuery{
 		TenantName:  r.URL.Query().Get("tenant_name"),
 		TenantPhone: r.URL.Query().Get("tenant_phone"),
@@ -132,29 +146,37 @@ func (h *CQRSLeaseHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
+		logging.Ctx(ctx).Error("Failed to list leases", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Leases listed successfully")
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(result)
 }
 
 // Get 获取租约
 func (h *CQRSLeaseHandler) Get(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Getting lease", zap.String("id", id))
+
 	q := lease.GetLeaseQuery{ID: id}
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
 		if err.Error() == "lease not found" {
+			logging.Ctx(ctx).Warn("Lease not found", zap.String("id", id))
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to get lease", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Lease retrieved successfully", zap.String("id", id))
 	queryResult := result.(*lease.LeaseQueryResult)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(queryResult.Lease)
@@ -162,7 +184,10 @@ func (h *CQRSLeaseHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 // Update 更新租约
 func (h *CQRSLeaseHandler) Update(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Updating lease", zap.String("id", id))
+
 	var req struct {
 		TenantName  string `json:"tenant_name"`
 		TenantPhone string `json:"tenant_phone"`
@@ -172,18 +197,21 @@ func (h *CQRSLeaseHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Note        string `json:"note"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logging.Ctx(ctx).Error("Failed to decode request", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	startDate, err := time.Parse("2006-01-02", req.StartDate)
 	if err != nil {
+		logging.Ctx(ctx).Error("Invalid start_date format", zap.Error(err))
 		http.Error(w, "invalid start_date format", http.StatusBadRequest)
 		return
 	}
 
 	endDate, err := time.Parse("2006-01-02", req.EndDate)
 	if err != nil {
+		logging.Ctx(ctx).Error("Invalid end_date format", zap.Error(err))
 		http.Error(w, "invalid end_date format", http.StatusBadRequest)
 		return
 	}
@@ -201,13 +229,16 @@ func (h *CQRSLeaseHandler) Update(w http.ResponseWriter, r *http.Request) {
 	result, err := h.commandBus.Dispatch(cmd)
 	if err != nil {
 		if err.Error() == "lease not found" {
+			logging.Ctx(ctx).Warn("Lease not found for update", zap.String("id", id))
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to update lease", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Lease updated successfully", zap.String("id", id))
 	lease := result.(any)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(lease)
@@ -215,24 +246,33 @@ func (h *CQRSLeaseHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 // Delete 删除租约
 func (h *CQRSLeaseHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Deleting lease", zap.String("id", id))
+
 	cmd := lease.DeleteLeaseCommand{ID: id}
 
 	if _, err := h.commandBus.Dispatch(cmd); err != nil {
 		if err.Error() == "cannot delete lease with bills or deposit, or active lease" {
+			logging.Ctx(ctx).Warn("Cannot delete lease", zap.String("id", id), zap.String("reason", err.Error()))
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to delete lease", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Lease deleted successfully", zap.String("id", id))
 	w.WriteHeader(http.StatusNoContent)
 }
 
 // Renew 续租
 func (h *CQRSLeaseHandler) Renew(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Renewing lease", zap.String("id", id))
+
 	var req struct {
 		NewStartDate  string `json:"new_start_date"`
 		NewEndDate    string `json:"new_end_date"`
@@ -240,18 +280,21 @@ func (h *CQRSLeaseHandler) Renew(w http.ResponseWriter, r *http.Request) {
 		Note          string `json:"note"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logging.Ctx(ctx).Error("Failed to decode request", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	newStartDate, err := time.Parse("2006-01-02", req.NewStartDate)
 	if err != nil {
+		logging.Ctx(ctx).Error("Invalid new_start_date format", zap.Error(err))
 		http.Error(w, "invalid new_start_date format", http.StatusBadRequest)
 		return
 	}
 
 	newEndDate, err := time.Parse("2006-01-02", req.NewEndDate)
 	if err != nil {
+		logging.Ctx(ctx).Error("Invalid new_end_date format", zap.Error(err))
 		http.Error(w, "invalid new_end_date format", http.StatusBadRequest)
 		return
 	}
@@ -267,13 +310,16 @@ func (h *CQRSLeaseHandler) Renew(w http.ResponseWriter, r *http.Request) {
 	result, err := h.commandBus.Dispatch(cmd)
 	if err != nil {
 		if err.Error() == "lease not found" {
+			logging.Ctx(ctx).Warn("Lease not found for renew", zap.String("id", id))
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to renew lease", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Lease renewed successfully", zap.String("id", id))
 	newLease := result.(any)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(newLease)
@@ -281,19 +327,25 @@ func (h *CQRSLeaseHandler) Renew(w http.ResponseWriter, r *http.Request) {
 
 // Checkout 退租
 func (h *CQRSLeaseHandler) Checkout(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Checking out lease", zap.String("id", id))
+
 	cmd := lease.CheckoutLeaseCommand{ID: id}
 
 	result, err := h.commandBus.Dispatch(cmd)
 	if err != nil {
 		if err.Error() == "lease not found" {
+			logging.Ctx(ctx).Warn("Lease not found for checkout", zap.String("id", id))
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to checkout lease", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Lease checked out successfully", zap.String("id", id))
 	lease := result.(any)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(lease)
@@ -301,23 +353,30 @@ func (h *CQRSLeaseHandler) Checkout(w http.ResponseWriter, r *http.Request) {
 
 // Activate 租约生效
 func (h *CQRSLeaseHandler) Activate(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Activating lease", zap.String("id", id))
+
 	cmd := lease.ActivateLeaseCommand{ID: id}
 
 	result, err := h.commandBus.Dispatch(cmd)
 	if err != nil {
 		if err.Error() == "lease not found" {
+			logging.Ctx(ctx).Warn("Lease not found for activation", zap.String("id", id))
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
 		if err.Error() == "invalid state" {
+			logging.Ctx(ctx).Warn("Invalid lease state for activation", zap.String("id", id))
 			http.Error(w, "租约状态无效，只有待生效状态的租约可以生效，且开始日期不能晚于今天", http.StatusConflict)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to activate lease", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Lease activated successfully", zap.String("id", id))
 	lease := result.(any)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(lease)
@@ -325,7 +384,10 @@ func (h *CQRSLeaseHandler) Activate(w http.ResponseWriter, r *http.Request) {
 
 // CheckoutWithBills 退租并创建结算账单
 func (h *CQRSLeaseHandler) CheckoutWithBills(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Checking out lease with bills", zap.String("id", id))
+
 	var req struct {
 		RefundRentAmount    int64  `json:"refund_rent_amount"`
 		RefundDepositAmount int64  `json:"refund_deposit_amount"`
@@ -335,6 +397,7 @@ func (h *CQRSLeaseHandler) CheckoutWithBills(w http.ResponseWriter, r *http.Requ
 		Note                string `json:"note"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logging.Ctx(ctx).Error("Failed to decode request", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -352,30 +415,39 @@ func (h *CQRSLeaseHandler) CheckoutWithBills(w http.ResponseWriter, r *http.Requ
 	result, err := h.commandBus.Dispatch(cmd)
 	if err != nil {
 		if err.Error() == "lease not found" {
+			logging.Ctx(ctx).Warn("Lease not found for checkout with bills", zap.String("id", id))
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to checkout lease with bills", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Lease checked out with bills successfully", zap.String("id", id))
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(result)
 }
 
 // PrintContract 打印合同
 func (h *CQRSLeaseHandler) PrintContract(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Printing contract", zap.String("lease_id", id))
+
 	content, err := h.printService.PrintContract(id)
 	if err != nil {
 		if err.Error() == "lease not found" {
+			logging.Ctx(ctx).Warn("Lease not found for printing contract", zap.String("id", id))
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to print contract", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Contract printed successfully", zap.String("lease_id", id))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Content-Disposition", "attachment; filename=\"contract.html\"")
 	w.Write(content)

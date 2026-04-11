@@ -2,13 +2,14 @@ package facade
 
 import (
 	"encoding/json"
-	"net/http"
-	"strconv"
-
 	"github.com/zouhang1992/ddd_domain/internal/application/location"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/logging"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
-	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
+	"go.uber.org/zap"
+	"net/http"
+	"strconv"
 )
 
 // CQRSLocationHandler 基于 CQRS 的位置 HTTP 处理器
@@ -42,11 +43,15 @@ func (h *CQRSLocationHandler) RegisterRoutes(mux *http.ServeMux) {
 
 // Create 创建位置
 func (h *CQRSLocationHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logging.Ctx(ctx).Info("Creating location")
+
 	var req struct {
 		ShortName string `json:"short_name"`
 		Detail    string `json:"detail"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logging.Ctx(ctx).Error("Failed to decode request", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -58,10 +63,12 @@ func (h *CQRSLocationHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.commandBus.Dispatch(cmd)
 	if err != nil {
+		logging.Ctx(ctx).Error("Failed to create location", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Location created successfully")
 	location := result
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -70,6 +77,9 @@ func (h *CQRSLocationHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // List 列出位置
 func (h *CQRSLocationHandler) List(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logging.Ctx(ctx).Info("Listing locations")
+
 	q := location.ListLocationsQuery{
 		ShortName: r.URL.Query().Get("short_name"),
 		Detail:    r.URL.Query().Get("detail"),
@@ -89,25 +99,32 @@ func (h *CQRSLocationHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
+		logging.Ctx(ctx).Error("Failed to list locations", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Locations listed successfully")
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(result)
 }
 
 // Get 获取位置
 func (h *CQRSLocationHandler) Get(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Getting location", zap.String("id", id))
+
 	q := location.GetLocationQuery{ID: id}
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
+		logging.Ctx(ctx).Error("Failed to get location", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Location retrieved successfully", zap.String("id", id))
 	queryResult := result.(*location.LocationQueryResult)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(queryResult.Location)
@@ -115,12 +132,16 @@ func (h *CQRSLocationHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 // Update 更新位置
 func (h *CQRSLocationHandler) Update(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Updating location", zap.String("id", id))
+
 	var req struct {
 		ShortName string `json:"short_name"`
 		Detail    string `json:"detail"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logging.Ctx(ctx).Error("Failed to decode request", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -133,10 +154,12 @@ func (h *CQRSLocationHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.commandBus.Dispatch(cmd)
 	if err != nil {
+		logging.Ctx(ctx).Error("Failed to update location", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Location updated successfully", zap.String("id", id))
 	location := result
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(location)
@@ -144,13 +167,18 @@ func (h *CQRSLocationHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 // Delete 删除位置
 func (h *CQRSLocationHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Deleting location", zap.String("id", id))
+
 	cmd := location.DeleteLocationCommand{ID: id}
 
 	if _, err := h.commandBus.Dispatch(cmd); err != nil {
+		logging.Ctx(ctx).Error("Failed to delete location", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Location deleted successfully", zap.String("id", id))
 	w.WriteHeader(http.StatusNoContent)
 }

@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"github.com/zouhang1992/ddd_domain/internal/application/bill"
 	"github.com/zouhang1992/ddd_domain/internal/application/common/service"
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/logging"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	billmodel "github.com/zouhang1992/ddd_domain/internal/domain/bill/model"
 	buscommand "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/command"
 	busquery "github.com/zouhang1992/ddd_domain/internal/infrastructure/bus/query"
+	"go.uber.org/zap"
 	"net/http"
 	"time"
 )
@@ -22,8 +24,8 @@ type CQRSBillHandler struct {
 
 // NewCQRSBillHandler 创建基于 CQRS 的账单处理器
 func NewCQRSBillHandler(
-	commandBus *buscommand.Bus, 
-	queryBus *busquery.Bus, 
+	commandBus *buscommand.Bus,
+	queryBus *busquery.Bus,
 	printService *service.PrintService,
 	authMiddleware *middleware.AuthMiddleware,
 ) *CQRSBillHandler {
@@ -49,6 +51,9 @@ func (h *CQRSBillHandler) RegisterRoutes(mux *http.ServeMux) {
 
 // Create 创建账单
 func (h *CQRSBillHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logging.Ctx(ctx).Info("Creating bill")
+
 	var req struct {
 		LeaseID             string     `json:"lease_id"`
 		Type                string     `json:"type"`
@@ -64,6 +69,7 @@ func (h *CQRSBillHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Note                string     `json:"note"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logging.Ctx(ctx).Error("Failed to decode request", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -104,13 +110,16 @@ func (h *CQRSBillHandler) Create(w http.ResponseWriter, r *http.Request) {
 	result, err := h.commandBus.Dispatch(cmd)
 	if err != nil {
 		if err.Error() == "lease not found" {
+			logging.Ctx(ctx).Warn("Lease not found for creating bill", zap.String("lease_id", req.LeaseID))
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to create bill", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Bill created successfully")
 	bill := result.(any)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -119,6 +128,9 @@ func (h *CQRSBillHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // List 列出账单
 func (h *CQRSBillHandler) List(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logging.Ctx(ctx).Info("Listing bills")
+
 	// 解析查询参数
 	q := bill.ListBillsQuery{
 		LeaseID: r.URL.Query().Get("lease_id"),
@@ -128,29 +140,37 @@ func (h *CQRSBillHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
+		logging.Ctx(ctx).Error("Failed to list bills", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Bills listed successfully")
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(result)
 }
 
 // Get 获取账单
 func (h *CQRSBillHandler) Get(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Getting bill", zap.String("id", id))
+
 	q := bill.GetBillQuery{ID: id}
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
 		if err.Error() == "bill not found" {
+			logging.Ctx(ctx).Warn("Bill not found", zap.String("id", id))
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to get bill", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Bill retrieved successfully", zap.String("id", id))
 	queryResult := result.(*bill.BillQueryResult)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(queryResult.Bill)
@@ -158,7 +178,10 @@ func (h *CQRSBillHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 // Update 更新账单
 func (h *CQRSBillHandler) Update(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Updating bill", zap.String("id", id))
+
 	var req struct {
 		Amount              int64      `json:"amount"`
 		RentAmount          int64      `json:"rent_amount"`
@@ -172,6 +195,7 @@ func (h *CQRSBillHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Note                string     `json:"note"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logging.Ctx(ctx).Error("Failed to decode request", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -211,13 +235,16 @@ func (h *CQRSBillHandler) Update(w http.ResponseWriter, r *http.Request) {
 	result, err := h.commandBus.Dispatch(cmd)
 	if err != nil {
 		if err.Error() == "bill not found" {
+			logging.Ctx(ctx).Warn("Bill not found for update", zap.String("id", id))
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to update bill", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Bill updated successfully", zap.String("id", id))
 	bill := result.(any)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(bill)
@@ -225,34 +252,46 @@ func (h *CQRSBillHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 // Delete 删除账单
 func (h *CQRSBillHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Deleting bill", zap.String("id", id))
+
 	cmd := bill.DeleteBillCommand{ID: id}
 
 	if _, err := h.commandBus.Dispatch(cmd); err != nil {
 		if err.Error() == "cannot delete this bill" {
+			logging.Ctx(ctx).Warn("Cannot delete this bill", zap.String("id", id))
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to delete bill", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Bill deleted successfully", zap.String("id", id))
 	w.WriteHeader(http.StatusNoContent)
 }
 
 // PrintReceipt 打印收据
 func (h *CQRSBillHandler) PrintReceipt(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Printing receipt", zap.String("bill_id", id))
+
 	content, err := h.printService.PrintReceipt(id)
 	if err != nil {
 		if err.Error() == "bill not found" {
+			logging.Ctx(ctx).Warn("Bill not found for printing receipt", zap.String("id", id))
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to print receipt", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Receipt printed successfully", zap.String("bill_id", id))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Content-Disposition", "attachment; filename=\"receipt.html\"")
 	w.Write(content)
@@ -260,11 +299,15 @@ func (h *CQRSBillHandler) PrintReceipt(w http.ResponseWriter, r *http.Request) {
 
 // ConfirmArrival 确认账单到账
 func (h *CQRSBillHandler) ConfirmArrival(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	id := r.PathValue("id")
+	logging.Ctx(ctx).Info("Confirming bill arrival", zap.String("id", id))
+
 	var req struct {
 		PaidAt *time.Time `json:"paid_at"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logging.Ctx(ctx).Error("Failed to decode request", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -283,13 +326,16 @@ func (h *CQRSBillHandler) ConfirmArrival(w http.ResponseWriter, r *http.Request)
 	result, err := h.commandBus.Dispatch(cmd)
 	if err != nil {
 		if err.Error() == "bill not found" {
+			logging.Ctx(ctx).Warn("Bill not found for confirming arrival", zap.String("id", id))
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to confirm bill arrival", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Bill arrival confirmed successfully", zap.String("id", id))
 	bill := result.(any)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(bill)
@@ -297,19 +343,25 @@ func (h *CQRSBillHandler) ConfirmArrival(w http.ResponseWriter, r *http.Request)
 
 // GetNextBillPeriod 获取租约的下一个账单周期
 func (h *CQRSBillHandler) GetNextBillPeriod(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	leaseId := r.PathValue("leaseId")
+	logging.Ctx(ctx).Info("Getting next bill period", zap.String("lease_id", leaseId))
+
 	q := bill.GetNextBillPeriodQuery{LeaseID: leaseId}
 
 	result, err := h.queryBus.Dispatch(q)
 	if err != nil {
 		if err.Error() == "lease not found" {
+			logging.Ctx(ctx).Warn("Lease not found for getting next bill period", zap.String("lease_id", leaseId))
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		logging.Ctx(ctx).Error("Failed to get next bill period", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	logging.Ctx(ctx).Info("Next bill period retrieved successfully", zap.String("lease_id", leaseId))
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(result)
 }

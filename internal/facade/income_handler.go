@@ -3,14 +3,15 @@ package facade
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"time"
-
+	"github.com/zouhang1992/ddd_domain/internal/infrastructure/logging"
 	"github.com/zouhang1992/ddd_domain/internal/infrastructure/middleware"
 	billrepo "github.com/zouhang1992/ddd_domain/internal/domain/bill/repository"
 	depositrepo "github.com/zouhang1992/ddd_domain/internal/domain/deposit/repository"
 	leaserepo "github.com/zouhang1992/ddd_domain/internal/domain/lease/repository"
 	roomrepo "github.com/zouhang1992/ddd_domain/internal/domain/room/repository"
+	"go.uber.org/zap"
+	"net/http"
+	"time"
 )
 
 // IncomeHandler 收入汇总 HTTP 处理器
@@ -24,16 +25,16 @@ type IncomeHandler struct {
 
 // NewIncomeHandler 创建收入汇总处理器
 func NewIncomeHandler(
-	billRepo billrepo.BillRepository, 
-	depositRepo depositrepo.DepositRepository, 
-	leaseRepo leaserepo.LeaseRepository, 
+	billRepo billrepo.BillRepository,
+	depositRepo depositrepo.DepositRepository,
+	leaseRepo leaserepo.LeaseRepository,
 	roomRepo roomrepo.RoomRepository,
 	authMiddleware *middleware.AuthMiddleware,
 ) *IncomeHandler {
 	return &IncomeHandler{
-		billRepo:       billRepo, 
-		depositRepo:    depositRepo, 
-		leaseRepo:      leaseRepo, 
+		billRepo:       billRepo,
+		depositRepo:    depositRepo,
+		leaseRepo:      leaseRepo,
 		roomRepo:       roomRepo,
 		authMiddleware: authMiddleware,
 	}
@@ -90,6 +91,9 @@ func isSameMonth(t time.Time, year int, month time.Month) bool {
 
 // GetIncome 获取收入汇总
 func (h *IncomeHandler) GetIncome(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logging.Ctx(ctx).Info("Getting income report")
+
 	query := r.URL.Query()
 	monthStr := query.Get("month")
 	locationID := query.Get("location_id")
@@ -105,6 +109,7 @@ func (h *IncomeHandler) GetIncome(w http.ResponseWriter, r *http.Request) {
 	} else {
 		t, parseErr := time.Parse("2006-01", monthStr)
 		if parseErr != nil {
+			logging.Ctx(ctx).Error("Invalid month format", zap.Error(parseErr))
 			http.Error(w, "invalid month format (should be YYYY-MM)", http.StatusBadRequest)
 			return
 		}
@@ -112,14 +117,21 @@ func (h *IncomeHandler) GetIncome(w http.ResponseWriter, r *http.Request) {
 		mon = t.Month()
 	}
 
+	logging.Ctx(ctx).Info("Fetching data for income report",
+		zap.Int("year", year),
+		zap.Int("month", int(mon)),
+		zap.String("location_id", locationID))
+
 	bills, err := h.billRepo.FindAll()
 	if err != nil {
+		logging.Ctx(ctx).Error("Failed to fetch bills", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	deposits, err := h.depositRepo.FindAll()
 	if err != nil {
+		logging.Ctx(ctx).Error("Failed to fetch deposits", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -128,11 +140,13 @@ func (h *IncomeHandler) GetIncome(w http.ResponseWriter, r *http.Request) {
 	leaseToLocation := make(map[string]string)
 	leases, err := h.leaseRepo.FindAll()
 	if err != nil {
+		logging.Ctx(ctx).Error("Failed to fetch leases", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	rooms, err := h.roomRepo.FindAll()
 	if err != nil {
+		logging.Ctx(ctx).Error("Failed to fetch rooms", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -224,6 +238,11 @@ func (h *IncomeHandler) GetIncome(w http.ResponseWriter, r *http.Request) {
 	report.TotalIncomeFormatted = formatMoney(report.TotalIncome)
 	report.TotalExpenseFormatted = formatMoney(report.TotalExpense)
 	report.NetIncomeFormatted = formatMoney(report.NetIncome)
+
+	logging.Ctx(ctx).Info("Income report generated successfully",
+		zap.Int64("total_income", report.TotalIncome),
+		zap.Int64("total_expense", report.TotalExpense),
+		zap.Int64("net_income", report.NetIncome))
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(report)
