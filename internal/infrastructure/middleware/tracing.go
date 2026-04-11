@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -23,9 +24,17 @@ func Tracing(tp trace.TracerProvider, serviceName string) func(http.Handler) htt
 			// Extract trace context from request headers
 			ctx := propagator.Extract(r.Context(), propagation.HeaderCarrier(r.Header))
 
-			// Start a new span
+			// Start a new span with HTTP attributes
 			spanName := r.Method + " " + r.URL.Path
-			ctx, span := tracer.Start(ctx, spanName)
+			ctx, span := tracer.Start(ctx, spanName,
+				trace.WithAttributes(
+					attribute.String("http.method", r.Method),
+					attribute.String("http.url", r.URL.String()),
+					attribute.String("http.host", r.Host),
+					attribute.String("http.scheme", "http"),
+					attribute.String("http.proto", r.Proto),
+				),
+			)
 			defer span.End()
 
 			// Get trace ID and add to response header
@@ -42,6 +51,16 @@ func Tracing(tp trace.TracerProvider, serviceName string) func(http.Handler) htt
 
 			// Call the next handler with the new context
 			next.ServeHTTP(wrapped, r.WithContext(ctx))
+
+			// Add status code to span
+			span.SetAttributes(
+				attribute.Int("http.status_code", wrapped.statusCode),
+			)
+
+			// Set span status based on HTTP status code
+			if wrapped.statusCode >= 400 {
+				span.SetAttributes(attribute.String("error", "true"))
+			}
 		})
 	}
 }
