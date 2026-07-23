@@ -41,6 +41,12 @@ kind: Service
 metadata:
   name: ddd-house-backend
   namespace: ddd-house
+  labels:
+    app: ddd-house-backend
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     app: ddd-house-backend
