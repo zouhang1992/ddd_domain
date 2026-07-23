@@ -24,7 +24,7 @@ data:
   OIDC_SESSION_TTL: "24h"
   TRACING_ENABLED: "true"
   TRACING_SERVICE_NAME: "ddd-house"
-  TRACING_ENDPOINT: "jaeger.tracing.svc.cluster.local:4318"
+  TRACING_ENDPOINT: "otel-collector.tracing.svc.cluster.local:4318"
 ---
 apiVersion: v1
 kind: Secret

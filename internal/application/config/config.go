@@ -59,7 +59,7 @@ type OIDCConfig struct {
 type TracingConfig struct {
 	Enabled     bool   `json:"enabled"`     // 是否启用链路追踪
 	ServiceName string `json:"serviceName"` // 服务名称
-	Endpoint    string `json:"endpoint"`    // Jaeger OTLP endpoint，如 "jaeger:4318"
+	Endpoint    string `json:"endpoint"`    // OpenTelemetry Collector OTLP endpoint，如 "otel-collector:4318"
 }
 
 // DefaultConfig 返回默认配置
@@ -89,7 +89,7 @@ func DefaultConfig() Config {
 		Tracing: TracingConfig{
 			Enabled:     false,
 			ServiceName: "ddd-house",
-			Endpoint:    "jaeger:4318",
+			Endpoint:    "otel-collector.tracing.svc.cluster.local:4318",
 		},
 	}
 }
