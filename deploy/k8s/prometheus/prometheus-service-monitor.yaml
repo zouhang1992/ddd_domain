@@ -4,7 +4,7 @@ metadata:
   name: ddd-house-monitor
   namespace: monitoring
   labels:
-    release: prometheus
+    release: kps
 spec:
   namespaceSelector:
     matchNames:
@@ -26,7 +26,7 @@ metadata:
   name: otel-collector-monitor
   namespace: monitoring
   labels:
-    release: prometheus
+    release: kps
 spec:
   namespaceSelector:
     matchNames:
