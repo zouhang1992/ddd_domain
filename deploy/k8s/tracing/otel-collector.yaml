@@ -21,9 +21,9 @@ data:
         limit_mib: 512
 
     exporters:
-      # traces → Jaeger (OTLP gRPC)
-      otlp/jaeger:
-        endpoint: jaeger.tracing.svc.cluster.local:4317
+      # traces → Tempo (OTLP gRPC)
+      otlp/tempo:
+        endpoint: tempo.tracing.svc.cluster.local:4317
         tls:
           insecure: true
 
@@ -40,7 +40,7 @@ data:
         traces:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [otlp/jaeger, debug]
+          exporters: [otlp/tempo, debug]
 
         metrics:
           receivers: [otlp]
