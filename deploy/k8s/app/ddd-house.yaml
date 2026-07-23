@@ -43,10 +43,6 @@ metadata:
   namespace: ddd-house
   labels:
     app: ddd-house-backend
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "8080"
-    prometheus.io/path: "/metrics"
 spec:
   selector:
     app: ddd-house-backend
@@ -162,15 +158,9 @@ spec:
             name: ddd-house-backend
             port:
               number: 8080
-      # 健康检查和监控
+      # 健康检查
+      # NOTE: /metrics removed — Prometheus scrapes OTel Collector at tracing/otel-collector:8888
       - path: /health
-        pathType: Exact
-        backend:
-          service:
-            name: ddd-house-backend
-            port:
-              number: 8080
-      - path: /metrics
         pathType: Exact
         backend:
           service:

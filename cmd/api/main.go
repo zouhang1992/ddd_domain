@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/joho/godotenv"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -163,6 +162,7 @@ func startServer(
 	logger *zap.Logger,
 	cfg config.Config,
 	tp trace.TracerProvider,
+	inst *middleware.Instruments,
 	locationHandler *facade.CQRSLocationHandler,
 	roomHandler *facade.CQRSRoomHandler,
 	landlordHandler *facade.CQRSLandlordHandler,
@@ -177,32 +177,16 @@ func startServer(
 ) {
 	mux := http.NewServeMux()
 
-	// CORS 中间件
-	// corsHandler := func(next http.Handler) http.Handler {
-	// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	// 		// 允许所有源（生产环境应该限制特定域）
-	// 		w.Header().Set("Access-Control-Allow-Origin", "*")
-	// 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	// 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-	// 		// 处理预检请求
-	// 		if r.Method == http.MethodOptions {
-	// 			w.WriteHeader(http.StatusNoContent)
-	// 			return
-	// 		}
-
-	// 		next.ServeHTTP(w, r)
-	// 	})
-	// }
-
 	// 健康检查路由
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("OK"))
 	})
 
-	// Prometheus metrics 端点
-	mux.Handle("GET /metrics", promhttp.Handler())
+	// NOTE: /metrics endpoint removed — Prometheus now scrapes the OTel Collector at :8888/metrics
+	// The Collector receives OTLP metrics from this app and exposes them in Prometheus format.
+	// If you need a direct /metrics endpoint for debugging, add back:
+	//   mux.Handle("GET /metrics", promhttp.Handler())
 
 	// 注册业务路由 (带 /api 前缀，使用 StripPrefix 去掉)
 	apiMux := http.NewServeMux()
@@ -221,7 +205,7 @@ func startServer(
 	oidcHandler.RegisterRoutes(mux)
 
 	// 应用 metrics 中间件
-	handler := middleware.Metrics(mux)
+	handler := middleware.Metrics(inst)(mux)
 
 	// 应用 tracing 中间件（如果启用）
 	if cfg.Tracing.Enabled {

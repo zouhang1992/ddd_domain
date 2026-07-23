@@ -10,6 +10,7 @@ import (
 
 // Module Fx 模块
 var Module = fx.Options(
+	fx.Provide(NewInstruments),
 	fx.Provide(func(cfg config.Config, repo any, toClaims persistence.ToClaimsFunc, svc *auth.OIDCService, log *zap.Logger) *AuthMiddleware {
 		return NewAuthMiddleware(repo, toClaims, svc, cfg.OIDC.DevMode, log)
 	}),

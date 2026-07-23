@@ -1,100 +1,136 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
-var (
-	// HTTP 指标
-	httpRequestsTotal = promauto.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "http_requests_total",
-			Help: "Total number of HTTP requests",
-		},
-		[]string{"method", "path", "status"},
-	)
+// Instruments holds all OTel metric instruments for the middleware.
+// These are created once at startup via NewInstruments and consumed by middleware.
+type Instruments struct {
+	httpRequestsTotal     metric.Int64Counter
+	httpRequestDuration   metric.Float64Histogram
+	httpRequestsInFlight  metric.Int64UpDownCounter
+	httpRequestSizeBytes  metric.Float64Histogram
+	httpResponseSizeBytes metric.Float64Histogram
 
-	httpRequestDuration = promauto.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Name:    "http_request_duration_seconds",
-			Help:    "HTTP request duration in seconds",
-			Buckets: []float64{0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10},
-		},
-		[]string{"method", "path"},
-	)
+	commandsExecutedTotal metric.Int64Counter
+	queriesExecutedTotal  metric.Int64Counter
+	eventsPublishedTotal  metric.Int64Counter
 
-	httpRequestsInFlight = promauto.NewGauge(
-		prometheus.GaugeOpts{
-			Name: "http_requests_in_flight",
-			Help: "Number of HTTP requests currently in flight",
-		},
-	)
+	dbQueriesTotal  metric.Int64Counter
+	dbQueryDuration metric.Float64Histogram
+}
 
-	httpRequestSizeBytes = promauto.NewSummaryVec(
-		prometheus.SummaryOpts{
-			Name: "http_request_size_bytes",
-			Help: "HTTP request size in bytes",
-		},
-		[]string{"method", "path"},
-	)
+// NewInstruments creates all OTel metric instruments from the MeterProvider.
+func NewInstruments(mp *sdkmetric.MeterProvider) (*Instruments, error) {
+	meter := mp.Meter("ddd-house")
 
-	httpResponseSizeBytes = promauto.NewSummaryVec(
-		prometheus.SummaryOpts{
-			Name: "http_response_size_bytes",
-			Help: "HTTP response size in bytes",
-		},
-		[]string{"method", "path", "status"},
-	)
+	inst := &Instruments{}
+	var err error
 
-	// 业务指标
-	commandsExecutedTotal = promauto.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "commands_executed_total",
-			Help: "Total number of commands executed",
-		},
-		[]string{"command", "status"},
-	)
+	// HTTP metrics — names use dots, the OTel Prometheus exporter converts to underscores.
+	// Counter "http.requests" → Prometheus: http_requests_total
+	// Histogram "http.request.duration" (unit:s) → Prometheus: http_request_duration_seconds
 
-	queriesExecutedTotal = promauto.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "queries_executed_total",
-			Help: "Total number of queries executed",
-		},
-		[]string{"query", "status"},
+	inst.httpRequestsTotal, err = meter.Int64Counter(
+		"http.requests",
+		metric.WithDescription("Total number of HTTP requests"),
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	eventsPublishedTotal = promauto.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "events_published_total",
-			Help: "Total number of domain events published",
-		},
-		[]string{"event"},
+	inst.httpRequestDuration, err = meter.Float64Histogram(
+		"http.request.duration",
+		metric.WithDescription("HTTP request duration"),
+		metric.WithUnit("s"),
+		metric.WithExplicitBucketBoundaries(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10),
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	// 数据库指标
-	dbQueriesTotal = promauto.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "db_queries_total",
-			Help: "Total number of database queries",
-		},
-		[]string{"operation", "status"},
+	inst.httpRequestsInFlight, err = meter.Int64UpDownCounter(
+		"http.requests.in_flight",
+		metric.WithDescription("Number of HTTP requests currently in flight"),
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	dbQueryDuration = promauto.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Name:    "db_query_duration_seconds",
-			Help:    "Database query duration in seconds",
-			Buckets: []float64{0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5},
-		},
-		[]string{"operation"},
+	inst.httpRequestSizeBytes, err = meter.Float64Histogram(
+		"http.request.size",
+		metric.WithDescription("HTTP request size"),
+		metric.WithUnit("By"),
 	)
-)
+	if err != nil {
+		return nil, err
+	}
 
+	inst.httpResponseSizeBytes, err = meter.Float64Histogram(
+		"http.response.size",
+		metric.WithDescription("HTTP response size"),
+		metric.WithUnit("By"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Business metrics (reserved for future instrumentation)
+	inst.commandsExecutedTotal, err = meter.Int64Counter(
+		"commands.executed",
+		metric.WithDescription("Total number of commands executed"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	inst.queriesExecutedTotal, err = meter.Int64Counter(
+		"queries.executed",
+		metric.WithDescription("Total number of queries executed"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	inst.eventsPublishedTotal, err = meter.Int64Counter(
+		"events.published",
+		metric.WithDescription("Total number of domain events published"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	inst.dbQueriesTotal, err = meter.Int64Counter(
+		"db.queries",
+		metric.WithDescription("Total number of database queries"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	inst.dbQueryDuration, err = meter.Float64Histogram(
+		"db.query.duration",
+		metric.WithDescription("Database query duration"),
+		metric.WithUnit("s"),
+		metric.WithExplicitBucketBoundaries(0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return inst, nil
+}
+
+// statusRecorder wraps http.ResponseWriter to capture status code and bytes written.
+// Used by both Metrics and Tracing middleware (defined once in this package).
 type statusRecorder struct {
 	http.ResponseWriter
 	statusCode   int
@@ -112,64 +148,115 @@ func (sr *statusRecorder) Write(b []byte) (int, error) {
 	return n, err
 }
 
-func Metrics(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		path := r.URL.Path
+// Metrics returns an HTTP middleware that records OTel metrics for each request.
+func Metrics(inst *Instruments) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			start := time.Now()
+			path := r.URL.Path
 
-		httpRequestsInFlight.Inc()
-		defer httpRequestsInFlight.Dec()
+			inst.httpRequestsInFlight.Add(ctx, 1)
+			defer inst.httpRequestsInFlight.Add(ctx, -1)
 
-		sr := &statusRecorder{
-			ResponseWriter: w,
-			statusCode:     http.StatusOK,
-		}
+			// Record request size
+			if r.ContentLength > 0 {
+				inst.httpRequestSizeBytes.Record(ctx, float64(r.ContentLength),
+					metric.WithAttributes(
+						attribute.String("method", r.Method),
+						attribute.String("path", path),
+					),
+				)
+			}
 
-		// 记录请求大小
-		if r.ContentLength > 0 {
-			httpRequestSizeBytes.WithLabelValues(r.Method, path).Observe(float64(r.ContentLength))
-		}
+			sr := &statusRecorder{
+				ResponseWriter: w,
+				statusCode:     http.StatusOK,
+			}
 
-		next.ServeHTTP(sr, r)
+			next.ServeHTTP(sr, r)
 
-		duration := time.Since(start).Seconds()
-		status := strconv.Itoa(sr.statusCode)
+			duration := time.Since(start).Seconds()
+			status := strconv.Itoa(sr.statusCode)
 
-		httpRequestsTotal.WithLabelValues(r.Method, path, status).Inc()
-		httpRequestDuration.WithLabelValues(r.Method, path).Observe(duration)
-		httpResponseSizeBytes.WithLabelValues(r.Method, path, status).Observe(float64(sr.bytesWritten))
-	})
+			inst.httpRequestsTotal.Add(ctx, 1,
+				metric.WithAttributes(
+					attribute.String("method", r.Method),
+					attribute.String("path", path),
+					attribute.String("status", status),
+				),
+			)
+
+			inst.httpRequestDuration.Record(ctx, duration,
+				metric.WithAttributes(
+					attribute.String("method", r.Method),
+					attribute.String("path", path),
+				),
+			)
+
+			inst.httpResponseSizeBytes.Record(ctx, float64(sr.bytesWritten),
+				metric.WithAttributes(
+					attribute.String("method", r.Method),
+					attribute.String("path", path),
+					attribute.String("status", status),
+				),
+			)
+		})
+	}
 }
 
-// RecordCommand 记录命令执行
-func RecordCommand(command string, success bool) {
+// RecordCommand records a command execution metric.
+func (inst *Instruments) RecordCommand(ctx context.Context, command string, success bool) {
 	status := "success"
 	if !success {
 		status = "error"
 	}
-	commandsExecutedTotal.WithLabelValues(command, status).Inc()
+	inst.commandsExecutedTotal.Add(ctx, 1,
+		metric.WithAttributes(
+			attribute.String("command", command),
+			attribute.String("status", status),
+		),
+	)
 }
 
-// RecordQuery 记录查询执行
-func RecordQuery(query string, success bool) {
+// RecordQuery records a query execution metric.
+func (inst *Instruments) RecordQuery(ctx context.Context, query string, success bool) {
 	status := "success"
 	if !success {
 		status = "error"
 	}
-	queriesExecutedTotal.WithLabelValues(query, status).Inc()
+	inst.queriesExecutedTotal.Add(ctx, 1,
+		metric.WithAttributes(
+			attribute.String("query", query),
+			attribute.String("status", status),
+		),
+	)
 }
 
-// RecordEvent 记录事件发布
-func RecordEvent(event string) {
-	eventsPublishedTotal.WithLabelValues(event).Inc()
+// RecordEvent records a domain event publication metric.
+func (inst *Instruments) RecordEvent(ctx context.Context, event string) {
+	inst.eventsPublishedTotal.Add(ctx, 1,
+		metric.WithAttributes(
+			attribute.String("event", event),
+		),
+	)
 }
 
-// RecordDBQuery 记录数据库查询
-func RecordDBQuery(operation string, duration time.Duration, success bool) {
+// RecordDBQuery records a database query metric.
+func (inst *Instruments) RecordDBQuery(ctx context.Context, operation string, duration time.Duration, success bool) {
 	status := "success"
 	if !success {
 		status = "error"
 	}
-	dbQueriesTotal.WithLabelValues(operation, status).Inc()
-	dbQueryDuration.WithLabelValues(operation).Observe(duration.Seconds())
+	inst.dbQueriesTotal.Add(ctx, 1,
+		metric.WithAttributes(
+			attribute.String("operation", operation),
+			attribute.String("status", status),
+		),
+	)
+	inst.dbQueryDuration.Record(ctx, duration.Seconds(),
+		metric.WithAttributes(
+			attribute.String("operation", operation),
+		),
+	)
 }
