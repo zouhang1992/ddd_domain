@@ -1,0 +1,213 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: ddd-house
+  description: 房产租赁管理系统 — DDD + CQRS + Event Sourcing 架构
+  tags: [go, ddd, cqrs, event-sourcing]
+  links:
+    - url: http://grafana.zouhang.com
+      title: Grafana 监控
+      icon: dashboard
+    - url: http://prometheus.zouhang.com
+      title: Prometheus 指标
+      icon: dashboard
+    - url: http://alertmanager.zouhang.com
+      title: Alertmanager 告警
+      icon: dashboard
+    - url: https://github.com/zouhang1992/ddd_domain
+      title: 源代码
+      icon: github
+spec:
+  owner: ddd-team
+  domain: rental-property
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ddd-house-backend
+  description: |
+    ## DDD House 后端 API 服务
+
+    **技术栈**: Go 1.25 · Uber Fx 依赖注入 · DDD 领域驱动设计 · CQRS 命令查询分离 · Event Sourcing 事件溯源
+
+    ### 聚合根
+    - **Location** — 地点/小区
+    - **Room** — 房源/房间
+    - **Lease** — 租约
+    - **Bill** — 账单
+    - **Deposit** — 押金
+    - **Landlord** — 房东
+
+    ### 分层架构
+    ```
+    Facade (HTTP Handler) → Application (CQRS) → Domain (Aggregates) → Infrastructure (Persistence)
+    ```
+  labels:
+    language: go
+    framework: uber-fx
+    architecture: ddd-cqrs-es
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    prometheus.io/rule: ddd-house-alerts
+    grafana/dashboard-selector: "ddd-house"
+  tags: [go, api, backend]
+  links:
+    - url: http://ddd-house.zouhang.com/health
+      title: Health Check
+      icon: check
+    - url: http://grafana.zouhang.com
+      title: Grafana 监控面板
+      icon: dashboard
+    - url: http://prometheus.zouhang.com
+      title: Prometheus 指标查询
+      icon: dashboard
+    - url: http://alertmanager.zouhang.com
+      title: Alertmanager 告警管理
+      icon: dashboard
+    - url: http://tempo.zouhang.com
+      title: Tempo 链路追踪
+      icon: dashboard
+    - url: http://jaeger.zouhang.com
+      title: Jaeger 查询
+      icon: dashboard
+    - url: https://github.com/zouhang1992/ddd_domain
+      title: GitHub 源码
+      icon: github
+spec:
+  type: service
+  lifecycle: production
+  owner: ddd-team
+  system: ddd-house
+  dependsOn:
+    - component:default/mysql
+    - component:default/keycloak
+    - resource:default/ddd-house-database
+  providesApis:
+    - ddd-house-api
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: ddd-house-api
+  description: DDD House REST API
+  tags: [api, rest]
+  links:
+    - url: http://ddd-house.zouhang.com/health
+      title: API Health
+spec:
+  type: openapi
+  lifecycle: production
+  owner: ddd-team
+  system: ddd-house
+  definition:
+    $text: |
+      ## API 端点
+      | 方法 | 路径 | 说明 |
+      |------|------|------|
+      | GET | /api/locations | 地点列表 |
+      | POST | /api/locations | 创建地点 |
+      | GET | /api/rooms | 房间列表 |
+      | POST | /api/rooms | 创建房间 |
+      | GET | /api/leases | 租约列表 |
+      | POST | /api/leases | 创建租约 |
+      | GET | /api/bills | 账单列表 |
+      | POST | /api/bills | 创建账单 |
+      | GET | /api/deposits | 押金列表 |
+      | GET | /api/landlords | 房东列表 |
+      | POST | /api/landlords | 创建房东 |
+      | GET | /api/income | 收入报表 |
+      | GET | /health | 健康检查 |
+
+---
+# 基础设施组件
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: mysql
+  description: MySQL 8.0 — ddd-house 主数据库
+  tags: [database, mysql]
+spec:
+  type: database
+  lifecycle: production
+  owner: ddd-team
+  system: ddd-house
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: keycloak
+  description: Keycloak 24.0 — OIDC 认证服务
+  tags: [auth, oidc]
+spec:
+  type: service
+  lifecycle: production
+  owner: ddd-team
+  system: ddd-house
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: otel-collector
+  description: OpenTelemetry Collector — 收集 traces/metrics，转发到 Tempo/Prometheus
+  tags: [observability, tracing, metrics]
+  links:
+    - url: http://otel-collector.tracing:8889/metrics
+      title: Collector Metrics
+spec:
+  type: service
+  lifecycle: production
+  owner: ddd-team
+  system: ddd-house
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: tempo
+  description: Grafana Tempo — 分布式链路追踪存储
+  tags: [observability, tracing]
+  links:
+    - url: http://tempo.zouhang.com
+      title: Tempo UI
+spec:
+  type: service
+  lifecycle: production
+  owner: ddd-team
+  system: ddd-house
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: jaeger
+  description: Jaeger — 链路追踪查询 (已逐步迁移到 Tempo)
+  tags: [observability, tracing]
+  links:
+    - url: http://jaeger.zouhang.com
+      title: Jaeger UI
+spec:
+  type: service
+  lifecycle: production
+  owner: ddd-team
+  system: ddd-house
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: ddd-house-database
+  description: ddd_house 数据库实例 (MySQL)
+  tags: [database]
+  links:
+    - url: http://mysql.mysql:3306
+      title: MySQL Endpoint
+spec:
+  type: database
+  owner: ddd-team
+  system: ddd-house
+  dependsOn:
+    - component:default/mysql

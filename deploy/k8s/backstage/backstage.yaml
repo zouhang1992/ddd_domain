@@ -1,0 +1,319 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backstage
+---
+# Backstage 配置文件
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backstage-app-config
+  namespace: backstage
+data:
+  app-config.yaml: |
+    app:
+      title: "DDD House 服务门户"
+      baseUrl: http://backstage.zouhang.com
+      packages: all
+      extensions:
+        - page:catalog:
+            config:
+              path: /
+    organization:
+      name: "DDD House"
+    backend:
+      baseUrl: http://backstage.zouhang.com
+      listen:
+        port: 7007
+      database:
+        client: better-sqlite3
+        connection:
+          directory: /data
+      cors:
+        origin: http://backstage.zouhang.com
+        methods: [GET, POST, PUT, DELETE, PATCH]
+        credentials: true
+    proxy:
+      endpoints:
+        /prometheus:
+          target: http://kps-kube-prometheus-stack-prometheus.monitoring:9090
+          changeOrigin: true
+        /alertmanager:
+          target: http://kps-kube-prometheus-stack-alertmanager.monitoring:9093
+          changeOrigin: true
+    techdocs:
+      builder: local
+      generator:
+        runIn: local
+      publisher:
+        type: local
+    auth:
+      providers:
+        guest: {}
+    catalog:
+      rules:
+        - allow: [Component, System, API, Resource, Location]
+      locations:
+        - type: file
+          target: ./catalog/ddd-house.yaml
+    scaffolder: {}
+    permission:
+      enabled: false
+---
+# ddd-house 服务目录
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backstage-catalog
+  namespace: backstage
+data:
+  ddd-house.yaml: |
+    apiVersion: backstage.io/v1alpha1
+    kind: System
+    metadata:
+      name: ddd-house
+      description: 房产租赁管理系统 — DDD + CQRS + Event Sourcing
+      tags: [go, ddd, cqrs, event-sourcing]
+      links:
+        - url: http://grafana.zouhang.com
+          title: Grafana 监控
+          icon: dashboard
+        - url: http://prometheus.zouhang.com
+          title: Prometheus 指标
+          icon: dashboard
+        - url: http://alertmanager.zouhang.com
+          title: Alertmanager 告警
+          icon: dashboard
+    spec:
+      owner: ddd-team
+      domain: rental-property
+    ---
+    apiVersion: backstage.io/v1alpha1
+    kind: Component
+    metadata:
+      name: ddd-house-backend
+      description: |
+        DDD House 后端 API 服务
+        技术栈: Go 1.25 · Uber Fx DI · DDD · CQRS · Event Sourcing
+        聚合根: Location, Room, Lease, Bill, Deposit, Landlord
+      labels:
+        language: go
+        framework: uber-fx
+        architecture: ddd-cqrs-es
+      tags: [go, api, backend]
+      links:
+        - url: http://ddd-house.zouhang.com/health
+          title: Health Check
+          icon: check
+        - url: http://grafana.zouhang.com
+          title: Grafana 监控
+          icon: dashboard
+        - url: http://prometheus.zouhang.com
+          title: Prometheus 指标
+          icon: dashboard
+        - url: http://alertmanager.zouhang.com
+          title: Alertmanager 告警
+          icon: dashboard
+        - url: http://tempo.zouhang.com
+          title: Tempo 链路追踪
+          icon: dashboard
+        - url: http://jaeger.zouhang.com
+          title: Jaeger 查询
+          icon: dashboard
+    spec:
+      type: service
+      lifecycle: production
+      owner: ddd-team
+      system: ddd-house
+      dependsOn:
+        - component:mysql
+        - component:keycloak
+      providesApis:
+        - ddd-house-api
+    ---
+    apiVersion: backstage.io/v1alpha1
+    kind: API
+    metadata:
+      name: ddd-house-api
+      description: DDD House REST API
+      tags: [api, rest]
+    spec:
+      type: openapi
+      lifecycle: production
+      owner: ddd-team
+      system: ddd-house
+      definition:
+        $text: |
+          ## API 端点
+          | 方法 | 路径 | 说明 |
+          |------|------|------|
+          | GET/POST | /api/locations | 地点管理 |
+          | GET/POST | /api/rooms | 房间管理 |
+          | GET/POST | /api/leases | 租约管理 |
+          | GET/POST | /api/bills | 账单管理 |
+          | GET | /api/deposits | 押金管理 |
+          | GET/POST | /api/landlords | 房东管理 |
+          | GET | /api/income | 收入报表 |
+          | GET | /health | 健康检查 |
+    ---
+    apiVersion: backstage.io/v1alpha1
+    kind: Component
+    metadata:
+      name: mysql
+      description: MySQL 8.0 — ddd-house 主数据库
+      tags: [database, mysql]
+    spec:
+      type: database
+      lifecycle: production
+      owner: ddd-team
+      system: ddd-house
+    ---
+    apiVersion: backstage.io/v1alpha1
+    kind: Component
+    metadata:
+      name: keycloak
+      description: Keycloak 24.0 — OIDC 认证服务
+      tags: [auth, oidc]
+    spec:
+      type: service
+      lifecycle: production
+      owner: ddd-team
+      system: ddd-house
+    ---
+    apiVersion: backstage.io/v1alpha1
+    kind: Component
+    metadata:
+      name: otel-collector
+      description: OpenTelemetry Collector — 收集 traces/metrics，转发到 Tempo/Prometheus
+      tags: [observability, tracing]
+    spec:
+      type: service
+      lifecycle: production
+      owner: ddd-team
+      system: ddd-house
+    ---
+    apiVersion: backstage.io/v1alpha1
+    kind: Component
+    metadata:
+      name: tempo
+      description: Grafana Tempo — 分布式链路追踪存储
+      tags: [observability, tracing]
+      links:
+        - url: http://tempo.zouhang.com
+          title: Tempo UI
+    spec:
+      type: service
+      lifecycle: production
+      owner: ddd-team
+      system: ddd-house
+    ---
+    apiVersion: backstage.io/v1alpha1
+    kind: Component
+    metadata:
+      name: jaeger
+      description: Jaeger — 链路追踪查询
+      tags: [observability, tracing]
+      links:
+        - url: http://jaeger.zouhang.com
+          title: Jaeger UI
+    spec:
+      type: service
+      lifecycle: production
+      owner: ddd-team
+      system: ddd-house
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backstage
+  namespace: backstage
+  labels:
+    app: backstage
+spec:
+  selector:
+    app: backstage
+  ports:
+    - name: http
+      port: 80
+      targetPort: 7007
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backstage
+  namespace: backstage
+  labels:
+    app: backstage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backstage
+  template:
+    metadata:
+      labels:
+        app: backstage
+    spec:
+      containers:
+        - name: backstage
+          image: harbor.zouhang.com/library/ddd-house-backstage:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - node
+            - packages/backend
+            - --config
+            - app-config.yaml
+          ports:
+            - containerPort: 7007
+              name: http
+          volumeMounts:
+            - name: catalog
+              mountPath: /app/catalog
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 7007
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 7007
+            initialDelaySeconds: 120
+            periodSeconds: 30
+      volumes:
+        - name: catalog
+          configMap:
+            name: backstage-catalog
+        - name: data
+          emptyDir: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backstage
+  namespace: backstage
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: backstage.zouhang.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: backstage
+                port:
+                  number: 80

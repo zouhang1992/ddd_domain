@@ -1,0 +1,23 @@
+app:
+  baseUrl: http://backstage.zouhang.com
+
+backend:
+  baseUrl: http://backstage.zouhang.com
+  listen: ':7007'
+  database:
+    client: better-sqlite3
+    connection:
+      directory: /data
+  cors:
+    origin: http://backstage.zouhang.com
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+
+auth:
+  providers:
+    guest: {}
+
+catalog:
+  locations:
+    - type: file
+      target: ./catalog/ddd-house.yaml
