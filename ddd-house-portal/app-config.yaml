@@ -53,7 +53,8 @@ techdocs:
 
 auth:
   providers:
-    guest: {}
+    guest:
+      dangerouslyAllowOutsideDevelopment: true
 
 scaffolder: {}
 
