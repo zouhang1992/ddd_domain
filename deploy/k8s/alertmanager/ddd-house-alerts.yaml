@@ -12,81 +12,75 @@ spec:
         # ═══ 非 2XX 错误率告警 ═══
         - alert: HighErrorRate
           expr: |
-            (
+            clamp_max(
               sum(rate(http_requests_total{exported_job="ddd-house", status!~"2.."}[5m]))
               /
               sum(rate(http_requests_total{exported_job="ddd-house"}[5m]))
-            ) > 0.1
+            , 1) > 0.1
           for: 5m
           labels:
             severity: warning
           annotations:
-            summary: "{{ $labels.path }} 非 2XX 错误率超过 10%"
+            summary: "ddd-house 非 2XX 错误率超过 10%"
             description: |
-              路径: {{ $labels.path }}
               当前错误率: {{ $value | humanizePercentage }}
-              总请求数: {{ printf "%.0f" (query "sum(increase(http_requests_total{job=\"ddd-house\"}[5m]))") }} req/5min
 
         - alert: CriticalErrorRate
           expr: |
-            (
+            clamp_max(
               sum(rate(http_requests_total{exported_job="ddd-house", status!~"2.."}[5m]))
               /
               sum(rate(http_requests_total{exported_job="ddd-house"}[5m]))
-            ) > 0.25
+            , 1) > 0.25
           for: 3m
           labels:
             severity: critical
           annotations:
-            summary: "{{ $labels.path }} 非 2XX 错误率超过 25%"
+            summary: "ddd-house 非 2XX 错误率超过 25%"
             description: |
-              路径: {{ $labels.path }}
               当前错误率: {{ $value | humanizePercentage }}
-              总请求数: {{ printf "%.0f" (query "sum(increase(http_requests_total{job=\"ddd-house\"}[5m]))") }} req/5min
 
         # ═══ 5XX 服务端错误率告警 ═══
         - alert: HighServerErrorRate
           expr: |
-            (
+            clamp_max(
               sum(rate(http_requests_total{exported_job="ddd-house", status=~"5.."}[5m]))
               /
               sum(rate(http_requests_total{exported_job="ddd-house"}[5m]))
-            ) > 0.05
+            , 1) > 0.05
           for: 5m
           labels:
             severity: warning
           annotations:
-            summary: "{{ $labels.path }} 5XX 服务端错误率超过 5%"
+            summary: "ddd-house 5XX 服务端错误率超过 5%"
             description: |
-              路径: {{ $labels.path }}
               当前 5XX 错误率: {{ $value | humanizePercentage }}
 
         # ═══ 4XX 客户端错误率告警 ═══
         - alert: HighClientErrorRate
           expr: |
-            (
+            clamp_max(
               sum(rate(http_requests_total{exported_job="ddd-house", status=~"4.."}[5m]))
               /
               sum(rate(http_requests_total{exported_job="ddd-house"}[5m]))
-            ) > 0.15
+            , 1) > 0.15
           for: 5m
           labels:
             severity: warning
           annotations:
-            summary: "{{ $labels.path }} 4XX 客户端错误率超过 15%"
+            summary: "ddd-house 4XX 客户端错误率超过 15%"
             description: |
-              路径: {{ $labels.path }}
               当前 4XX 错误率: {{ $value | humanizePercentage }}
               通常由客户端请求参数错误或未授权引起
 
         # ═══ 服务不可用告警 (100% 非2XX) ═══
         - alert: ServiceDegraded
           expr: |
-            sum(rate(http_requests_total{exported_job="ddd-house"}[5m])) > 0
-            and
-            sum(rate(http_requests_total{exported_job="ddd-house", status!~"2.."}[5m]))
-            /
-            sum(rate(http_requests_total{exported_job="ddd-house"}[5m])) > 0.9
+            clamp_max(
+              sum(rate(http_requests_total{exported_job="ddd-house", status!~"2.."}[5m]))
+              /
+              sum(rate(http_requests_total{exported_job="ddd-house"}[5m]))
+            , 1) > 0.9
           for: 2m
           labels:
             severity: critical
