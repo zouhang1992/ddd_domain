@@ -70,6 +70,14 @@ metadata:
 data:
   ddd-house.yaml: |
     apiVersion: backstage.io/v1alpha1
+    kind: Group
+    metadata:
+      name: ddd-team
+    spec:
+      type: team
+      children: []
+    ---
+    apiVersion: backstage.io/v1alpha1
     kind: System
     metadata:
       name: ddd-house
